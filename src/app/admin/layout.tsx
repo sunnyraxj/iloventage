@@ -23,7 +23,7 @@ import {
   UserCircle,
   Shapes,
 } from 'lucide-react';
-import { NextBazaarLogo } from '@/components/icons';
+import { IloventagLogo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { usePathname } from 'next/navigation';
@@ -63,8 +63,8 @@ export default function AdminLayout({
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2">
-            <NextBazaarLogo className="size-6 text-primary" />
-            <span className="text-lg font-semibold">NextBazaar</span>
+            <IloventagLogo className="size-6 text-primary" />
+            <span className="text-lg font-semibold">ILOVENTAG</span>
           </div>
         </SidebarHeader>
         <SidebarContent>

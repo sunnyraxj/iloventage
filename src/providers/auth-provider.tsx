@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = (role: 'admin' | 'customer') => {
-    const email = role === 'admin' ? 'admin@nextbazaar.com' : 'customer@nextbazaar.com';
+    const email = role === 'admin' ? 'admin@iloventag.com' : 'customer@iloventag.com';
     const userToLogin = getUserByEmail(email);
     if (userToLogin) {
       setUser(userToLogin);

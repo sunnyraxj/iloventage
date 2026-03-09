@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { NextBazaarLogo } from '@/components/icons';
+import { IloventagLogo } from '@/components/icons';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -25,8 +25,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-secondary px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <NextBazaarLogo className="mx-auto h-12 w-12 text-primary" />
-          <CardTitle className="mt-4 text-2xl">Welcome to NextBazaar</CardTitle>
+          <IloventagLogo className="mx-auto h-12 w-12 text-primary" />
+          <CardTitle className="mt-4 text-2xl">Welcome to ILOVENTAG</CardTitle>
           <CardDescription>Select a role to log in to the demo.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col space-y-4">

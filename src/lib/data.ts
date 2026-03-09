@@ -128,8 +128,8 @@ export const products: Product[] = [
 ];
 
 export const users: User[] = [
-    { id: '1', name: 'Admin User', email: 'admin@nextbazaar.com', role: 'admin' },
-    { id: '2', name: 'Customer User', email: 'customer@nextbazaar.com', role: 'customer' },
+    { id: '1', name: 'Admin User', email: 'admin@iloventag.com', role: 'admin' },
+    { id: '2', name: 'Customer User', email: 'customer@iloventag.com', role: 'customer' },
 ];
 
 export const orders: Order[] = [

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Github, Twitter, Instagram } from 'lucide-react';
-import { NextBazaarLogo } from './icons';
+import { IloventagLogo } from './icons';
 
 export function Footer() {
   return (
@@ -9,8 +9,8 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="flex flex-col items-start">
             <Link href="/" className="mb-4 flex items-center space-x-2">
-              <NextBazaarLogo className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold">NextBazaar</span>
+              <IloventagLogo className="h-8 w-8 text-primary" />
+              <span className="text-xl font-bold">ILOVENTAG</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Modern e-commerce for the modern world.
@@ -52,7 +52,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} NextBazaar. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} ILOVENTAG. All rights reserved.</p>
         </div>
       </div>
     </footer>

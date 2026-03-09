@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
-import { NextBazaarLogo } from './icons';
+import { IloventagLogo } from './icons';
 
 const navLinks = [
   { href: '/products', label: 'All Products' },
@@ -48,9 +48,9 @@ export function Header() {
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <NextBazaarLogo className="h-6 w-6" />
+            <IloventagLogo className="h-6 w-6" />
             <span className="hidden font-bold sm:inline-block">
-              NextBazaar
+              ILOVENTAG
             </span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
@@ -79,8 +79,8 @@ export function Header() {
               href="/"
               className="mb-4 flex items-center space-x-2 px-4"
             >
-              <NextBazaarLogo className="h-6 w-6" />
-              <span className="font-bold">NextBazaar</span>
+              <IloventagLogo className="h-6 w-6" />
+              <span className="font-bold">ILOVENTAG</span>
             </Link>
             <div className="flex flex-col space-y-2">
               {navLinks.map((link) => (

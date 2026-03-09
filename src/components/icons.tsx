@@ -1,6 +1,6 @@
 import type { SVGProps } from "react";
 
-export function NextBazaarLogo(props: SVGProps<SVGSVGElement>) {
+export function IloventagLogo(props: SVGProps<SVGSVGElement>) {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
