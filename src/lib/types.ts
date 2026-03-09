@@ -1,4 +1,5 @@
 
+
 // From collections collection
 export type Category = {
     id: string;
@@ -17,7 +18,7 @@ export type ProductSize = {
 
 export type ProductVariant = {
     color: string;
-    imageUrls: (string | { value: string })[];
+    imageUrls: string[];
     sizes: ProductSize[];
 };
 

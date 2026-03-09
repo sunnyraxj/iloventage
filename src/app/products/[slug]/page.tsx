@@ -15,8 +15,9 @@ import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const getSafeUrl = (url: any): string | null => {
-    if (!url) return null;
-    return typeof url === 'string' ? url : url.value;
+    if (typeof url === 'string' && url) return url;
+    if (typeof url === 'object' && url !== null && typeof url.value === 'string' && url.value) return url.value;
+    return null;
 }
 
 export default function ProductPage() {

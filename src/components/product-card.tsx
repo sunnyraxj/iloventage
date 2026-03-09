@@ -16,8 +16,9 @@ interface ProductCardProps {
 }
 
 const getSafeUrl = (url: any): string => {
-  if (!url) return `https://picsum.photos/seed/${Math.random()}/600/800`;
-  return typeof url === 'string' ? url : url.value;
+  if (typeof url === 'string' && url) return url;
+  if (typeof url === 'object' && url !== null && typeof url.value === 'string' && url.value) return url.value;
+  return `https://picsum.photos/seed/${Math.random()}/600/800`;
 }
 
 export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", priority = false }: ProductCardProps) {
