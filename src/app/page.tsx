@@ -7,7 +7,6 @@ import { ProductCard } from '@/components/product-card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
-import { CategoryCard } from '@/components/category-card';
 
 export default function HomePage() {
   const featuredProducts = getFeaturedProducts();
@@ -48,9 +47,13 @@ export default function HomePage() {
             <h2 className="mb-8 text-center font-headline text-3xl font-bold">
               Shop by Category
             </h2>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-8">
+            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
               {categories.map((category) => (
-                <CategoryCard key={category.id} category={category} />
+                <Button key={category.id} variant="outline" size="lg" asChild>
+                  <Link href={`/categories/${category.slug}`}>
+                    {category.name}
+                  </Link>
+                </Button>
               ))}
             </div>
           </div>
