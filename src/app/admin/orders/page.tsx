@@ -17,9 +17,28 @@ import { Badge } from '@/components/ui/badge';
 import { getAllOrders } from '@/lib/data';
 import { format } from 'date-fns';
 import { OrderStatusChanger } from './components/OrderStatusChanger';
+import type { Order } from '@/lib/types';
 
 export default async function AdminOrdersPage() {
-    const orders = (await getAllOrders()).sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const statusOrder: Record<Order['orderStatus'], number> = {
+        'confirmed': 1,
+        'shipped': 2,
+        'delivered': 3,
+        'pending': 4,
+        'cancelled': 5,
+    };
+
+    const orders = (await getAllOrders()).sort((a, b) => {
+        const orderA = statusOrder[a.orderStatus] ?? 99;
+        const orderB = statusOrder[b.orderStatus] ?? 99;
+    
+        if (orderA !== orderB) {
+            return orderA - orderB;
+        }
+    
+        // If statuses are the same, sort by most recent
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   return (
     <Card>
