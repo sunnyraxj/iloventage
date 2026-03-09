@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { getProductBySlug } from '@/lib/data';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -14,8 +14,9 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-export default function ProductPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default function ProductPage() {
+  const params = useParams();
+  const slug = params.slug as string;
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -25,6 +26,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (!slug) return;
     const fetchProduct = async () => {
       setLoading(true);
       const fetchedProduct = await getProductBySlug(slug);
