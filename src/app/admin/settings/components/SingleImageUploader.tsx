@@ -57,8 +57,31 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
 
     } catch (error: any) {
       console.error("Image upload failed:", error);
-      const errorMessage = error.message || 'Could not upload image.';
-      toast({ variant: 'destructive', title: 'Upload failed', description: errorMessage });
+      
+      let errorMessage = 'Could not upload image.';
+      if (error.code) {
+          switch (error.code) {
+              case 'storage/unauthorized':
+                  errorMessage = `Permission denied. Please check your storage rules.`;
+                  break;
+              case 'storage/canceled':
+                  errorMessage = 'Upload was canceled.';
+                  break;
+              case 'storage/retry-limit-exceeded':
+                  errorMessage = 'Upload timed out. Please check your network connection.';
+                  break;
+              case 'storage/unauthenticated':
+                  errorMessage = `You must be logged in to upload images.`;
+                  break;
+              default:
+                  errorMessage = error.message;
+                  break;
+          }
+      } else if (error.message) {
+          errorMessage = error.message;
+      }
+
+      toast({ variant: 'destructive', title: 'Upload failed', description: errorMessage, duration: 9000 });
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {

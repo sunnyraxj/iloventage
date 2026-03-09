@@ -31,30 +31,55 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
-    const uploadedImages: { value: string }[] = [];
     
-    try {
-      for (const file of Array.from(files)) {
-        const fileId = short.generate();
-        const storageRef = ref(storage, `products/${fileId}-${file.name}`);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        uploadedImages.push({ value: downloadURL });
-      }
-      
-      append(uploadedImages);
+    for (const file of Array.from(files)) {
+        try {
+            const fileId = short.generate();
+            const storageRef = ref(storage, `products/${fileId}-${file.name}`);
+            await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(storageRef);
+            append({ value: downloadURL });
 
-      toast({ title: 'Upload successful', description: `${uploadedImages.length} image(s) uploaded.` });
-    } catch (error: any) {
-      console.error("Image upload failed:", error);
-      const errorMessage = error.message || 'An unknown error occurred during upload.';
-      toast({ variant: 'destructive', title: 'Upload failed', description: errorMessage });
-    } finally {
-      setIsUploading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+            toast({ title: 'Image Uploaded', description: `${file.name} uploaded successfully.` });
+        } catch (error: any) {
+            console.error(`Upload failed for ${file.name}:`, error);
+
+            let errorMessage = `Could not upload ${file.name}.`;
+            if (error.code) {
+                switch (error.code) {
+                    case 'storage/unauthorized':
+                        errorMessage = `Permission denied for ${file.name}. Please check your storage rules.`;
+                        break;
+                    case 'storage/canceled':
+                        errorMessage = `Upload for ${file.name} was canceled.`;
+                        break;
+                    case 'storage/retry-limit-exceeded':
+                        errorMessage = `Upload for ${file.name} timed out. Please check your network connection.`;
+                        break;
+                    case 'storage/unauthenticated':
+                        errorMessage = `You must be logged in to upload images.`;
+                        break;
+                    default:
+                        errorMessage = `For ${file.name}: ${error.message}`;
+                        break;
+                }
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            toast({ variant: 'destructive', title: 'Upload Failed', description: errorMessage, duration: 9000 });
+            // Stop on first error
+            setIsUploading(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+            return; 
+        }
+    }
+
+    setIsUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
