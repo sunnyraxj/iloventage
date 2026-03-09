@@ -56,11 +56,11 @@ export function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
         <div className="pt-2">
-          <h3 className="text-sm font-bold uppercase tracking-wider">{product.name}</h3>
+          <h3 className="text-[10px] font-bold uppercase tracking-wider">{product.name}</h3>
           <div className="flex items-baseline justify-center gap-2 md:justify-start">
-            <p className="font-semibold text-foreground">RS. {product.price.toFixed(2)}</p>
+            <p className="text-xs font-semibold text-foreground">RS. {product.price.toFixed(2)}</p>
             {product.originalPrice && (
-              <p className="text-xs text-muted-foreground line-through">
+              <p className="text-[10px] text-muted-foreground line-through">
                 RS. {product.originalPrice.toFixed(2)}
               </p>
             )}
