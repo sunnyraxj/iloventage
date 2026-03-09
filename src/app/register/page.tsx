@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,10 +10,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ShoppingBag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const GoogleIcon = () => <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 111.8 512 0 400.2 0 261.8 0 123.8 111.8 12.8 244 12.8c70.3 0 129.8 27.8 174.4 72.4l-69.3 69.3c-24-22.5-54.8-36.4-90.1-36.4-69.1 0-125.7 56.5-125.7 125.7s56.5 125.7 125.7 125.7c81.5 0 114.8-55.8 119.5-84.2H244v-85.7h244z"></path></svg>;
 
-export default function RegisterPage() {
+function RegisterContent() {
   const { user, signup, signInWithGoogle, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -88,27 +89,14 @@ export default function RegisterPage() {
 
   if (authLoading || user) {
     return (
-        <div className="flex min-h-screen items-center justify-center">
-            <p>Loading...</p>
-        </div>
-    );
-  }
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary px-4">
-      <Card className="w-full max-w-sm">
-        <form onSubmit={handleSignup}>
+        <Card className="w-full max-w-sm">
             <CardHeader className="text-center">
-            <ShoppingBag className="mx-auto h-12 w-12 text-primary" />
-            <CardTitle className="mt-4 text-2xl">Create an Account</CardTitle>
-            <CardDescription>Join our community and start shopping.</CardDescription>
+                <ShoppingBag className="mx-auto h-12 w-12 text-primary" />
+                <CardTitle className="mt-4 text-2xl">Loading...</CardTitle>
+                <CardDescription>Please wait while we check your session.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <Button variant="outline" type="button" className="w-full" onClick={handleGoogleLogin} disabled={isLoading || authLoading}>
-                    <GoogleIcon />
-                    Sign up with Google
-                </Button>
-
+                <Skeleton className="h-10 w-full" />
                 <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                         <span className="w-full border-t" />
@@ -117,33 +105,121 @@ export default function RegisterPage() {
                         <span className="bg-background px-2 text-muted-foreground">Or</span>
                     </div>
                 </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" placeholder="John Doe" required value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} />
+                 <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-full" />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading}/>
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-full" />
                 </div>
                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading}/>
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-full" />
                 </div>
             </CardContent>
             <CardFooter className="flex-col gap-4">
-                 <Button type="submit" className="w-full" disabled={isLoading || authLoading}>
-                    {isLoading ? 'Creating Account...' : 'Create Account'}
-                </Button>
-                <p className="text-xs text-center text-muted-foreground">
-                    Already have an account?{' '}
-                    <Link href="/login" className="text-primary hover:underline">
-                        Log in
-                    </Link>
-                </p>
+                 <Skeleton className="h-10 w-full" />
+                 <Skeleton className="h-4 w-full" />
             </CardFooter>
-        </form>
       </Card>
-    </div>
+    );
+  }
+
+  return (
+    <Card className="w-full max-w-sm">
+      <form onSubmit={handleSignup}>
+          <CardHeader className="text-center">
+          <ShoppingBag className="mx-auto h-12 w-12 text-primary" />
+          <CardTitle className="mt-4 text-2xl">Create an Account</CardTitle>
+          <CardDescription>Join our community and start shopping.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+              <Button variant="outline" type="button" className="w-full" onClick={handleGoogleLogin} disabled={isLoading || authLoading}>
+                  <GoogleIcon />
+                  Sign up with Google
+              </Button>
+
+              <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">Or</span>
+                  </div>
+              </div>
+
+              <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input id="name" placeholder="John Doe" required value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} />
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading}/>
+              </div>
+               <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading}/>
+              </div>
+          </CardContent>
+          <CardFooter className="flex-col gap-4">
+               <Button type="submit" className="w-full" disabled={isLoading || authLoading}>
+                  {isLoading ? 'Creating Account...' : 'Create Account'}
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                  Already have an account?{' '}
+                  <Link href="/login" className="text-primary hover:underline">
+                      Log in
+                  </Link>
+              </p>
+          </CardFooter>
+      </form>
+    </Card>
   );
+}
+
+export default function RegisterPage() {
+    const loadingSkeleton = (
+        <Card className="w-full max-w-sm">
+            <CardHeader className="text-center">
+                <ShoppingBag className="mx-auto h-12 w-12 text-primary" />
+                <CardTitle className="mt-4 text-2xl">Create an Account</CardTitle>
+                <CardDescription>Join our community and start shopping.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">Or</span>
+                    </div>
+                </div>
+                 <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                 <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+            </CardContent>
+            <CardFooter className="flex-col gap-4">
+                 <Skeleton className="h-10 w-full" />
+                 <Skeleton className="h-4 w-full" />
+            </CardFooter>
+      </Card>
+    );
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-secondary px-4">
+           <Suspense fallback={loadingSkeleton}>
+                <RegisterContent />
+           </Suspense>
+        </div>
+    );
 }
