@@ -21,6 +21,7 @@ export type Product = {
   originalPrice?: number;
   images: string[];
   category: string;
+  gender: 'male' | 'female' | 'unisex';
   stock: number;
   featured: boolean;
   keywords: string[];

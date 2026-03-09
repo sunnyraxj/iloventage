@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { Product } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DescriptionGenerator } from './description-generator';
@@ -40,6 +41,7 @@ const productFormSchema = z.object({
   category: z.string({
     required_error: 'Please enter a category.',
   }),
+  gender: z.enum(['male', 'female', 'unisex'], { required_error: "Please select a gender." }),
   keywords: z.string().optional(),
   images: z.array(z.string()).optional().default([]),
   slug: z.string().optional(),
@@ -65,6 +67,7 @@ export function ProductForm({ product }: ProductFormProps) {
         category: '', // Will be set in useEffect
         keywords: product.keywords?.join(', ') || '',
         images: product.images || [],
+        gender: product.gender || 'unisex',
       }
     : {
         name: '',
@@ -72,6 +75,7 @@ export function ProductForm({ product }: ProductFormProps) {
         price: 0,
         stock: 0,
         category: '',
+        gender: 'unisex',
         keywords: '',
         images: [],
         slug: '',
@@ -171,7 +175,7 @@ export function ProductForm({ product }: ProductFormProps) {
         
         <DescriptionGenerator form={form} />
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           <FormField
             control={form.control}
             name="price"
@@ -214,6 +218,48 @@ export function ProductForm({ product }: ProductFormProps) {
               </FormItem>
             )}
           />
+            <FormField
+            control={form.control}
+            name="gender"
+            render={({ field }) => (
+                <FormItem className="space-y-3">
+                <FormLabel>Gender</FormLabel>
+                <FormControl>
+                    <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex items-center space-x-4"
+                    >
+                    <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                        <RadioGroupItem value="male" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                        Male
+                        </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                        <RadioGroupItem value="female" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                        Female
+                        </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                        <RadioGroupItem value="unisex" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                        Unisex
+                        </FormLabel>
+                    </FormItem>
+                    </RadioGroup>
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
         </div>
 
         <Button type="submit" disabled={isLoading}>{isLoading ? 'Saving...' : (product ? 'Update Product' : 'Create Product')}</Button>
