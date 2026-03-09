@@ -30,7 +30,7 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div className="group text-center md:text-left">
+    <div className="group">
       <Link href={`/products/${product.slug}`} className="block">
         <div className="relative overflow-hidden rounded-md">
           {productImage && (
@@ -55,9 +55,9 @@ export function ProductCard({ product }: ProductCardProps) {
             </Button>
           )}
         </div>
-        <div className="pt-2">
-          <h3 className="text-[10px] font-bold uppercase tracking-wider">{product.name}</h3>
-          <div className="flex items-baseline justify-center gap-2 md:justify-start">
+        <div className="pt-2 text-right">
+          <h3 className="text-[10px] font-bold uppercase tracking-wider h-6 line-clamp-2">{product.name}</h3>
+          <div className="flex items-baseline justify-end gap-2">
             <p className="text-xs font-semibold text-foreground">RS. {product.price.toFixed(2)}</p>
             {product.originalPrice && (
               <p className="text-[10px] text-muted-foreground line-through">
