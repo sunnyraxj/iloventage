@@ -22,7 +22,8 @@ export function OrderStatusSelector({ orderId, currentStatus }: OrderStatusSelec
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     
-    const orderStatuses: Order['orderStatus'][] = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+    const allOrderStatuses: Order['orderStatus'][] = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+    const adminSelectableStatuses: Order['orderStatus'][] = ['shipped', 'delivered'];
 
     const handleStatusChange = async (newStatus: Order['orderStatus']) => {
         setIsLoading(true);
@@ -42,8 +43,15 @@ export function OrderStatusSelector({ orderId, currentStatus }: OrderStatusSelec
                 <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-                {orderStatuses.map(s => (
-                    <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                {allOrderStatuses.map(s => (
+                    <SelectItem 
+                        key={s} 
+                        value={s} 
+                        className="capitalize"
+                        disabled={!adminSelectableStatuses.includes(s)}
+                    >
+                        {s}
+                    </SelectItem>
                 ))}
             </SelectContent>
         </Select>

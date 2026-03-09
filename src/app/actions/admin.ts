@@ -6,8 +6,8 @@ import { revalidatePath } from 'next/cache';
 
 export async function updateOrderStatus(orderId: string, status: string) {
     try {
-        if (!['confirmed', 'shipped', 'delivered', 'cancelled', 'pending'].includes(status)) {
-            throw new Error('Invalid status value.');
+        if (!['shipped', 'delivered'].includes(status)) {
+            throw new Error('Admins can only update status to "shipped" or "delivered".');
         }
 
         const orderRef = doc(db, 'orders', orderId);
