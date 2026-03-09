@@ -13,8 +13,10 @@ import { Label } from '@/components/ui/label';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { initiatePayment, verifyAndCreateOrder } from '@/app/actions/payment';
-import { getAppSettings } from '@/lib/data';
-import type { AppSettings, UserAddress, OrderAddress } from '@/lib/types';
+import type { UserAddress, OrderAddress } from '@/lib/types';
+
+const FREE_SHIPPING_THRESHOLD = 1000;
+const BELOW_THRESHOLD_RATE = 50;
 
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
@@ -22,7 +24,6 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [shippingInfo, setShippingInfo] = useState<OrderAddress>({
       name: '',
       mobile: '',
@@ -38,7 +39,6 @@ export default function CheckoutPage() {
     if (items.length === 0) {
       router.push('/cart');
     }
-    getAppSettings().then(setSettings);
   }, [items, router]);
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function CheckoutPage() {
     setSelectedAddressId(address.id);
   }
 
-  const shippingCost = settings && totalPrice > settings.shippingSettings.freeShippingThreshold ? 0 : settings?.shippingSettings.belowThresholdRate || 0;
+  const shippingCost = totalPrice > FREE_SHIPPING_THRESHOLD ? 0 : BELOW_THRESHOLD_RATE;
   const finalTotal = totalPrice + shippingCost;
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
@@ -103,7 +103,7 @@ export default function CheckoutPage() {
             key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
             amount: razorpayOrder.amount,
             currency: razorpayOrder.currency,
-            name: settings?.storeDetails.name || "My Store",
+            name: "My Store",
             description: "Order Payment",
             order_id: razorpayOrder.id,
             handler: async function (response: any) {

@@ -30,25 +30,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
-import { getAppSettings, getCategories } from '@/lib/data';
-import type { AppSettings, Category } from '@/lib/types';
+import { getCategories } from '@/lib/data';
+import type { Category } from '@/lib/types';
 
 export function Header() {
   const { user, logout } = useAuth();
   const { items } = useCart();
   const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
   const [hasMounted, setHasMounted] = useState(false);
-  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     setHasMounted(true);
     const fetchInitialData = async () => {
-        const [appSettings, appCategories] = await Promise.all([
-            getAppSettings(),
-            getCategories()
-        ]);
-        setSettings(appSettings);
+        const appCategories = await getCategories();
         setCategories(appCategories);
     }
     fetchInitialData();
@@ -86,11 +81,9 @@ export function Header() {
             </Sheet>
           )}
           <Link href="/" className="flex items-center space-x-2">
-            {settings?.storeDetails.logoUrl ? (
-                <Image src={settings.storeDetails.logoUrl} alt={settings.storeDetails.name} width={32} height={32} />
-            ) : <div className="h-8 w-8 bg-muted rounded-full" />}
+            <div className="h-8 w-8 bg-muted rounded-full" />
             <span className="hidden font-bold sm:inline-block text-lg">
-              {settings?.storeDetails.name || "My Store"}
+              My Store
             </span>
           </Link>
         </div>

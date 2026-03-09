@@ -14,7 +14,7 @@ import {
     Timestamp,
   } from 'firebase/firestore';
 import { db } from '@/firebase/config';
-import type { Product, Category, User, Order, UserAddress, AppSettings, OrderItem, OrderAddress } from './types';
+import type { Product, Category, User, Order, UserAddress, OrderItem, OrderAddress } from './types';
   
 const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
@@ -41,17 +41,6 @@ function docToType<T>(doc: DocumentData): T {
     return result as T;
 }
   
-// --- Settings Functions ---
-export const getAppSettings = async (): Promise<AppSettings | null> => {
-    const settingsRef = doc(db, 'settings', 'store');
-    const settingsSnap = await getDoc(settingsRef);
-    if (!settingsSnap.exists()) {
-        console.error("Store settings not found in Firestore.");
-        return null;
-    }
-    return settingsSnap.data() as AppSettings;
-}
-
 // --- Product Functions ---
 export const getProducts = async (): Promise<Product[]> => {
     const productsCol = collection(db, 'products');

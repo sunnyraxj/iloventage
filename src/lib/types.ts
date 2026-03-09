@@ -1,30 +1,4 @@
 
-// From settings collection
-export type StoreDetails = {
-    name: string;
-    email: string;
-    phone: string;
-    phone2?: string;
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-    logoUrl: string;
-    heroImageUrl: string;
-    instagramUrl?: string;
-    whatsappGroupUrl?: string;
-};
-
-export type ShippingSettings = {
-    belowThresholdRate: number;
-    freeShippingThreshold: number;
-};
-
-export type AppSettings = {
-    storeDetails: StoreDetails;
-    shippingSettings: ShippingSettings;
-};
-
 
 // From collections collection
 export type Category = {

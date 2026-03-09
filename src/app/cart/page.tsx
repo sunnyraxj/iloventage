@@ -9,19 +9,14 @@ import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
-import { getAppSettings } from '@/lib/data';
-import { useEffect, useState } from 'react';
-import type { AppSettings } from '@/lib/types';
+
+const FREE_SHIPPING_THRESHOLD = 1000;
+const BELOW_THRESHOLD_RATE = 50;
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, totalPrice } = useCart();
-  const [settings, setSettings] = useState<AppSettings | null>(null);
 
-  useEffect(() => {
-    getAppSettings().then(setSettings);
-  }, []);
-
-  const shippingCost = settings && totalPrice > settings.shippingSettings.freeShippingThreshold ? 0 : settings?.shippingSettings.belowThresholdRate || 0;
+  const shippingCost = totalPrice > FREE_SHIPPING_THRESHOLD ? 0 : BELOW_THRESHOLD_RATE;
   const finalTotal = totalPrice + shippingCost;
 
 
