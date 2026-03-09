@@ -54,21 +54,25 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
   };
 
   const handleRemoveImage = async (index: number) => {
-    try {
-        const urlToRemove = getValues(`variants.${variantIndex}.imageUrls`)[index].value;
+    const urlToRemove = getValues(`variants.${variantIndex}.imageUrls`)[index].value;
+
+    const isFirebaseUrl = urlToRemove.includes('firebasestorage.googleapis.com') || urlToRemove.includes('storage.googleapis.com');
+
+    if (isFirebaseUrl) {
+      try {
         const imageRef = ref(storage, urlToRemove);
         await deleteObject(imageRef);
-        remove(index);
-        toast({ title: 'Image removed' });
-    } catch(error: any) {
-        // If it's a new upload not yet saved, it might not exist in storage yet, so we can ignore delete errors
-         if (error.code === 'storage/object-not-found') {
-            remove(index);
-         } else {
-            console.error("Failed to delete image from storage:", error);
-            toast({ variant: 'destructive', title: 'Deletion failed', description: 'Could not remove image from cloud storage.' });
-         }
+      } catch (error: any) {
+        if (error.code !== 'storage/object-not-found') {
+          console.error("Failed to delete image from storage:", error);
+          toast({ variant: 'destructive', title: 'Deletion failed', description: 'Could not remove image from cloud storage.' });
+          return;
+        }
+      }
     }
+    
+    remove(index);
+    toast({ title: 'Image removed' });
   };
 
   return (

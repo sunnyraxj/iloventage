@@ -32,7 +32,7 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
     setIsUploading(true);
 
     const currentImageUrl = getValues(fieldName);
-    if (currentImageUrl) {
+    if (currentImageUrl && (currentImageUrl.includes('firebasestorage.googleapis.com') || currentImageUrl.includes('storage.googleapis.com'))) {
         try {
             const imageRef = ref(storage, currentImageUrl);
             await deleteObject(imageRef);
@@ -65,19 +65,23 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
     const urlToRemove = getValues(fieldName);
     if (!urlToRemove) return;
 
-    try {
-        const imageRef = ref(storage, urlToRemove);
-        await deleteObject(imageRef);
-        setValue(fieldName, '', { shouldValidate: true, shouldDirty: true });
-        toast({ title: 'Image removed' });
-    } catch(error: any) {
-         if (error.code === 'storage/object-not-found') {
-            setValue(fieldName, '', { shouldValidate: true, shouldDirty: true });
-         } else {
-            console.error("Failed to delete image from storage:", error);
-            toast({ variant: 'destructive', title: 'Deletion failed', description: 'Could not remove image from cloud storage.' });
-         }
+    const isFirebaseUrl = urlToRemove.includes('firebasestorage.googleapis.com') || urlToRemove.includes('storage.googleapis.com');
+
+    if (isFirebaseUrl) {
+      try {
+          const imageRef = ref(storage, urlToRemove);
+          await deleteObject(imageRef);
+      } catch(error: any) {
+          if (error.code !== 'storage/object-not-found') {
+              console.error("Failed to delete image from storage:", error);
+              toast({ variant: 'destructive', title: 'Deletion failed', description: 'Could not remove image from cloud storage.' });
+              return;
+          }
+      }
     }
+    
+    setValue(fieldName, '', { shouldValidate: true, shouldDirty: true });
+    toast({ title: 'Image removed' });
   };
 
   return (
