@@ -58,16 +58,16 @@ export default async function HomePage() {
             <h2 className="mb-8 text-center font-headline text-3xl font-bold">
               Shop by Category
             </h2>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+            <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 md:grid md:grid-cols-4 md:gap-6 md:mx-0 md:px-0 md:pb-0">
               {categories.map((category) => (
-                <Link key={category.id} href={`/categories/${category.slug}`} className="group relative block overflow-hidden rounded-lg">
+                <Link key={category.id} href={`/categories/${category.slug}`} className="group relative block overflow-hidden rounded-lg flex-shrink-0 w-[28vw] md:w-auto">
                   <div className="aspect-square w-full">
                     <Image
                       src={category.imageUrl || '/placeholder.svg'}
                       alt={category.name}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      sizes="(max-width: 767px) 50vw, 25vw"
+                      sizes="(max-width: 767px) 28vw, 25vw"
                     />
                   </div>
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-colors group-hover:bg-black/50">
