@@ -31,9 +31,9 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 return;
             }
             // For guest checkout, anyone with the link can view.
-            // For logged-in users, check if it's their order.
-            if (fetchedOrder.userId && (!user || fetchedOrder.userId !== user.id)) {
-                router.push('/login'); // Or a generic not-found/access-denied
+            // For logged-in users, check if it's their order OR if the user is an admin.
+            if (user?.role !== 'admin' && fetchedOrder.userId && (!user || fetchedOrder.userId !== user.id)) {
+                router.push('/login?redirect=/dashboard'); 
                 return;
             }
             setOrder(fetchedOrder);
