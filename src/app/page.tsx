@@ -63,7 +63,7 @@ export default async function HomePage() {
                 <Link key={category.id} href={`/categories/${category.slug}`} className="group relative block overflow-hidden rounded-lg flex-shrink-0 w-[28vw] md:w-auto">
                   <div className="aspect-square w-full">
                     <Image
-                      src={category.imageUrl || '/placeholder.svg'}
+                      src={category.imageUrl || `https://picsum.photos/seed/${category.id}/400/400`}
                       alt={category.name}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"

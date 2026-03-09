@@ -28,6 +28,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import type { Product } from '@/lib/types';
 
+const getSafeImageUrl = (url: any, productId: string): string => {
+    if (typeof url === 'string' && url) return url;
+    if (typeof url === 'object' && url !== null && typeof url.value === 'string' && url.value) return url.value;
+    return `https://picsum.photos/seed/${productId}/64/64`;
+};
+
 export default async function AdminProductsPage() {
     const products = await getAllProducts();
 
@@ -77,7 +83,7 @@ export default async function AdminProductsPage() {
                                 alt={product.name}
                                 className="aspect-square rounded-md object-cover"
                                 height="64"
-                                src={product.variants?.[0]?.imageUrls?.[0] || '/placeholder.svg'}
+                                src={getSafeImageUrl(product.variants?.[0]?.imageUrls?.[0], product.id)}
                                 width="64"
                             />
                         </TableCell>

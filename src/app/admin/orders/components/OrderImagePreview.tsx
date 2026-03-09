@@ -23,7 +23,7 @@ export function OrderImagePreview({ item }: OrderImagePreviewProps) {
             alt={item.name}
             className="aspect-square rounded-md object-cover cursor-pointer"
             height="64"
-            src={item.imageUrl || '/placeholder.svg'}
+            src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
             width="64"
         />
       </DialogTrigger>
@@ -35,7 +35,7 @@ export function OrderImagePreview({ item }: OrderImagePreviewProps) {
         <div className="relative aspect-square w-full">
             <Image
                 alt={item.name}
-                src={item.imageUrl || '/placeholder.svg'}
+                src={item.imageUrl || `https://picsum.photos/seed/${item.id}/500/500`}
                 fill
                 className="object-contain"
             />

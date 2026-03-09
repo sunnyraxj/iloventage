@@ -93,7 +93,7 @@ export default function ProductPage() {
         stock: selectedSize.stock,
         quantity: quantity,
         moq: product.moq,
-        imageUrl: cartImageUrl || '/placeholder.svg'
+        imageUrl: cartImageUrl || `https://picsum.photos/seed/${product.id}/200/200`
     };
 
     addItem(cartItem);
@@ -152,7 +152,7 @@ export default function ProductPage() {
             <div className="grid grid-cols-1 gap-4">
                 <div className="aspect-square w-full overflow-hidden rounded-lg">
                     <Image
-                        src={selectedImageUrl || '/placeholder.svg'}
+                        src={selectedImageUrl || `https://picsum.photos/seed/${product.id}/800/800`}
                         alt={`${product.name} - ${selectedVariant?.color}`}
                         width={800}
                         height={800}
