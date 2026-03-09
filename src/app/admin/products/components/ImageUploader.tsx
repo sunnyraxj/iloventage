@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
   });
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
-  const fileInputRef = useState<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -98,7 +98,6 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
         <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed rounded-md cursor-pointer hover:bg-accent hover:border-primary transition-colors">
           {isUploading ? <Loader2 className="h-8 w-8 animate-spin" /> : <Upload className="h-8 w-8 text-muted-foreground" />}
           <Input 
-            // @ts-ignore
             ref={fileInputRef}
             type="file" 
             className="hidden" 
