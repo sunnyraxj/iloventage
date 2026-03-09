@@ -29,6 +29,8 @@ import {
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
 import { IloventagLogo } from './icons';
+import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/products', label: 'All Products' },
@@ -42,18 +44,67 @@ export function Header() {
   const { user, logout } = useAuth();
   const { items } = useCart();
   const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
-        <div className="mr-4 hidden md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
+    <header className={cn(
+      "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300",
+      isScrolled ? "h-16" : "h-24"
+    )}>
+      <div className="container flex h-full items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="pr-0 sm:max-w-xs">
+              <SheetTitle>Menu</SheetTitle>
+              <Link
+                href="/"
+                className="mb-4 flex items-center space-x-2 px-4"
+              >
+                <IloventagLogo className="h-6 w-6" />
+                <span className="font-bold">ILOVENTAG</span>
+              </Link>
+              <div className="flex flex-col space-y-2">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="px-4 py-2 text-sm font-medium hover:bg-accent"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+          <Link href="/" className="flex items-center space-x-2">
             <IloventagLogo className="h-6 w-6" />
             <span className="hidden font-bold sm:inline-block">
               ILOVENTAG
             </span>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
+        </div>
+
+        <nav className={cn(
+            "hidden items-center space-x-6 text-sm font-medium transition-opacity md:flex",
+            isScrolled && "opacity-0 pointer-events-none"
+          )}>
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -63,41 +114,13 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-          </nav>
-        </div>
-
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle Menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="pr-0 sm:max-w-xs">
-            <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
-            <Link
-              href="/"
-              className="mb-4 flex items-center space-x-2 px-4"
-            >
-              <IloventagLogo className="h-6 w-6" />
-              <span className="font-bold">ILOVENTAG</span>
-            </Link>
-            <div className="flex flex-col space-y-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="px-4 py-2 text-sm font-medium hover:bg-accent"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </SheetContent>
-        </Sheet>
+        </nav>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
+          <div className={cn(
+            "w-full flex-1 md:w-auto md:flex-none transition-opacity",
+             isScrolled && "opacity-0 pointer-events-none hidden"
+          )}>
             <form>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
