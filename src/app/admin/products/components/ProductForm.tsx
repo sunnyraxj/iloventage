@@ -189,7 +189,7 @@ export function ProductForm({ product, categories, categoryName }: ProductFormPr
                                         <FormItem>
                                             <FormLabel>Category</FormLabel>
                                             <FormControl>
-                                                <>
+                                                <div>
                                                     <Input
                                                         placeholder="Select or create a category"
                                                         {...field}
@@ -198,7 +198,7 @@ export function ProductForm({ product, categories, categoryName }: ProductFormPr
                                                     <datalist id="category-list">
                                                         {categories.map(c => <option key={c.id} value={c.name} />)}
                                                     </datalist>
-                                                </>
+                                                </div>
                                             </FormControl>
                                             <FormDescription>Type to create a new category or select from the list.</FormDescription>
                                             <FormMessage />
