@@ -55,9 +55,10 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
       setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });
       toast({ title: 'Upload successful', description: 'Image has been uploaded.' });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Image upload failed:", error);
-      toast({ variant: 'destructive', title: 'Upload failed', description: 'Could not upload image.' });
+      const errorMessage = error.message || 'Could not upload image.';
+      toast({ variant: 'destructive', title: 'Upload failed', description: errorMessage });
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {

@@ -31,24 +31,24 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
+    const uploadedImages: { value: string }[] = [];
     
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
+      for (const file of Array.from(files)) {
         const fileId = short.generate();
         const storageRef = ref(storage, `products/${fileId}-${file.name}`);
         await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(storageRef);
-        return { value: downloadURL };
-      });
+        uploadedImages.push({ value: downloadURL });
+      }
       
-      const uploadedImages = await Promise.all(uploadPromises);
-
       append(uploadedImages);
 
       toast({ title: 'Upload successful', description: `${uploadedImages.length} image(s) uploaded.` });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Image upload failed:", error);
-      toast({ variant: 'destructive', title: 'Upload failed', description: 'Could not upload images.' });
+      const errorMessage = error.message || 'An unknown error occurred during upload.';
+      toast({ variant: 'destructive', title: 'Upload failed', description: errorMessage });
     } finally {
       setIsUploading(false);
       // Reset file input
