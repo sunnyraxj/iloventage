@@ -24,9 +24,10 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash2, PlusCircle } from "lucide-react"
+import { Trash2, PlusCircle, Loader2 } from "lucide-react"
 import type { Product, Category } from "@/lib/types"
 import { upsertProduct } from "@/app/actions/products"
+import { createCategory } from "@/app/actions/categories"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -66,6 +67,8 @@ export function ProductForm({ product, categories, categoryName }: ProductFormPr
     const { toast } = useToast();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [allCategories, setAllCategories] = useState<Category[]>(categories);
+    const [isAddingCategory, setIsAddingCategory] = useState(false);
 
     const defaultValues: Partial<ProductFormValues> = product ? {
         ...product,
@@ -105,6 +108,31 @@ export function ProductForm({ product, categories, categoryName }: ProductFormPr
         control: form.control,
         name: "additionalDetails",
     });
+
+    async function handleAddCategory(newCategoryName: string) {
+        if (!newCategoryName || newCategoryName.trim() === '') {
+            toast({ variant: 'destructive', title: 'Error', description: 'Please type a category name to add.' });
+            return;
+        }
+
+        setIsAddingCategory(true);
+        try {
+            const result = await createCategory(newCategoryName);
+            if (result.success && result.category) {
+                toast({ title: 'Success', description: `Category "${result.category.name}" created.` });
+                setAllCategories(prev => [...prev, result.category as Category]);
+                form.setValue('categoryName', result.category.name, { shouldValidate: true });
+            } else {
+                toast({ variant: 'destructive', title: 'Error', description: result.message });
+            }
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Error', description: "An unexpected error occurred while adding the category." });
+        } finally {
+            setIsAddingCategory(false);
+        }
+    }
+
 
     async function onSubmit(data: ProductFormValues) {
         setIsSubmitting(true);
@@ -188,19 +216,24 @@ export function ProductForm({ product, categories, categoryName }: ProductFormPr
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Category</FormLabel>
-                                            <FormControl>
-                                                <div>
-                                                    <Input
-                                                        placeholder="Select or create a category"
-                                                        {...field}
-                                                        list="category-list"
-                                                    />
-                                                    <datalist id="category-list">
-                                                        {categories.map(c => <option key={c.id} value={c.name} />)}
-                                                    </datalist>
-                                                </div>
-                                            </FormControl>
-                                            <FormDescription>Type to create a new category or select from the list.</FormDescription>
+                                            <div className="flex items-center gap-2">
+                                                <FormControl>
+                                                    <div className="w-full">
+                                                        <Input
+                                                            placeholder="Select or create a category"
+                                                            {...field}
+                                                            list="category-list"
+                                                        />
+                                                        <datalist id="category-list">
+                                                            {allCategories.map(c => <option key={c.id} value={c.name} />)}
+                                                        </datalist>
+                                                    </div>
+                                                </FormControl>
+                                                <Button type="button" size="icon" onClick={() => handleAddCategory(field.value)} disabled={isAddingCategory}>
+                                                    {isAddingCategory ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlusCircle className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
+                                            <FormDescription>Select a category or type a new one and click '+' to add.</FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -224,7 +257,7 @@ export function ProductForm({ product, categories, categoryName }: ProductFormPr
                         </Card>
                     </div>
                 </div>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting || isAddingCategory}>
                     {isSubmitting ? 'Saving...' : (product ? 'Save Changes' : 'Create Product')}
                 </Button>
             </form>
