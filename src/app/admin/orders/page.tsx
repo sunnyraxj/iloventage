@@ -21,24 +21,10 @@ import {
     SelectValue,
   } from '@/components/ui/select';
 import { getOrders } from '@/lib/data';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
-export default function AdminOrdersPage() {
-  const orders = getOrders();
-
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'Shipped':
-        return 'default';
-      case 'Delivered':
-        return 'secondary';
-      case 'Cancelled':
-          return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
+export default async function AdminOrdersPage() {
+  const orders = await getOrders();
 
   return (
     <Card>
@@ -60,7 +46,7 @@ export default function AdminOrdersPage() {
           <TableBody>
             {orders.map((order) => (
               <TableRow key={order.id}>
-                <TableCell className="font-medium">{order.id}</TableCell>
+                <TableCell className="font-medium">{order.id.substring(0, 8)}...</TableCell>
                 <TableCell>{order.shippingAddress.name}</TableCell>
                 <TableCell>{format(new Date(order.createdAt), 'PP')}</TableCell>
                 <TableCell>

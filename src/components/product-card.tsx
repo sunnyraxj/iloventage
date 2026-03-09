@@ -6,7 +6,6 @@ import { Plus } from 'lucide-react';
 
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,7 +16,6 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
-  const productImage = PlaceHolderImages.find((img) => img.id === product.images[0]);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -33,15 +31,18 @@ export function ProductCard({ product }: ProductCardProps) {
     <div className="group">
       <Link href={`/products/${product.slug}`} className="block">
         <div className="relative overflow-hidden rounded-md">
-          {productImage && (
+          {product.images && product.images.length > 0 ? (
             <Image
-              src={productImage.imageUrl}
+              src={product.images[0]}
               alt={product.name}
-              data-ai-hint={productImage.imageHint}
               width={600}
               height={800}
               className="aspect-[3/4] w-full object-cover"
             />
+          ) : (
+            <div className="aspect-[3/4] w-full bg-secondary flex items-center justify-center">
+              <span className="text-xs text-muted-foreground">No Image</span>
+            </div>
           )}
           {product.stock > 0 && (
             <Button

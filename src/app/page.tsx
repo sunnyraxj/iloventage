@@ -8,9 +8,9 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 
-export default function HomePage() {
-  const featuredProducts = getFeaturedProducts();
-  const categories = getCategories();
+export default async function HomePage() {
+  const featuredProducts = await getFeaturedProducts();
+  const categories = await getCategories();
   const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-image');
 
   return (

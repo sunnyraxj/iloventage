@@ -20,8 +20,8 @@ import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-export default function AdminProductsPage() {
-    const products = getProducts();
+export default async function AdminProductsPage() {
+    const products = await getProducts();
 
   return (
     <Card>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { notFound } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { getOrderById } from '@/lib/data';
@@ -11,15 +12,38 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { CheckCircle, Circle, Package, Truck } from 'lucide-react';
+import { CheckCircle, Circle, Package } from 'lucide-react';
 import { format } from 'date-fns';
+import type { Order } from '@/lib/types';
 
 export default function OrderDetailsPage({ params }: { params: { id: string } }) {
-    const { user } = useAuth();
-    const order = getOrderById(params.id);
+    const { user, loading: authLoading } = useAuth();
+    const [order, setOrder] = useState<Order | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    if (!order || order.userId !== user?.id) {
+    useEffect(() => {
+        if (!authLoading && user) {
+            const fetchOrder = async () => {
+                setLoading(true);
+                const fetchedOrder = await getOrderById(params.id);
+                if (!fetchedOrder || fetchedOrder.userId !== user.id) {
+                    notFound();
+                }
+                setOrder(fetchedOrder);
+                setLoading(false);
+            };
+            fetchOrder();
+        }
+         if (!authLoading && !user) {
+            notFound();
+        }
+    }, [params.id, user, authLoading]);
+    
+    if (loading || authLoading) {
+        return <div className="text-center p-8">Loading order details...</div>
+    }
+
+    if (!order) {
         notFound();
     }
 
@@ -40,7 +64,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         <div className="space-y-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>Order {order.id}</CardTitle>
+                    <CardTitle>Order {order.id.substring(0,8)}...</CardTitle>
                     <CardDescription>
                         Placed on {format(new Date(order.createdAt), 'MMMM d, yyyy')}
                     </CardDescription>
@@ -63,14 +87,12 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
 
                     <h3 className="mb-4 text-lg font-semibold">Items Ordered</h3>
                     <ul className="divide-y">
-                        {order.products.map(({ product, quantity }) => {
-                            const productImage = PlaceHolderImages.find((img) => img.id === product.images[0]);
-                            return (
+                        {order.products.map(({ product, quantity }) => (
                                 <li key={product.id} className="flex items-center py-4">
                                 <div className="relative h-16 w-16 overflow-hidden rounded-md">
-                                    {productImage && (
+                                    {product.images && product.images.length > 0 && (
                                         <Image
-                                        src={productImage.imageUrl}
+                                        src={product.images[0]}
                                         alt={product.name}
                                         fill
                                         className="object-cover"
@@ -85,8 +107,8 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                     RS. {(product.price * quantity).toFixed(2)}
                                 </div>
                                 </li>
-                            );
-                        })}
+                            )
+                        )}
                     </ul>
                 </CardContent>
             </Card>

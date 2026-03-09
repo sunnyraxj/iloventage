@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -23,10 +24,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { categories } from '@/lib/data';
 import type { Product } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DescriptionGenerator } from './description-generator';
+import { addProduct, getCategories, updateProduct } from '@/lib/data';
+import { useEffect, useState } from 'react';
+import { Category } from '@/lib/types';
 
 const productFormSchema = z.object({
   name: z.string().min(2, {
@@ -45,6 +48,9 @@ const productFormSchema = z.object({
     required_error: 'Please select a category.',
   }),
   keywords: z.string().optional(),
+  images: z.array(z.string()).optional(), // Assuming images are handled elsewhere
+  slug: z.string().optional(),
+  featured: z.boolean().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -55,13 +61,21 @@ interface ProductFormProps {
 
 export function ProductForm({ product }: ProductFormProps) {
   const { toast } = useToast();
+  const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    async function fetchCategories() {
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+    }
+    fetchCategories();
+  }, []);
+
   const defaultValues = product
     ? {
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        stock: product.stock,
-        category: product.category,
+        ...product,
         keywords: product.keywords.join(', '),
       }
     : {
@@ -71,6 +85,9 @@ export function ProductForm({ product }: ProductFormProps) {
         stock: 0,
         category: '',
         keywords: '',
+        images: [],
+        slug: '',
+        featured: false,
       };
 
   const form = useForm<ProductFormValues>({
@@ -78,15 +95,29 @@ export function ProductForm({ product }: ProductFormProps) {
     defaultValues,
   });
 
-  function onSubmit(data: ProductFormValues) {
-    toast({
-      title: product ? 'Product Updated' : 'Product Created',
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
+  async function onSubmit(data: ProductFormValues) {
+    setIsLoading(true);
+    try {
+        const productData = {
+            ...data,
+            keywords: data.keywords ? data.keywords.split(',').map(k => k.trim()) : [],
+            slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+        };
+
+        if (product) {
+            await updateProduct(product.id, productData);
+            toast({ title: 'Product Updated', description: `${product.name} has been updated.` });
+        } else {
+            await addProduct(productData as Omit<Product, 'id'>);
+            toast({ title: 'Product Created', description: `${data.name} has been added.` });
+        }
+        router.push('/admin/products');
+        router.refresh();
+    } catch(e) {
+        toast({ variant: 'destructive', title: 'Something went wrong', description: 'Could not save the product. Please try again.'});
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   return (
@@ -179,7 +210,7 @@ export function ProductForm({ product }: ProductFormProps) {
           />
         </div>
 
-        <Button type="submit">{product ? 'Update Product' : 'Create Product'}</Button>
+        <Button type="submit" disabled={isLoading}>{isLoading ? 'Saving...' : (product ? 'Update Product' : 'Create Product')}</Button>
       </form>
     </Form>
   );

@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/table';
 import { getCategories } from '@/lib/data';
 
-export default function AdminCategoriesPage() {
-    const categories = getCategories();
+export default async function AdminCategoriesPage() {
+    const categories = await getCategories();
 
     return (
         <Card>

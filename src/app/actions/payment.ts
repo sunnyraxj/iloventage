@@ -64,7 +64,7 @@ export async function verifyAndCreateOrder(
 
     if (isAuthentic) {
         // Payment is authentic, create order in DB
-        const newOrder = addOrder({
+        const newOrder = await addOrder({
             userId: user.id,
             products: items.map(i => ({ product: i.product, quantity: i.quantity })),
             totalPrice: totalPrice,

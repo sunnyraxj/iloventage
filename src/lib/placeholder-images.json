@@ -29,60 +29,6 @@
       "description": "Various electronic gadgets on a table",
       "imageUrl": "https://picsum.photos/seed/cat4/400/400",
       "imageHint": "electronic gadgets"
-    },
-    {
-      "id": "product-1",
-      "description": "A classic leather jacket",
-      "imageUrl": "https://picsum.photos/seed/p1/600/600",
-      "imageHint": "leather jacket"
-    },
-    {
-      "id": "product-2",
-      "description": "Modern and sleek wireless headphones",
-      "imageUrl": "https://picsum.photos/seed/p2/600/600",
-      "imageHint": "wireless headphones"
-    },
-    {
-      "id": "product-3",
-      "description": "A pair of comfortable running shoes",
-      "imageUrl": "https://picsum.photos/seed/p3/600/600",
-      "imageHint": "running shoes"
-    },
-    {
-      "id": "product-4",
-      "description": "A stylish and durable backpack",
-      "imageUrl": "https://picsum.photos/seed/p4/600/600",
-      "imageHint": "durable backpack"
-    },
-    {
-      "id": "product-5",
-      "description": "A minimalist wristwatch",
-      "imageUrl": "https://picsum.photos/seed/p5/600/600",
-      "imageHint": "wristwatch"
-    },
-    {
-      "id": "product-6",
-      "description": "A formal blue shirt",
-      "imageUrl": "https://picsum.photos/seed/p6/600/600",
-      "imageHint": "blue shirt"
-    },
-    {
-      "id": "product-7",
-      "description": "Latest model smartphone",
-      "imageUrl": "https://picsum.photos/seed/p7/600/600",
-      "imageHint": "smartphone"
-    },
-    {
-      "id": "product-8",
-      "description": "Designer sunglasses",
-      "imageUrl": "https://picsum.photos/seed/p8/600/600",
-      "imageHint": "sunglasses"
-    },
-    {
-      "id": "product-9",
-      "description": "A pair of classic denim jeans",
-      "imageUrl": "https://picsum.photos/seed/p9/600/600",
-      "imageHint": "denim jeans"
     }
   ]
 }
