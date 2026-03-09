@@ -77,7 +77,6 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
                 height={800}
                 className="aspect-[3/4] w-full object-cover transition-opacity duration-300"
                 sizes={sizes}
-                quality={75}
                 priority={priority}
               />
               {hoverImageUrl && (
@@ -88,7 +87,6 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
                   height={800}
                   className="hidden md:block absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                   sizes={sizes}
-                  quality={75}
                 />
               )}
             </>

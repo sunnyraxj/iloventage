@@ -158,7 +158,6 @@ export default function ProductPage() {
                         height={800}
                         className="h-full w-full object-cover"
                         priority
-                        quality={85}
                         sizes="(max-width: 767px) 100vw, 50vw"
                     />
                 </div>
@@ -182,7 +181,6 @@ export default function ProductPage() {
                                     width={200}
                                     height={200}
                                     className="h-full w-full object-cover"
-                                    quality={60}
                                 />
                             </div>
                         )
