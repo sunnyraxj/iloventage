@@ -46,30 +46,39 @@ export function OrderStatusChanger({ orderId, currentStatus }: OrderStatusChange
           return 'secondary';
         case 'cancelled':
             return 'destructive';
+        case 'pending':
+            return 'outline';
         default:
           return 'outline';
       }
     };
+    
+  // Admin cannot change status for these states
+  const canChangeStatus = !['pending', 'cancelled', 'delivered'].includes(status);
 
 
   return (
     <div className="flex items-center justify-center gap-1">
         <Badge variant={getStatusVariant(status)} className="capitalize w-24 justify-center">{status}</Badge>
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6" disabled={isLoading}>
-                    <MoreHorizontal className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleStatusChange('shipped')}>
-                    Mark as Shipped
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('delivered')}>
-                    Mark as Delivered
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+        {canChangeStatus && (
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" disabled={isLoading}>
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    {status === 'confirmed' && (
+                        <DropdownMenuItem onClick={() => handleStatusChange('shipped')}>
+                            Mark as Shipped
+                        </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={() => handleStatusChange('delivered')}>
+                        Mark as Delivered
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        )}
     </div>
   );
 }
