@@ -59,8 +59,10 @@ export function Header() {
 
   return (
     <header className={cn(
-      "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300",
-      isScrolled ? "h-16" : "h-24"
+      "sticky top-0 z-50 w-full border-b transition-all duration-300",
+      isScrolled 
+        ? "h-16 bg-background" 
+        : "h-24 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     )}>
       <div className="container flex h-full items-center justify-between">
         <div className="flex items-center gap-4">
@@ -72,7 +74,7 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="pr-0 sm:max-w-xs">
-              <SheetTitle>Menu</SheetTitle>
+              <SheetTitle className="sr-only">Menu</SheetTitle>
               <Link
                 href="/"
                 className="mb-4 flex items-center space-x-2 px-4"
@@ -102,8 +104,8 @@ export function Header() {
         </div>
 
         <nav className={cn(
-            "hidden items-center space-x-6 text-sm font-medium transition-opacity md:flex",
-            isScrolled && "opacity-0 pointer-events-none"
+            "hidden items-center space-x-6 text-sm font-medium md:flex",
+            isScrolled && "hidden"
           )}>
             {navLinks.map((link) => (
               <Link
@@ -116,10 +118,10 @@ export function Header() {
             ))}
         </nav>
 
-        <div className="flex flex-1 items-center justify-end space-x-2">
+        <div className="flex items-center justify-end space-x-2">
           <div className={cn(
-            "w-full flex-1 md:w-auto md:flex-none transition-opacity",
-             isScrolled && "opacity-0 pointer-events-none hidden"
+            "hidden w-full md:w-auto md:flex",
+             isScrolled && "hidden"
           )}>
             <form>
               <div className="relative">
