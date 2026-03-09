@@ -161,3 +161,23 @@ export const createOrder = async (orderPayload: OrderPayload): Promise<Order> =>
         confirmedAt: new Date().toISOString(),
     };
 };
+
+// --- Admin Functions ---
+
+export const getAllProducts = async (): Promise<Product[]> => {
+    const productsCol = collection(db, 'products');
+    const productsSnapshot = await getDocs(productsCol);
+    return productsSnapshot.docs.map(doc => docToType<Product>(doc));
+};
+
+export const getAllOrders = async (): Promise<Order[]> => {
+    const ordersCol = collection(db, 'orders');
+    const ordersSnapshot = await getDocs(ordersCol);
+    return ordersSnapshot.docs.map(doc => docToType<Order>(doc));
+}
+
+export const getAllUsers = async (): Promise<User[]> => {
+    const usersCol = collection(db, 'users');
+    const usersSnapshot = await getDocs(usersCol);
+    return usersSnapshot.docs.map(doc => docToType<User>(doc));
+}
