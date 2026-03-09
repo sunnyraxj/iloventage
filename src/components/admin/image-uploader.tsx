@@ -108,7 +108,7 @@ export function ImageUploader() {
     const currentImages = getValues('images') || [];
     setValue('images', currentImages.filter((url: string) => url !== imageUrl), { shouldValidate: true });
 
-    if (imageUrl.includes('firebasestorage.googleapis.com')) {
+    if (imageUrl.includes('firebasestorage.googleapis.com') || imageUrl.includes('storage.googleapis.com')) {
         try {
             const imageRef = ref(storage, imageUrl);
             await deleteObject(imageRef);
