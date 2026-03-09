@@ -10,8 +10,7 @@ import { useEffect, useState } from 'react';
 import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function ProductPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default function ProductPage({ params: { slug } }: { params: { slug: string } }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
