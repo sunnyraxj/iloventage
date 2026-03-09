@@ -14,10 +14,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { StoreSettings } from "@/lib/types";
+import type { StoreSettings, StoreDetails } from "@/lib/types";
 import { updateStoreSettings } from "@/app/actions/settings";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SingleImageUploader } from "./SingleImageUploader";
 
@@ -35,7 +34,6 @@ interface SettingsFormProps {
 
 export function SettingsForm({ settings }: SettingsFormProps) {
     const { toast } = useToast();
-    const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const defaultValues: SettingsFormValues = {
@@ -53,17 +51,29 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     async function onSubmit(data: SettingsFormValues) {
         setIsSubmitting(true);
         try {
-            const fullSettingsData = {
-                ...(settings?.storeDetails || {}),
+            const baseDetails: StoreDetails = settings?.storeDetails || {
+                name: '',
+                logoUrl: '',
+                heroImageUrl: '',
+                email: '',
+                phone: '',
+                address: '',
+                city: '',
+                state: '',
+                pincode: '',
+            };
+            
+            const fullSettingsData: StoreDetails = {
+                ...baseDetails,
                 ...data
             };
-
-            // @ts-ignore
+            
             const result = await updateStoreSettings(fullSettingsData);
 
             if (result.success) {
                 toast({ title: "Success", description: `Settings updated successfully.` });
-                router.refresh();
+                // Hard reload to ensure all components (like the header) get the new settings.
+                window.location.reload();
             } else {
                 toast({ variant: "destructive", title: "Error", description: result.message });
             }
