@@ -22,13 +22,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUser = async (fbUser: FirebaseUser) => {
+  const fetchUser = async (fbUser: FirebaseUser | null) => {
     if (fbUser) {
-        const userProfile = await getUserById(fbUser.uid);
-        if (userProfile) {
-            setUser(userProfile);
-        } else {
-             setUser({
+        try {
+            const userProfile = await getUserById(fbUser.uid);
+            if (userProfile) {
+                setUser(userProfile);
+            } else {
+                 // Create a default user profile if one doesn't exist in the DB
+                 setUser({
+                    id: fbUser.uid,
+                    email: fbUser.email || '',
+                    name: fbUser.displayName || 'New User',
+                    role: 'customer'
+                 });
+            }
+        } catch (error) {
+            console.error("AuthProvider: Failed to fetch user profile:", error);
+            // Fallback to a minimal user object on error
+            setUser({
                 id: fbUser.uid,
                 email: fbUser.email || '',
                 name: fbUser.displayName || 'New User',
@@ -43,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       setFirebaseUser(fbUser);
-      await fetchUser(fbUser!);
+      await fetchUser(fbUser);
       setLoading(false);
     });
 
@@ -59,9 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const reloadUser = async () => {
-    if (firebaseUser) {
-      await fetchUser(firebaseUser);
-    }
+    await fetchUser(firebaseUser);
   }
 
   const value = { user, firebaseUser, login, logout, loading, reloadUser };
