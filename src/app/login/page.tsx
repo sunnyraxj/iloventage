@@ -7,11 +7,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { ShoppingBag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+const GoogleIcon = () => <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 111.8 512 0 400.2 0 261.8 0 123.8 111.8 12.8 244 12.8c70.3 0 129.8 27.8 174.4 72.4l-69.3 69.3c-24-22.5-54.8-36.4-90.1-36.4-69.1 0-125.7 56.5-125.7 125.7s56.5 125.7 125.7 125.7c81.5 0 114.8-55.8 119.5-84.2H244v-85.7h244z"></path></svg>;
+
 export default function LoginPage() {
-  const { user, login, loading: authLoading } = useAuth();
+  const { user, login, signInWithGoogle, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -65,6 +68,25 @@ export default function LoginPage() {
         setIsLoading(false);
     }
   };
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+        await signInWithGoogle();
+        toast({
+            title: "Login Successful",
+            description: "Redirecting...",
+        });
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Google Login Failed",
+            description: error.message || "An unknown error occurred.",
+        });
+    } finally {
+        setIsLoading(false);
+    }
+  }
   
   // While auth is loading or if user is already logged in, show loading.
   // The useEffect will handle the redirect.
@@ -76,47 +98,66 @@ export default function LoginPage() {
     );
   }
 
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary px-4">
       <Card className="w-full max-w-sm">
-        <form onSubmit={handleLogin}>
-            <CardHeader className="text-center">
+        <CardHeader className="text-center">
             <ShoppingBag className="mx-auto h-12 w-12 text-primary" />
             <CardTitle className="mt-4 text-2xl">Welcome Back</CardTitle>
             <CardDescription>Enter your credentials to access your account.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                        id="email" 
-                        type="email" 
-                        placeholder="m@example.com" 
-                        required 
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        disabled={isLoading}
-                    />
+        </CardHeader>
+        <CardContent className="space-y-4">
+            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleLogin} disabled={isLoading || authLoading}>
+                <GoogleIcon />
+                Sign in with Google
+            </Button>
+            <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input 
-                        id="password" 
-                        type="password" 
-                        required 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={isLoading}
-                    />
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
                 </div>
-            </CardContent>
-            <CardFooter>
-                 <Button type="submit" className="w-full" disabled={isLoading || authLoading}>
-                    {isLoading ? 'Logging in...' : 'Login'}
-                </Button>
-            </CardFooter>
-        </form>
+            </div>
+            <form onSubmit={handleLogin}>
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input 
+                            id="email" 
+                            type="email" 
+                            placeholder="m@example.com" 
+                            required 
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input 
+                            id="password" 
+                            type="password" 
+                            required 
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            disabled={isLoading}
+                        />
+                    </div>
+                     <Button type="submit" className="w-full" disabled={isLoading || authLoading}>
+                        {isLoading ? 'Logging in...' : 'Login with Email'}
+                    </Button>
+                </div>
+            </form>
+        </CardContent>
+        <CardFooter>
+            <p className="text-xs text-center text-muted-foreground w-full">
+                Don&apos;t have an account?{' '}
+                <Link href="/register" className="text-primary hover:underline">
+                    Sign up
+                </Link>
+            </p>
+        </CardFooter>
       </Card>
     </div>
   );
