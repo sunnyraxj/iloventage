@@ -20,6 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { Product } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DescriptionGenerator } from './description-generator';
+import { ImageUploader } from './image-uploader';
 import { addProduct, getCategoryBySlug, addCategory, updateProduct } from '@/lib/data';
 import { useEffect, useState } from 'react';
 
@@ -40,7 +41,7 @@ const productFormSchema = z.object({
     required_error: 'Please enter a category.',
   }),
   keywords: z.string().optional(),
-  images: z.array(z.string()).optional(), // Assuming images are handled elsewhere
+  images: z.array(z.string()).optional().default([]),
   slug: z.string().optional(),
   featured: z.boolean().optional(),
 });
@@ -62,7 +63,8 @@ export function ProductForm({ product }: ProductFormProps) {
     ? {
         ...product,
         category: '', // Will be set in useEffect
-        keywords: product.keywords.join(', '),
+        keywords: product.keywords?.join(', ') || '',
+        images: product.images || [],
       }
     : {
         name: '',
@@ -123,6 +125,7 @@ export function ProductForm({ product }: ProductFormProps) {
         router.push('/admin/products');
         router.refresh();
     } catch(e) {
+        console.error(e);
         toast({ variant: 'destructive', title: 'Something went wrong', description: 'Could not save the product. Please try again.'});
     } finally {
         setIsLoading(false);
@@ -146,6 +149,8 @@ export function ProductForm({ product }: ProductFormProps) {
           )}
         />
         
+        <ImageUploader />
+
         <FormField
           control={form.control}
           name="description"

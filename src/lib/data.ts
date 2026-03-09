@@ -46,6 +46,15 @@ import {
     }
     return docToType<Product>(querySnapshot.docs[0]);
   };
+
+  export const getProductById = async (id: string): Promise<Product | null> => {
+    const productRef = doc(db, 'products', id);
+    const productSnap = await getDoc(productRef);
+    if (!productSnap.exists()) {
+        return null;
+    }
+    return docToType<Product>(productSnap);
+  };
   
   export const getFeaturedProducts = async (): Promise<Product[]> => {
     const q = query(collection(db, 'products'), where('featured', '==', true));
