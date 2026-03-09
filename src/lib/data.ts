@@ -11,7 +11,7 @@ import {
     serverTimestamp,
   } from 'firebase/firestore';
   import { db } from '@/firebase/config';
-  import type { Product, Category, User, Order } from './types';
+  import type { Product, Category, User, Order, Address } from './types';
   
   // NOTE: This file assumes you have populated your Firestore database
   // with collections named 'products', 'categories', 'users', and 'orders'.
@@ -120,7 +120,17 @@ import {
       if (!userSnap.exists()) {
           return null;
       }
-      return docToType<User>(userSnap);
+      const user = docToType<User>(userSnap);
+
+      const addressesCol = collection(db, 'users', userId, 'addresses');
+      const addressesSnapshot = await getDocs(addressesCol);
+      if(!addressesSnapshot.empty) {
+        user.addresses = addressesSnapshot.docs.map(doc => docToType<Address & { id: string }>(doc));
+      } else {
+        user.addresses = [];
+      }
+
+      return user;
   }
   
   

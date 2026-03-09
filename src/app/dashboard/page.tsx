@@ -33,6 +33,19 @@ export default function DashboardPage() {
             <h3 className="font-medium">Role</h3>
             <p className="text-muted-foreground capitalize">{user.role}</p>
         </div>
+         {user.addresses && user.addresses.length > 0 && (
+          <div>
+            <h3 className="font-medium">My Addresses</h3>
+            {user.addresses.map((address) => (
+              <div key={address.id} className="mt-2 rounded-md border p-4 text-muted-foreground">
+                <p className="font-semibold text-card-foreground">{address.name}</p>
+                <p>{address.address}</p>
+                <p>{address.city}, {address.zip}</p>
+                <p>{address.country}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

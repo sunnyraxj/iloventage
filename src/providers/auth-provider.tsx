@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // For demo purposes, using hardcoded credentials.
     // In a real app, you would have a proper login form.
     // IMPORTANT: Make sure these users exist in your Firebase Authentication.
-    const email = role === 'admin' ? 'admin@iloventag.com' : 'customer@iloventag.com';
+    const email = role === 'admin' ? 'thriftzone@gmail.com' : 'customer@iloventag.com';
     const password = 'password'; // Use a strong password in production
 
     await signInWithEmailAndPassword(auth, email, password);

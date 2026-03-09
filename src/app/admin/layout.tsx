@@ -85,7 +85,7 @@ export default function AdminLayout({
         <SidebarFooter>
           <div className="flex items-center gap-2">
              <Avatar className="h-8 w-8">
-               <AvatarImage src={`https://i.pravatar.cc/150?u=${user.email}`} />
+               <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.email}`} />
                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
              </Avatar>
              <div className="flex flex-col overflow-hidden">

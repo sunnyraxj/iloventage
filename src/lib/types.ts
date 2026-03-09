@@ -32,6 +32,14 @@ export type CartItem = {
   quantity: number;
 };
 
+export type Address = {
+  name: string;
+  address: string;
+  city: string;
+  zip: string;
+  country: string;
+};
+
 export type Order = {
   id: string;
   userId: string;
@@ -43,13 +51,7 @@ export type Order = {
   orderStatus: 'Confirmed' | 'Shipped' | 'Delivered' | 'Cancelled';
   paymentId: string;
   createdAt: string;
-  shippingAddress: {
-    name: string;
-    address: string;
-    city: string;
-    zip: string;
-    country: string;
-  };
+  shippingAddress: Address;
 };
 
 export type User = {
@@ -57,4 +59,6 @@ export type User = {
   name: string;
   email: string;
   role: 'admin' | 'customer';
+  photoURL?: string;
+  addresses?: (Address & { id: string })[];
 };
