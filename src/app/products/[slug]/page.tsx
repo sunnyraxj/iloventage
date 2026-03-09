@@ -154,6 +154,9 @@ export default function ProductPage() {
                         width={800}
                         height={800}
                         className="h-full w-full object-cover"
+                        priority
+                        quality={85}
+                        sizes="(max-width: 767px) 100vw, 50vw"
                     />
                 </div>
                 <div className="grid grid-cols-4 gap-4">

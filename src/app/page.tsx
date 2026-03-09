@@ -33,6 +33,7 @@ export default async function HomePage() {
               fill
               className="object-cover"
               priority
+              sizes="100vw"
               data-ai-hint="hero image"
             />
           ) : (
@@ -87,7 +88,11 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
               {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  sizes="(max-width: 1023px) 50vw, 25vw"
+                />
               ))}
             </div>
             <div className="mt-12 text-center">

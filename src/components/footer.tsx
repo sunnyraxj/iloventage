@@ -2,20 +2,28 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Twitter, Facebook } from 'lucide-react';
-import { getCategories } from '@/lib/data';
-import type { Category } from '@/lib/types';
+import { getCategories, getStoreSettings } from '@/lib/data';
+import type { Category, StoreSettings } from '@/lib/types';
 import { useEffect, useState } from 'react';
 
 export function Footer() {
     const [categories, setCategories] = useState<Category[]>([]);
+    const [settings, setSettings] = useState<StoreSettings | null>(null);
 
     useEffect(() => {
         const fetchInitialData = async () => {
-            const appCategories = await getCategories();
+            const [appCategories, appSettings] = await Promise.all([
+                getCategories(),
+                getStoreSettings()
+            ]);
             setCategories(appCategories);
+            setSettings(appSettings);
         }
         fetchInitialData();
     }, []);
+
+    const logoUrl = settings?.storeDetails?.logoUrl;
+    const storeName = settings?.storeDetails?.name || 'My Store';
 
   return (
     <footer className="border-t bg-secondary">
@@ -23,8 +31,12 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="flex flex-col items-start">
             <Link href="/" className="mb-4 flex items-center space-x-2">
-               <div className="h-8 w-8 bg-muted rounded-full" />
-              <span className="text-xl font-bold">My Store</span>
+                {logoUrl ? (
+                    <Image src={logoUrl} alt={storeName} width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
+                ) : (
+                   <div className="h-8 w-8 bg-muted rounded-full" />
+                )}
+              <span className="text-xl font-bold">{storeName}</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Modern e-commerce for the modern world.
@@ -62,7 +74,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} My Store. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {storeName}. All rights reserved.</p>
         </div>
       </div>
     </footer>

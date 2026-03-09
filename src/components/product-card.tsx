@@ -11,9 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ProductCardProps {
   product: Product;
+  sizes?: string;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw" }: ProductCardProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
 
@@ -65,6 +66,8 @@ export function ProductCard({ product }: ProductCardProps) {
               width={600}
               height={800}
               className="aspect-[3/4] w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes={sizes}
+              quality={75}
             />
           ) : (
             <div className="aspect-[3/4] w-full bg-secondary flex items-center justify-center">

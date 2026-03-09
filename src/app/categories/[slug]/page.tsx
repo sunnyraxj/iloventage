@@ -44,6 +44,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                 src={category.imageUrl}
                 alt={category.name}
                 fill
+                sizes="100vw"
                 className="object-cover"
               />
             )}
@@ -71,7 +72,11 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                     <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
                         {products.length > 0 ? (
                             products.map((product) => (
-                                <ProductCard key={product.id} product={product} />
+                                <ProductCard 
+                                  key={product.id} 
+                                  product={product} 
+                                  sizes="(max-width: 1023px) 50vw, 25vw"
+                                />
                             ))
                         ) : (
                             <p className="col-span-full text-center text-muted-foreground">No products found in this category yet.</p>

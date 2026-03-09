@@ -121,7 +121,11 @@ export default function ProductsPage() {
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {filteredProducts.length > 0 ? (
                                 filteredProducts.map((product) => (
-                                    <ProductCard key={product.id} product={product} />
+                                    <ProductCard 
+                                      key={product.id} 
+                                      product={product} 
+                                      sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                                    />
                                 ))
                             ) : (
                                 <p>No products found for the selected filters.</p>
