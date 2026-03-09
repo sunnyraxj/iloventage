@@ -184,7 +184,7 @@ export default async function AdminOrdersPage() {
       <CardContent>
         <Tabs defaultValue="all">
             <div className="overflow-x-auto">
-                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto">
+                <TabsList className="-mb-px">
                     <TabsTrigger value="all">All ({allOrders.length})</TabsTrigger>
                     <TabsTrigger value="confirmed">Confirmed ({confirmedOrders.length})</TabsTrigger>
                     <TabsTrigger value="shipped">Shipped ({shippedOrders.length})</TabsTrigger>
