@@ -17,7 +17,7 @@ interface ImageUploaderProps {
 }
 
 export function ImageUploader({ variantIndex }: ImageUploaderProps) {
-  const { control, getValues, setValue } = useFormContext();
+  const { control, getValues } = useFormContext();
   const { fields, remove, append } = useFieldArray({
     control,
     name: `variants.${variantIndex}.imageUrls`
@@ -43,7 +43,6 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
       
       const uploadedImages = await Promise.all(uploadPromises);
 
-      // @ts-ignore
       append(uploadedImages);
 
       toast({ title: 'Upload successful', description: `${uploadedImages.length} image(s) uploaded.` });
@@ -88,8 +87,7 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
         {fields.map((field, index) => (
           <div key={field.id} className="relative aspect-square group">
             <Image
-              // @ts-ignore
-              src={field.value}
+              src={(field as any).value}
               alt={`Product image ${index + 1}`}
               fill
               className="object-cover rounded-md border"
@@ -119,15 +117,11 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
           <span className="text-xs text-muted-foreground mt-2">Upload</span>
         </label>
       </div>
-      {/* This is a hidden field to satisfy the form schema validation */}
-       <FormField
+      <FormField
         control={control}
         name={`variants.${variantIndex}.imageUrls`}
-        render={({ field, fieldState }) => (
-          <FormItem className="hidden">
-            <FormControl>
-                <Input {...field} />
-            </FormControl>
+        render={() => (
+          <FormItem>
             <FormMessage />
           </FormItem>
         )}
