@@ -40,8 +40,7 @@ export default function ProductPage() {
         const firstVariant = fetchedProduct.variants[0];
         setSelectedVariant(firstVariant);
         
-        const firstImageUrl = firstVariant.imageUrls?.[0];
-        const initialImageUrl = typeof firstImageUrl === 'string' ? firstImageUrl : (firstImageUrl as any)?.value;
+        const initialImageUrl = firstVariant.imageUrls?.[0];
         setSelectedImageUrl(initialImageUrl || null);
 
         const firstAvailableSize = firstVariant.sizes.find(s => s.stock > 0);
@@ -54,8 +53,7 @@ export default function ProductPage() {
 
   const handleSelectVariant = (variant: ProductVariant) => {
     setSelectedVariant(variant);
-    const firstImageUrl = variant.imageUrls?.[0];
-    const initialImageUrl = typeof firstImageUrl === 'string' ? firstImageUrl : (firstImageUrl as any)?.value;
+    const initialImageUrl = variant.imageUrls?.[0];
     setSelectedImageUrl(initialImageUrl || null);
     const firstAvailableSize = variant.sizes.find(s => s.stock > 0);
     setSelectedSize(firstAvailableSize || null);
@@ -80,8 +78,7 @@ export default function ProductPage() {
         return;
     }
 
-    const mainImageUrl = selectedVariant.imageUrls?.[0];
-    const cartImageUrl = typeof mainImageUrl === 'string' ? mainImageUrl : (mainImageUrl as any)?.value;
+    const cartImageUrl = selectedVariant.imageUrls?.[0];
 
     const cartItem = {
         id: `${product.id}-${selectedVariant.color}-${selectedSize.size}`,
@@ -161,20 +158,19 @@ export default function ProductPage() {
                 </div>
                 <div className="grid grid-cols-4 gap-4">
                     {selectedVariant?.imageUrls.map((url, i) => {
-                        const imageUrl = typeof url === 'string' ? url : (url as any)?.value;
-                        if (!imageUrl) return null;
+                        if (!url) return null;
 
                         return (
                             <div 
                                 key={i} 
-                                onClick={() => setSelectedImageUrl(imageUrl)}
+                                onClick={() => setSelectedImageUrl(url)}
                                 className={cn(
                                     "aspect-square w-full overflow-hidden rounded-md border-2 cursor-pointer",
-                                    selectedImageUrl === imageUrl ? 'border-primary' : 'border-transparent hover:border-primary'
+                                    selectedImageUrl === url ? 'border-primary' : 'border-transparent hover:border-primary'
                                 )}
                             >
                                 <Image
-                                    src={imageUrl}
+                                    src={url}
                                     alt={`${product.name} - ${selectedVariant?.color} thumbnail ${i+1}`}
                                     width={200}
                                     height={200}

@@ -19,8 +19,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const firstVariant = product.variants[0];
   const firstSize = firstVariant?.sizes[0];
-  const imageUrlCandidate = firstVariant?.imageUrls[0];
-  const imageUrl = typeof imageUrlCandidate === 'string' ? imageUrlCandidate : (imageUrlCandidate as any)?.value;
+  const imageUrl = firstVariant?.imageUrls[0];
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
