@@ -29,8 +29,6 @@ import {
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
 import { IloventagLogo } from './icons';
-import { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/products', label: 'All Products' },
@@ -44,27 +42,10 @@ export function Header() {
   const { user, logout } = useAuth();
   const { items } = useCart();
   const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
 
   return (
-    <header className={cn(
-      "sticky top-0 z-50 w-full border-b transition-all duration-300",
-      isScrolled 
-        ? "h-16 bg-background" 
-        : "h-24 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-    )}>
-      <div className="container flex h-full items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b bg-background">
+      <div className="container flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Sheet>
             <SheetTrigger asChild>
@@ -103,26 +84,8 @@ export function Header() {
           </Link>
         </div>
 
-        <nav className={cn(
-            "hidden items-center space-x-6 text-sm font-medium md:flex",
-            isScrolled && "hidden"
-          )}>
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="transition-colors hover:text-foreground/80"
-              >
-                {link.label}
-              </Link>
-            ))}
-        </nav>
-
-        <div className="flex items-center justify-end space-x-2">
-          <div className={cn(
-            "hidden w-full md:w-auto md:flex",
-             isScrolled && "hidden"
-          )}>
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:block">
             <form>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
