@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Plus } from 'lucide-react';
 
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -103,16 +103,30 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
             </div>
           )}
           {hasStock && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={handleAddToCart}
-              aria-label={`Add ${product.name} to cart`}
-              className="absolute bottom-2 left-1/2 -translate-x-1/2 w-11/12 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 z-10"
-            >
-              <ShoppingBag className="mr-2 h-4 w-4" />
-              Add to Cart
-            </Button>
+            <>
+              {/* Desktop-only hover button */}
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleAddToCart}
+                aria-label={`Add ${product.name} to cart`}
+                className="absolute bottom-2 left-1/2 -translate-x-1/2 w-11/12 opacity-0 transition-opacity duration-300 group-hover:opacity-100 z-10 hidden md:inline-flex"
+              >
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Add to Cart
+              </Button>
+              
+              {/* Mobile-only plus button */}
+              <Button
+                size="icon"
+                variant="secondary"
+                onClick={handleAddToCart}
+                aria-label={`Add ${product.name} to cart`}
+                className="absolute bottom-2 right-2 h-8 w-8 rounded-full md:hidden z-10"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </>
           )}
         </div>
         <div className="pt-2 text-left">
