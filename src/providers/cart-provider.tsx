@@ -1,16 +1,16 @@
 'use client';
 
 import React, { createContext, useReducer, useEffect, type ReactNode } from 'react';
-import type { CartItem, Product } from '@/lib/types';
+import type { CartItem } from '@/lib/types';
 
 type CartState = {
   items: CartItem[];
 };
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: { product: Product; quantity: number } }
-  | { type: 'REMOVE_ITEM'; payload: { productId: string } }
-  | { type: 'UPDATE_QUANTITY'; payload: { productId: string; quantity: number } }
+  | { type: 'ADD_ITEM'; payload: { item: CartItem } }
+  | { type: 'REMOVE_ITEM'; payload: { itemId: string } }
+  | { type: 'UPDATE_QUANTITY'; payload: { itemId: string; quantity: number } }
   | { type: 'CLEAR_CART' }
   | { type: 'SET_STATE'; payload: CartState };
 
@@ -22,36 +22,32 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
     case 'ADD_ITEM': {
       const existingItemIndex = state.items.findIndex(
-        (item) => item.product.id === action.payload.product.id
+        (item) => item.id === action.payload.item.id
       );
       if (existingItemIndex > -1) {
         const updatedItems = [...state.items];
-        updatedItems[existingItemIndex].quantity += action.payload.quantity;
+        updatedItems[existingItemIndex].quantity += action.payload.item.quantity;
         return { ...state, items: updatedItems };
       } else {
-        const newItem: CartItem = {
-            product: action.payload.product,
-            quantity: action.payload.quantity
-        }
-        return { ...state, items: [...state.items, newItem] };
+        return { ...state, items: [...state.items, action.payload.item] };
       }
     }
     case 'REMOVE_ITEM':
       return {
         ...state,
-        items: state.items.filter((item) => item.product.id !== action.payload.productId),
+        items: state.items.filter((item) => item.id !== action.payload.itemId),
       };
     case 'UPDATE_QUANTITY': {
         if(action.payload.quantity <= 0) {
             return {
                 ...state,
-                items: state.items.filter((item) => item.product.id !== action.payload.productId),
+                items: state.items.filter((item) => item.id !== action.payload.itemId),
             }
         }
       return {
         ...state,
         items: state.items.map((item) =>
-          item.product.id === action.payload.productId
+          item.id === action.payload.itemId
             ? { ...item, quantity: action.payload.quantity }
             : item
         ),

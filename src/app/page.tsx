@@ -2,35 +2,39 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
-import { getCategories, getFeaturedProducts } from '@/lib/data';
+import { getCategories, getProducts, getAppSettings } from '@/lib/data';
 import { ProductCard } from '@/components/product-card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default async function HomePage() {
-  const featuredProducts = await getFeaturedProducts();
+  const appSettings = await getAppSettings();
+  const products = await getProducts();
   const categories = await getCategories();
-  const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-image');
+
+  // Simple logic to get some "featured" products, e.g. first 8
+  const featuredProducts = products.slice(0, 8);
 
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
         <section className="relative h-[60vh] w-full text-white">
-          {heroImage && (
+          {appSettings?.storeDetails.heroImageUrl ? (
             <Image
-              src={heroImage.imageUrl}
-              alt={heroImage.description}
-              data-ai-hint={heroImage.imageHint}
+              src={appSettings.storeDetails.heroImageUrl}
+              alt={appSettings.storeDetails.name || 'Hero Image'}
               fill
               className="object-cover"
               priority
             />
+          ) : (
+            <Skeleton className="h-full w-full" />
           )}
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 p-4 text-center">
             <h1 className="mb-4 font-headline text-4xl font-bold md:text-6xl">
-              Style for Every Story
+              {appSettings?.storeDetails.name || "Welcome to our store"}
             </h1>
             <p className="mb-8 max-w-2xl text-lg md:text-xl">
               Discover curated collections that blend timeless elegance with

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import {
   Menu,
@@ -29,25 +30,31 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
-import { IloventagLogo } from './icons';
-
-const navLinks = [
-  { href: '/products', label: 'All Products' },
-  { href: '/categories/apparel', label: 'Apparel' },
-  { href: '/categories/shoes', label: 'Shoes' },
-  { href: '/categories/accessories', label: 'Accessories' },
-  { href: '/categories/electronics', label: 'Electronics' },
-];
+import { getAppSettings, getCategories } from '@/lib/data';
+import type { AppSettings, Category } from '@/lib/types';
 
 export function Header() {
   const { user, logout } = useAuth();
   const { items } = useCart();
   const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
   const [hasMounted, setHasMounted] = useState(false);
+  const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     setHasMounted(true);
+    const fetchInitialData = async () => {
+        const [appSettings, appCategories] = await Promise.all([
+            getAppSettings(),
+            getCategories()
+        ]);
+        setSettings(appSettings);
+        setCategories(appCategories);
+    }
+    fetchInitialData();
   }, []);
+
+  const navLinks = categories.map(c => ({ href: `/categories/${c.slug}`, label: c.name }));
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -64,6 +71,7 @@ export function Header() {
               <SheetContent side="left" className="pr-0 sm:max-w-xs">
                 <SheetTitle className='p-4'>Menu</SheetTitle>
                 <nav className="flex flex-col space-y-2 p-4">
+                  <Link href="/products" className="px-4 py-2 text-sm font-medium hover:bg-accent rounded-md">All Products</Link>
                   {navLinks.map((link) => (
                     <Link
                       key={link.href}
@@ -78,12 +86,21 @@ export function Header() {
             </Sheet>
           )}
           <Link href="/" className="flex items-center space-x-2">
-            <IloventagLogo className="h-8 w-8" />
+            {settings?.storeDetails.logoUrl ? (
+                <Image src={settings.storeDetails.logoUrl} alt={settings.storeDetails.name} width={32} height={32} />
+            ) : <div className="h-8 w-8 bg-muted rounded-full" />}
             <span className="hidden font-bold sm:inline-block text-lg">
-              ILOVENTAG
+              {settings?.storeDetails.name || "My Store"}
             </span>
           </Link>
         </div>
+
+        <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
+            <Link href="/products" className="text-muted-foreground transition-colors hover:text-foreground">All Products</Link>
+            {navLinks.slice(0, 4).map(link => (
+                 <Link key={link.href} href={link.href} className="text-muted-foreground transition-colors hover:text-foreground">{link.label}</Link>
+            ))}
+        </nav>
 
         <div className="flex flex-1 items-center justify-end gap-4">
           <form className="hidden sm:flex flex-1 max-w-md">
@@ -100,7 +117,7 @@ export function Header() {
             <Link href="/cart">
               <Button variant="ghost" size="icon" aria-label="Shopping Cart" className="relative">
                 <ShoppingCart className="h-5 w-5" />
-                {cartItemCount > 0 && (
+                {hasMounted && cartItemCount > 0 && (
                   <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
                     {cartItemCount}
                   </span>
@@ -119,7 +136,7 @@ export function Header() {
                         className="rounded-full"
                         aria-label="User Menu"
                       >
-                        <UserCircle className="h-5 w-5" />
+                         {user.photoURL ? <Image src={user.photoURL} alt={user.name} width={24} height={24} className="rounded-full" /> : <UserCircle className="h-5 w-5" /> }
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">

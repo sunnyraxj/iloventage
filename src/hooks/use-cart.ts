@@ -2,7 +2,7 @@
 
 import { useContext } from 'react';
 import { CartContext } from '@/providers/cart-provider';
-import type { CartItem, Product } from '@/lib/types';
+import type { CartItem } from '@/lib/types';
 
 export const useCart = () => {
   const context = useContext(CartContext);
@@ -12,16 +12,16 @@ export const useCart = () => {
 
   const { state, dispatch } = context;
 
-  const addItem = (item: { product: Product; quantity: number }) => {
-    dispatch({ type: 'ADD_ITEM', payload: item });
+  const addItem = (item: CartItem) => {
+    dispatch({ type: 'ADD_ITEM', payload: { item } });
   };
 
-  const removeItem = (productId: string) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: { productId } });
+  const removeItem = (itemId: string) => {
+    dispatch({ type: 'REMOVE_ITEM', payload: { itemId } });
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity } });
+  const updateQuantity = (itemId: string, quantity: number) => {
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { itemId, quantity } });
   };
 
   const clearCart = () => {
@@ -29,8 +29,7 @@ export const useCart = () => {
   };
 
   const totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
-  const totalPrice = state.items.reduce((total, item) => total + item.product.price * item.quantity, 0);
-
+  const totalPrice = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return {
     items: state.items,

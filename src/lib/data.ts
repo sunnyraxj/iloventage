@@ -1,3 +1,4 @@
+
 import {
     collection,
     doc,
@@ -9,165 +10,165 @@ import {
     where,
     limit,
     serverTimestamp,
+    DocumentData,
+    Timestamp,
   } from 'firebase/firestore';
-  import { db } from '@/firebase/config';
-  import type { Product, Category, User, Order, Address } from './types';
+import { db } from '@/firebase/config';
+import type { Product, Category, User, Order, UserAddress, AppSettings, OrderItem, OrderAddress } from './types';
   
-  // NOTE: This file assumes you have populated your Firestore database
-  // with collections named 'products', 'categories', 'users', and 'orders'.
-  // The structure of the documents should match the types in src/lib/types.ts.
-  // For product images, it's assumed the 'images' field is an array of URLs
-  // pointing to images in Firebase Storage.
+const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+
+function docToType<T>(doc: DocumentData): T {
+    const data = doc.data();
+    const result: { [key: string]: any } = { id: doc.id };
+
+    for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+            const value = data[key];
+            if (value instanceof Timestamp) {
+                result[key] = value.toDate().toISOString();
+            } else {
+                result[key] = value;
+            }
+        }
+    }
+    
+    // Add slug for products and categories if name exists
+    if (data.name && (doc.ref.parent.id === 'products' || doc.ref.parent.id === 'collections')) {
+      result.slug = createSlug(data.name);
+    }
+    
+    return result as T;
+}
   
-  // Helper to convert Firestore doc to a specific type
-  function docToType<T>(doc: any): T {
-      const data = doc.data();
-      return {
-          id: doc.id,
-          ...data,
-          // Convert Firestore Timestamps to ISO strings
-          createdAt: data.createdAt?.toDate()?.toISOString() || new Date().toISOString(),
-      } as T;
-  }
+// --- Settings Functions ---
+export const getAppSettings = async (): Promise<AppSettings | null> => {
+    const settingsRef = doc(db, 'settings', 'store');
+    const settingsSnap = await getDoc(settingsRef);
+    if (!settingsSnap.exists()) {
+        console.error("Store settings not found in Firestore.");
+        return null;
+    }
+    return settingsSnap.data() as AppSettings;
+}
+
+// --- Product Functions ---
+export const getProducts = async (): Promise<Product[]> => {
+    const productsCol = collection(db, 'products');
+    const q = query(productsCol, where('isVisible', '==', true));
+    const productsSnapshot = await getDocs(q);
+    return productsSnapshot.docs.map(doc => docToType<Product>(doc));
+};
   
-  
-  // --- Product Functions ---
-  export const getProducts = async (): Promise<Product[]> => {
+export const getProductBySlug = async (slug: string): Promise<Product | null> => {
     const productsCol = collection(db, 'products');
     const productsSnapshot = await getDocs(productsCol);
-    return productsSnapshot.docs.map(doc => docToType<Product>(doc));
-  };
-  
-  export const getProductBySlug = async (slug: string): Promise<Product | null> => {
-    const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) {
-      return null;
-    }
-    return docToType<Product>(querySnapshot.docs[0]);
-  };
+    const products = productsSnapshot.docs.map(doc => docToType<Product>(doc));
+    const product = products.find(p => p.slug === slug);
+    return product || null;
+};
 
-  export const getProductById = async (id: string): Promise<Product | null> => {
+export const getProductById = async (id: string): Promise<Product | null> => {
     const productRef = doc(db, 'products', id);
     const productSnap = await getDoc(productRef);
     if (!productSnap.exists()) {
         return null;
     }
     return docToType<Product>(productSnap);
-  };
-  
-  export const getFeaturedProducts = async (): Promise<Product[]> => {
-    const q = query(collection(db, 'products'), where('featured', '==', true));
+};
+
+export const getProductsByCollectionId = async (collectionId: string): Promise<Product[]> => {
+    const q = query(collection(db, 'products'), where('collectionId', '==', collectionId), where('isVisible', '==', true));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => docToType<Product>(doc));
-  };
-  
-  export const getProductsByCategory = async (categorySlug: string): Promise<Product[]> => {
-      const q = query(collection(db, 'products'), where('category', '==', categorySlug));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => docToType<Product>(doc));
-  };
-  
-  export const addProduct = async (productData: Omit<Product, 'id'>) => {
-      const productsCol = collection(db, 'products');
-      const docRef = await addDoc(productsCol, {
-          ...productData,
-          createdAt: serverTimestamp()
-      });
-      return docRef.id;
-  }
-  
-  export const updateProduct = async (productId: string, productData: Partial<Product>) => {
-      const productRef = doc(db, 'products', productId);
-      await updateDoc(productRef, productData);
-  }
-  
-  
-  // --- Category Functions ---
-  export const getCategories = async (): Promise<Category[]> => {
-    const categoriesCol = collection(db, 'categories');
+};
+
+// --- Category Functions ---
+export const getCategories = async (): Promise<Category[]> => {
+    const categoriesCol = collection(db, 'collections');
     const categoriesSnapshot = await getDocs(categoriesCol);
     return categoriesSnapshot.docs.map(doc => docToType<Category>(doc));
-  };
+};
   
-  export const getCategoryBySlug = async (slug: string): Promise<Category | null> => {
-      const q = query(collection(db, 'categories'), where('slug', '==', slug), limit(1));
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) {
-          return null;
-      }
-      return docToType<Category>(querySnapshot.docs[0]);
-  };
+export const getCategoryBySlug = async (slug: string): Promise<Category | null> => {
+    const categoriesSnapshot = await getDocs(collection(db, 'collections'));
+    const categories = categoriesSnapshot.docs.map(doc => docToType<Category>(doc));
+    const category = categories.find(c => c.slug === slug);
+    return category || null;
+};
   
-  export const addCategory = async (categoryData: { name: string, slug: string }) => {
-    const categoriesCol = collection(db, 'categories');
-    // Check if category with this slug already exists to prevent duplicates
-    const q = query(categoriesCol, where('slug', '==', categoryData.slug), limit(1));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) {
-        await addDoc(categoriesCol, {
-            ...categoryData,
-            image: '', // default empty image
-            createdAt: serverTimestamp()
-        });
+// --- User Functions ---
+export const getUserById = async (userId: string): Promise<User | null> => {
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) {
+        return null;
     }
-  }
+    const user = docToType<User>(userSnap);
 
-  // --- User Functions ---
-  export const getUserById = async (userId: string): Promise<User | null> => {
-      const userRef = doc(db, 'users', userId);
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) {
-          return null;
-      }
-      const user = docToType<User>(userSnap);
+    const addressesCol = collection(db, 'users', userId, 'addresses');
+    const addressesSnapshot = await getDocs(addressesCol);
+    user.addresses = addressesSnapshot.docs.map(doc => docToType<UserAddress>(doc));
 
-      const addressesCol = collection(db, 'users', userId, 'addresses');
-      const addressesSnapshot = await getDocs(addressesCol);
-      if(!addressesSnapshot.empty) {
-        user.addresses = addressesSnapshot.docs.map(doc => docToType<Address & { id: string }>(doc));
-      } else {
-        user.addresses = [];
-      }
+    return user;
+}
 
-      return user;
-  }
+export const addAddress = async (userId: string, addressData: Omit<UserAddress, 'id' | 'userId'>): Promise<string> => {
+    const addressesCol = collection(db, 'users', userId, 'addresses');
+    const docRef = await addDoc(addressesCol, { ...addressData, userId });
+    return docRef.id;
+}
   
+// --- Order Functions ---
+export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
+    const q = query(collection(db, 'orders'), where('userId', '==', userId));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => docToType<Order>(doc));
+};
   
-  // --- Order Functions ---
-  export const getOrders = async (): Promise<Order[]> => {
-      const ordersCol = collection(db, 'orders');
-      const ordersSnapshot = await getDocs(ordersCol);
-      return ordersSnapshot.docs.map(doc => docToType<Order>(doc));
-  };
+export const getOrderById = async (id: string): Promise<Order | null> => {
+    const orderRef = doc(db, 'orders', id);
+    const orderSnap = await getDoc(orderRef);
+    if (!orderSnap.exists()) {
+        return null;
+    }
+    return docToType<Order>(orderSnap);
+};
+
+interface OrderPayload {
+    userId: string | null;
+    guestEmail?: string;
+    items: OrderItem[];
+    address: OrderAddress;
+    total: number;
+    shipping: number;
+    razorpay: {
+        orderId: string;
+        paymentId: string;
+        method: string;
+    };
+}
   
-  export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
-      const q = query(collection(db, 'orders'), where('userId', '==', userId));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => docToType<Order>(doc));
-  };
+export const createOrder = async (orderPayload: OrderPayload): Promise<Order> => {
+    const ordersCol = collection(db, 'orders');
+    const orderCountSnapshot = await getDocs(ordersCol);
+    const orderNumber = (orderCountSnapshot.size + 1).toString().padStart(6, '0');
+
+    const newOrderData = {
+        ...orderPayload,
+        orderNumber,
+        orderStatus: 'confirmed' as const,
+        paymentStatus: 'paid' as const,
+        createdAt: serverTimestamp(),
+        confirmedAt: serverTimestamp(),
+    };
+
+    const docRef = await addDoc(ordersCol, newOrderData);
   
-  export const getOrderById = async (id: string): Promise<Order | null> => {
-      const orderRef = doc(db, 'orders', id);
-      const orderSnap = await getDoc(orderRef);
-      if (!orderSnap.exists()) {
-          return null;
-      }
-      return docToType<Order>(orderSnap);
-  };
-  
-  export const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'orderStatus'>): Promise<Order> => {
-      const newOrderData = {
-          ...orderData,
-          createdAt: serverTimestamp(),
-          orderStatus: 'Confirmed' as const,
-      };
-      const docRef = await addDoc(collection(db, "orders"), newOrderData);
-  
-      return {
-          ...orderData,
-          id: docRef.id,
-          createdAt: new Date().toISOString(),
-          orderStatus: 'Confirmed' as const,
-      };
-  };
+    return {
+        id: docRef.id,
+        ...newOrderData,
+        createdAt: new Date().toISOString(),
+        confirmedAt: new Date().toISOString(),
+    };
+};

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { getOrderById } from '@/lib/data';
 import {
@@ -12,32 +12,39 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import Image from 'next/image';
-import { CheckCircle, Circle, Package } from 'lucide-react';
+import { CheckCircle, Circle, Package, Truck, Home } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Order } from '@/lib/types';
 
 export default function OrderDetailsPage({ params }: { params: { id: string } }) {
     const { user, loading: authLoading } = useAuth();
+    const router = useRouter();
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!authLoading && user) {
-            const fetchOrder = async () => {
-                setLoading(true);
-                const fetchedOrder = await getOrderById(params.id);
-                if (!fetchedOrder || fetchedOrder.userId !== user.id) {
-                    notFound();
-                }
-                setOrder(fetchedOrder);
-                setLoading(false);
-            };
+        const fetchOrder = async () => {
+            setLoading(true);
+            const fetchedOrder = await getOrderById(params.id);
+            if (!fetchedOrder) {
+                notFound();
+                return;
+            }
+            // For guest checkout, anyone with the link can view.
+            // For logged-in users, check if it's their order.
+            if (fetchedOrder.userId && (!user || fetchedOrder.userId !== user.id)) {
+                router.push('/login'); // Or a generic not-found/access-denied
+                return;
+            }
+            setOrder(fetchedOrder);
+            setLoading(false);
+        };
+
+        // We wait for auth to settle before fetching, to know if we should check userId
+        if (!authLoading) {
             fetchOrder();
         }
-         if (!authLoading && !user) {
-            notFound();
-        }
-    }, [params.id, user, authLoading]);
+    }, [params.id, user, authLoading, router]);
     
     if (loading || authLoading) {
         return <div className="text-center p-8">Loading order details...</div>
@@ -47,7 +54,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         notFound();
     }
 
-    const orderStatuses = ['Confirmed', 'Shipped', 'Delivered'];
+    const orderStatuses = ['confirmed', 'shipped', 'delivered'];
     const currentStatusIndex = orderStatuses.indexOf(order.orderStatus);
 
     const getStatusIcon = (status: string, index: number) => {
@@ -55,7 +62,9 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
             return <CheckCircle className="h-6 w-6 text-primary" />;
         }
         if (index === currentStatusIndex) {
-            return <Package className="h-6 w-6 text-accent" />;
+            if (status === 'confirmed') return <Package className="h-6 w-6 text-accent" />;
+            if (status === 'shipped') return <Truck className="h-6 w-6 text-accent" />;
+            if (status === 'delivered') return <Home className="h-6 w-6 text-accent" />;
         }
         return <Circle className="h-6 w-6 text-muted-foreground" />;
     }
@@ -64,7 +73,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         <div className="space-y-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>Order {order.id.substring(0,8)}...</CardTitle>
+                    <CardTitle>Order #{order.orderNumber}</CardTitle>
                     <CardDescription>
                         Placed on {format(new Date(order.createdAt), 'MMMM d, yyyy')}
                     </CardDescription>
@@ -72,11 +81,11 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 <CardContent>
                     <div className="mb-8">
                         <h3 className="mb-4 text-lg font-semibold">Order Tracking</h3>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start justify-between">
                             {orderStatuses.map((status, index) => (
-                                <div key={status} className="flex flex-col items-center">
+                                <div key={status} className="flex flex-col items-center text-center w-1/3">
                                     {getStatusIcon(status, index)}
-                                    <span className="mt-2 text-sm">{status}</span>
+                                    <span className="mt-2 text-sm font-medium capitalize">{status}</span>
                                 </div>
                             ))}
                         </div>
@@ -87,24 +96,23 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
 
                     <h3 className="mb-4 text-lg font-semibold">Items Ordered</h3>
                     <ul className="divide-y">
-                        {order.products.map(({ product, quantity }) => (
-                                <li key={product.id} className="flex items-center py-4">
-                                <div className="relative h-16 w-16 overflow-hidden rounded-md">
-                                    {product.images && product.images.length > 0 && (
-                                        <Image
-                                        src={product.images[0]}
-                                        alt={product.name}
-                                        fill
-                                        className="object-cover"
-                                        />
-                                    )}
+                        {order.items.map((item) => (
+                                <li key={item.id} className="flex items-center py-4">
+                                <div className="relative h-20 w-20 overflow-hidden rounded-md">
+                                    <Image
+                                    src={item.imageUrl}
+                                    alt={item.name}
+                                    fill
+                                    className="object-cover"
+                                    />
                                 </div>
                                 <div className="ml-4 flex-grow">
-                                    <h4 className="font-semibold">{product.name}</h4>
-                                    <p className="text-sm text-muted-foreground">Quantity: {quantity}</p>
+                                    <h4 className="font-semibold">{item.name}</h4>
+                                    <p className="text-sm text-muted-foreground">Color: {item.color}, Size: {item.size}</p>
+                                    <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
                                 </div>
                                 <div className="text-right font-semibold">
-                                    RS. {(product.price * quantity).toFixed(2)}
+                                    ₹{(item.price * item.quantity).toFixed(2)}
                                 </div>
                                 </li>
                             )
@@ -119,10 +127,10 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                         <CardTitle>Shipping Address</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p>{order.shippingAddress.name}</p>
-                        <p>{order.shippingAddress.address}</p>
-                        <p>{order.shippingAddress.city}, {order.shippingAddress.zip}</p>
-                        <p>{order.shippingAddress.country}</p>
+                        <p>{order.address.name}</p>
+                        <p>{order.address.address}</p>
+                        <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                        <p>Mobile: {order.address.mobile}</p>
                     </CardContent>
                 </Card>
                  <Card>
@@ -130,22 +138,21 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                         <CardTitle>Order Summary</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        <div className="flex justify-between">
+                         <div className="flex justify-between">
                             <span>Subtotal</span>
-                            <span>RS. {order.totalPrice.toFixed(2)}</span>
+                            <span>₹{(order.total - order.shipping).toFixed(2)}</span>
                         </div>
                          <div className="flex justify-between">
                             <span>Shipping</span>
-                            <span>RS. 0.00</span>
+                            <span>₹{order.shipping.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between border-t pt-2 font-bold">
                             <span>Total</span>
-                            <span>RS. {order.totalPrice.toFixed(2)}</span>
+                            <span>₹{order.total.toFixed(2)}</span>
                         </div>
                     </CardContent>
                 </Card>
             </div>
-
         </div>
     );
 }

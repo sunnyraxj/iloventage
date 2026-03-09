@@ -2,8 +2,8 @@
 
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import { addOrder } from '@/lib/data';
-import type { CartItem, User, Order } from '@/lib/types';
+import { createOrder } from '@/lib/data';
+import type { CartItem, OrderAddress } from '@/lib/types';
 
 interface PaymentVerificationData {
     razorpay_order_id: string;
@@ -12,16 +12,17 @@ interface PaymentVerificationData {
 }
 
 interface OrderCreationData {
-    user: User;
+    userId: string | null;
+    guestEmail?: string;
     items: CartItem[];
-    totalPrice: number;
-    shippingAddress: {
-        name: string;
-        address: string;
-        city: string;
-        zip: string;
-        country: string;
-    }
+    total: number;
+    shipping: number;
+    address: OrderAddress;
+    razorpay: {
+        orderId: string;
+        paymentId: string;
+        method: string;
+    };
 }
 
 const razorpay = new Razorpay({
@@ -51,7 +52,6 @@ export async function verifyAndCreateOrder(
     orderData: OrderCreationData
 ) {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = verificationData;
-    const { user, items, totalPrice, shippingAddress } = orderData;
     
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -64,14 +64,7 @@ export async function verifyAndCreateOrder(
 
     if (isAuthentic) {
         // Payment is authentic, create order in DB
-        const newOrder = await addOrder({
-            userId: user.id,
-            products: items.map(i => ({ product: i.product, quantity: i.quantity })),
-            totalPrice: totalPrice,
-            shippingAddress: shippingAddress,
-            paymentId: razorpay_payment_id,
-        });
-
+        const newOrder = await createOrder(orderData);
         return { success: true, orderId: newOrder.id };
     } else {
         return { success: false, message: 'Payment verification failed.' };

@@ -34,7 +34,7 @@ export default function DashboardOrdersPage() {
             const fetchOrders = async () => {
                 setLoading(true);
                 const userOrders = await getOrdersByUserId(user.id);
-                setOrders(userOrders);
+                setOrders(userOrders.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
                 setLoading(false);
             };
             fetchOrders();
@@ -45,11 +45,11 @@ export default function DashboardOrdersPage() {
 
     const getStatusVariant = (status: string) => {
         switch (status) {
-          case 'Shipped':
+          case 'shipped':
             return 'default';
-          case 'Delivered':
+          case 'delivered':
             return 'secondary';
-          case 'Cancelled':
+          case 'cancelled':
               return 'destructive';
           default:
             return 'outline';
@@ -69,7 +69,7 @@ export default function DashboardOrdersPage() {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Order ID</TableHead>
+                        <TableHead>Order #</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Total</TableHead>
@@ -80,12 +80,12 @@ export default function DashboardOrdersPage() {
                     {orders.length > 0 ? (
                         orders.map((order) => (
                             <TableRow key={order.id}>
-                                <TableCell className="font-medium">{order.id.substring(0, 8)}...</TableCell>
+                                <TableCell className="font-medium">#{order.orderNumber}</TableCell>
                                 <TableCell>{format(new Date(order.createdAt), 'PP')}</TableCell>
                                 <TableCell>
-                                    <Badge variant={getStatusVariant(order.orderStatus) as any}>{order.orderStatus}</Badge>
+                                    <Badge variant={getStatusVariant(order.orderStatus) as any} className="capitalize">{order.orderStatus}</Badge>
                                 </TableCell>
-                                <TableCell className="text-right">RS. {order.totalPrice.toFixed(2)}</TableCell>
+                                <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
                                 <TableCell className="text-right">
                                     <Button asChild variant="outline" size="sm">
                                         <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>

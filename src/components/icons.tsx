@@ -1,6 +1,8 @@
 import type { SVGProps } from "react";
 
-export function IloventagLogo(props: SVGProps<SVGSVGElement>) {
+// This file can be used for custom SVG icons.
+// For now, we are using lucide-react for most icons.
+export function Placeholder(props: SVGProps<SVGSVGElement>) {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -12,8 +14,7 @@ export function IloventagLogo(props: SVGProps<SVGSVGElement>) {
             strokeLinejoin="round"
             {...props}
         >
-            <path d="M6 9l6 6 6-6" />
-            <path d="M6 15l6-6 6 6" />
+           <circle cx="12" cy="12" r="10" />
         </svg>
     );
 }

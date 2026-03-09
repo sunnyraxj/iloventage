@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  reloadUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,27 +22,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-      setFirebaseUser(fbUser);
-      if (fbUser) {
-        // Fetch user profile from Firestore to get role
+  const fetchUser = async (fbUser: FirebaseUser) => {
+    if (fbUser) {
         const userProfile = await getUserById(fbUser.uid);
         if (userProfile) {
             setUser(userProfile);
         } else {
-            // This can happen if the user is in Auth but not in the 'users' collection yet
-            // For this demo, we'll create a default user object.
              setUser({
                 id: fbUser.uid,
                 email: fbUser.email || '',
-                name: fbUser.displayName || 'Demo User',
-                role: 'customer' // default role
+                name: fbUser.displayName || 'New User',
+                role: 'customer'
              });
         }
-      } else {
+    } else {
         setUser(null);
-      }
+    }
+  }
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      setFirebaseUser(fbUser);
+      await fetchUser(fbUser!);
       setLoading(false);
     });
 
@@ -56,7 +58,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await signOut(auth);
   };
 
-  const value = { user, firebaseUser, login, logout, loading };
+  const reloadUser = async () => {
+    if (firebaseUser) {
+      await fetchUser(firebaseUser);
+    }
+  }
+
+  const value = { user, firebaseUser, login, logout, loading, reloadUser };
 
   return (
     <AuthContext.Provider value={value}>

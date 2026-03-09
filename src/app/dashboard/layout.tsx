@@ -9,11 +9,12 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, User } from 'lucide-react';
+import { ShoppingBag, User, MapPin } from 'lucide-react';
 
 const navItems = [
-  { href: '/dashboard', label: 'Account', icon: User },
-  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingBag },
+  { href: '/dashboard', label: 'My Account', icon: User },
+  { href: '/dashboard/addresses', label: 'Addresses', icon: MapPin },
+  { href: '/dashboard/orders', label: 'My Orders', icon: ShoppingBag },
 ];
 
 export default function DashboardLayout({
