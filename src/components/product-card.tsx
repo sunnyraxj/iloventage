@@ -15,17 +15,17 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
+const getSafeUrl = (url: any): string => {
+  if (!url) return '/placeholder.svg';
+  return typeof url === 'string' ? url : url.value;
+}
+
 export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
 
   const firstVariant = product.variants?.[0];
   const firstSize = firstVariant?.sizes?.[0];
-  
-  const getSafeUrl = (url: any): string => {
-    if (!url) return '/placeholder.svg';
-    return typeof url === 'string' ? url : url.value;
-  }
 
   const imageUrl = getSafeUrl(firstVariant?.imageUrls?.[0]);
   const hoverImageUrl = firstVariant?.imageUrls?.[1] ? getSafeUrl(firstVariant.imageUrls[1]) : null;
@@ -75,7 +75,7 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
                 alt={product.name}
                 width={600}
                 height={800}
-                className="aspect-[3/4] w-full object-cover"
+                className="aspect-[3/4] w-full object-cover transition-opacity duration-300"
                 sizes={sizes}
                 quality={75}
                 priority={priority}
@@ -97,7 +97,7 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
               <span className="text-xs text-muted-foreground">No Image</span>
             </div>
           )}
-          {product.mrp > product.price && (
+          {product.mrp && product.mrp > product.price && (
              <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded z-10">
                 - {Math.round(((product.mrp - product.price) / product.mrp) * 100)}%
             </div>
@@ -120,7 +120,7 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
           <h3 className="text-sm font-semibold h-10 line-clamp-2">{product.name}</h3>
           <div className="flex items-baseline justify-start gap-2">
             <p className="font-semibold text-foreground">₹{product.price.toFixed(2)}</p>
-            {product.mrp > product.price && (
+            {product.mrp && product.mrp > product.price && (
               <p className="text-sm text-muted-foreground line-through">
                 ₹{product.mrp.toFixed(2)}
               </p>

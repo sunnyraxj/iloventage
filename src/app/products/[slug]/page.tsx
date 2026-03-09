@@ -14,6 +14,11 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
+const getSafeUrl = (url: any): string | null => {
+    if (!url) return null;
+    return typeof url === 'string' ? url : url.value;
+}
+
 export default function ProductPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -25,11 +30,6 @@ export default function ProductPage() {
   const { addItem } = useCart();
   const { toast } = useToast();
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-
-  const getSafeUrl = (url: any): string | null => {
-    if (!url) return null;
-    return typeof url === 'string' ? url : url.value;
-  }
 
   useEffect(() => {
     if (!slug) return;
@@ -182,6 +182,7 @@ export default function ProductPage() {
                                     width={200}
                                     height={200}
                                     className="h-full w-full object-cover"
+                                    quality={60}
                                 />
                             </div>
                         )
@@ -195,33 +196,45 @@ export default function ProductPage() {
                 <h1 className="my-2 font-headline text-3xl font-bold md:text-4xl">{product.name}</h1>
                 <div className="flex items-baseline gap-2 mb-4">
                     <p className="text-2xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
-                    <p className="text-xl text-muted-foreground line-through">₹{product.mrp.toFixed(2)}</p>
-                    <p className="text-sm font-bold text-green-600">({Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF)</p>
+                    {product.mrp && product.mrp > product.price && (
+                      <>
+                        <p className="text-xl text-muted-foreground line-through">₹{product.mrp.toFixed(2)}</p>
+                        <p className="text-sm font-bold text-green-600">({Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF)</p>
+                      </>
+                    )}
                 </div>
                 
                 {/* Color Selector */}
                 <div className="mb-6">
                     <h3 className="mb-2 text-sm font-medium">Color: <span className="font-bold">{selectedVariant?.color}</span></h3>
                     <div className="flex flex-wrap gap-2">
-                        {product.variants.map(variant => (
-                            <Button
-                                key={variant.color}
-                                variant="outline"
-                                size="icon"
-                                className={cn("h-10 w-10 rounded-full border-2", { 'border-primary ring-2 ring-primary': selectedVariant?.color === variant.color })}
-                                onClick={() => handleSelectVariant(variant)}
-                                style={{ backgroundColor: variant.color.toLowerCase() === 'white' ? '#f1f1f1' : variant.color.toLowerCase()}}
-                                aria-label={`Select color ${variant.color}`}
-                            >
-                                {variant.color.toLowerCase() === 'white' && <div className="h-full w-full rounded-full border border-gray-300" />}
-                            </Button>
-                        ))}
+                        {product.variants.map(variant => {
+                            const isOutOfStock = variant.sizes.every(s => s.stock === 0);
+                            return (
+                                <Button
+                                    key={variant.color}
+                                    variant="outline"
+                                    size="icon"
+                                    disabled={isOutOfStock}
+                                    className={cn("h-10 w-10 rounded-full border-2 relative", { 
+                                        'border-primary ring-2 ring-primary': selectedVariant?.color === variant.color,
+                                        'cursor-not-allowed': isOutOfStock
+                                    })}
+                                    onClick={() => handleSelectVariant(variant)}
+                                    style={{ backgroundColor: variant.color.toLowerCase() === 'white' ? '#f1f1f1' : variant.color.toLowerCase()}}
+                                    aria-label={`Select color ${variant.color}`}
+                                >
+                                    {variant.color.toLowerCase() === 'white' && <div className="h-full w-full rounded-full border border-gray-300" />}
+                                    {isOutOfStock && <div className="absolute inset-0 flex items-center justify-center"><div className="h-px w-full rotate-45 bg-destructive" /><div className="h-px w-full -rotate-45 bg-destructive absolute" /></div>}
+                                </Button>
+                            )
+                        })}
                     </div>
                 </div>
 
                 {/* Size Selector */}
                 <div className="mb-6">
-                    <h3 className="mb-2 text-sm font-medium">Size: <span className="font-bold">{selectedSize?.size}</span></h3>
+                    <h3 className="mb-2 text-sm font-medium">Size: <span className="font-bold">{selectedSize?.size || 'Select a size'}</span></h3>
                     <div className="flex flex-wrap gap-2">
                         {selectedVariant?.sizes.map(size => (
                              <Button
@@ -239,8 +252,11 @@ export default function ProductPage() {
                      {selectedSize && selectedSize.stock > 0 && selectedSize.stock < 10 && (
                         <p className="mt-2 text-sm text-destructive">Only {selectedSize.stock} left in stock!</p>
                      )}
-                     {selectedSize && selectedSize.stock === 0 && (
-                        <p className="mt-2 text-sm text-destructive">This size is out of stock.</p>
+                     {selectedSize === null && !selectedVariant?.sizes.every(s => s.stock === 0) && (
+                        <p className="mt-2 text-sm text-muted-foreground">Please select an available size.</p>
+                     )}
+                     {selectedVariant?.sizes.every(s => s.stock === 0) && (
+                        <p className="mt-2 text-sm text-destructive">This color is out of stock in all sizes.</p>
                      )}
                 </div>
                 
