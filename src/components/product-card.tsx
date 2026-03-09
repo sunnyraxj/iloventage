@@ -22,13 +22,14 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
   const firstVariant = product.variants?.[0];
   const firstSize = firstVariant?.sizes?.[0];
   
-  const getSafeUrl = (url: any): string | null => {
-    if (!url) return null;
+  const getSafeUrl = (url: any): string => {
+    if (!url) return '/placeholder.svg';
     return typeof url === 'string' ? url : url.value;
   }
 
   const imageUrl = getSafeUrl(firstVariant?.imageUrls?.[0]);
-  const hoverImageUrl = getSafeUrl(firstVariant?.imageUrls?.[1]);
+  const hoverImageUrl = firstVariant?.imageUrls?.[1] ? getSafeUrl(firstVariant.imageUrls[1]) : null;
+
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -85,7 +86,7 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
                   alt={`${product.name} - hover view`}
                   width={600}
                   height={800}
-                  className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  className="hidden md:block absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                   sizes={sizes}
                   quality={75}
                 />
@@ -107,7 +108,7 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
               variant="secondary"
               onClick={handleAddToCart}
               aria-label={`Add ${product.name} to cart`}
-              className="absolute bottom-2 left-1/2 -translate-x-1/2 w-11/12 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+              className="absolute bottom-2 left-1/2 -translate-x-1/2 w-11/12 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 z-10"
             >
               <ShoppingBag className="mr-2 h-4 w-4" />
               Add to Cart
