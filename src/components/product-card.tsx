@@ -20,7 +20,8 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw" }
 
   const firstVariant = product.variants[0];
   const firstSize = firstVariant?.sizes[0];
-  const imageUrl = firstVariant?.imageUrls[0];
+  const rawImageUrl = firstVariant?.imageUrls[0];
+  const imageUrl = rawImageUrl && typeof rawImageUrl === 'object' ? (rawImageUrl as any).value : rawImageUrl;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();

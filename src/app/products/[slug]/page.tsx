@@ -26,6 +26,11 @@ export default function ProductPage() {
   const { toast } = useToast();
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
+  const getSafeUrl = (url: any): string | null => {
+    if (!url) return null;
+    return typeof url === 'string' ? url : url.value;
+  }
+
   useEffect(() => {
     if (!slug) return;
     const fetchProduct = async () => {
@@ -40,8 +45,7 @@ export default function ProductPage() {
         const firstVariant = fetchedProduct.variants[0];
         setSelectedVariant(firstVariant);
         
-        const initialImageUrl = firstVariant.imageUrls?.[0];
-        setSelectedImageUrl(initialImageUrl || null);
+        setSelectedImageUrl(getSafeUrl(firstVariant.imageUrls?.[0]));
 
         const firstAvailableSize = firstVariant.sizes.find(s => s.stock > 0);
         setSelectedSize(firstAvailableSize || null);
@@ -53,8 +57,7 @@ export default function ProductPage() {
 
   const handleSelectVariant = (variant: ProductVariant) => {
     setSelectedVariant(variant);
-    const initialImageUrl = variant.imageUrls?.[0];
-    setSelectedImageUrl(initialImageUrl || null);
+    setSelectedImageUrl(getSafeUrl(variant.imageUrls?.[0]));
     const firstAvailableSize = variant.sizes.find(s => s.stock > 0);
     setSelectedSize(firstAvailableSize || null);
   }
@@ -78,7 +81,7 @@ export default function ProductPage() {
         return;
     }
 
-    const cartImageUrl = selectedVariant.imageUrls?.[0];
+    const cartImageUrl = getSafeUrl(selectedVariant.imageUrls?.[0]);
 
     const cartItem = {
         id: `${product.id}-${selectedVariant.color}-${selectedSize.size}`,
@@ -160,7 +163,8 @@ export default function ProductPage() {
                     />
                 </div>
                 <div className="grid grid-cols-4 gap-4">
-                    {selectedVariant?.imageUrls.map((url, i) => {
+                    {selectedVariant?.imageUrls.map((rawUrl, i) => {
+                        const url = getSafeUrl(rawUrl);
                         if (!url) return null;
 
                         return (
