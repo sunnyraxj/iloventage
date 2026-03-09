@@ -21,14 +21,14 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
 
   const firstVariant = product.variants?.[0];
   const firstSize = firstVariant?.sizes?.[0];
-  const rawImageUrl = firstVariant?.imageUrls?.[0];
-
+  
   const getSafeUrl = (url: any): string | null => {
     if (!url) return null;
     return typeof url === 'string' ? url : url.value;
   }
 
-  const imageUrl = getSafeUrl(rawImageUrl);
+  const imageUrl = getSafeUrl(firstVariant?.imageUrls?.[0]);
+  const hoverImageUrl = getSafeUrl(firstVariant?.imageUrls?.[1]);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -68,23 +68,36 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
       <Link href={`/products/${product.slug}`} className="block">
         <div className="relative overflow-hidden rounded-md">
           {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={product.name}
-              width={600}
-              height={800}
-              className="aspect-[3/4] w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes={sizes}
-              quality={75}
-              priority={priority}
-            />
+            <>
+              <Image
+                src={imageUrl}
+                alt={product.name}
+                width={600}
+                height={800}
+                className="aspect-[3/4] w-full object-cover"
+                sizes={sizes}
+                quality={75}
+                priority={priority}
+              />
+              {hoverImageUrl && (
+                <Image
+                  src={hoverImageUrl}
+                  alt={`${product.name} - hover view`}
+                  width={600}
+                  height={800}
+                  className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  sizes={sizes}
+                  quality={75}
+                />
+              )}
+            </>
           ) : (
             <div className="aspect-[3/4] w-full bg-secondary flex items-center justify-center">
               <span className="text-xs text-muted-foreground">No Image</span>
             </div>
           )}
           {product.mrp > product.price && (
-             <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
+             <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded z-10">
                 - {Math.round(((product.mrp - product.price) / product.mrp) * 100)}%
             </div>
           )}
@@ -94,7 +107,7 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
               variant="secondary"
               onClick={handleAddToCart}
               aria-label={`Add ${product.name} to cart`}
-              className="absolute bottom-2 left-1/2 -translate-x-1/2 w-11/12 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              className="absolute bottom-2 left-1/2 -translate-x-1/2 w-11/12 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
             >
               <ShoppingBag className="mr-2 h-4 w-4" />
               Add to Cart
