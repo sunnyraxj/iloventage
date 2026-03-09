@@ -105,7 +105,7 @@ export default function ProductsPage() {
                 </aside>
                 <div className="md:col-span-3">
                     {loading ? (
-                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                         <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
                             {Array.from({ length: 9 }).map((_, i) => (
                                 <div key={i} className="space-y-2">
                                     <Skeleton className="aspect-[3/4] w-full" />
@@ -118,13 +118,13 @@ export default function ProductsPage() {
                     ) : (
                         <>
                          <p className="text-sm text-muted-foreground mb-4">{filteredProducts.length} products found.</p>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
                             {filteredProducts.length > 0 ? (
                                 filteredProducts.map((product, index) => (
                                     <ProductCard 
                                       key={product.id} 
                                       product={product} 
-                                      sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                                      sizes="(max-width: 1023px) 50vw, 33vw"
                                       priority={index < 3}
                                     />
                                 ))
