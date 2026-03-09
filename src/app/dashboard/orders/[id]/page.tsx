@@ -12,9 +12,9 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import Image from 'next/image';
-import { CheckCircle, Circle, Package, Truck, Home } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Order } from '@/lib/types';
+import { OrderStatusChanger } from '@/app/admin/orders/components/OrderStatusChanger';
 
 export default function OrderDetailsPage({ params: { id } }: { params: { id: string } }) {
     const { user, loading: authLoading } = useAuth();
@@ -54,21 +54,6 @@ export default function OrderDetailsPage({ params: { id } }: { params: { id: str
         notFound();
     }
 
-    const orderStatuses = ['confirmed', 'shipped', 'delivered'];
-    const currentStatusIndex = orderStatuses.indexOf(order.orderStatus);
-
-    const getStatusIcon = (status: string, index: number) => {
-        if (index < currentStatusIndex) {
-            return <CheckCircle className="h-6 w-6 text-primary" />;
-        }
-        if (index === currentStatusIndex) {
-            if (status === 'confirmed') return <Package className="h-6 w-6 text-accent" />;
-            if (status === 'shipped') return <Truck className="h-6 w-6 text-accent" />;
-            if (status === 'delivered') return <Home className="h-6 w-6 text-accent" />;
-        }
-        return <Circle className="h-6 w-6 text-muted-foreground" />;
-    }
-
     return (
         <div className="space-y-8">
             <Card>
@@ -79,19 +64,13 @@ export default function OrderDetailsPage({ params: { id } }: { params: { id: str
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="mb-8">
-                        <h3 className="mb-4 text-lg font-semibold">Order Tracking</h3>
-                        <div className="flex items-start justify-between">
-                            {orderStatuses.map((status, index) => (
-                                <div key={status} className="flex flex-col items-center text-center w-1/3">
-                                    {getStatusIcon(status, index)}
-                                    <span className="mt-2 text-sm font-medium capitalize">{status}</span>
-                                </div>
-                            ))}
-                        </div>
-                         <div className="relative mt-4 h-1 w-full rounded-full bg-muted">
-                            <div className="absolute h-1 rounded-full bg-primary" style={{ width: `${(currentStatusIndex / (orderStatuses.length - 1)) * 100}%` }}></div>
-                        </div>
+                    <div className="mb-8 flex items-center gap-4">
+                        <h3 className="text-lg font-semibold">Order Status</h3>
+                        <OrderStatusChanger 
+                            orderId={order.id} 
+                            currentStatus={order.orderStatus}
+                            isEditable={user?.role === 'admin'}
+                        />
                     </div>
 
                     <h3 className="mb-4 text-lg font-semibold">Items Ordered</h3>

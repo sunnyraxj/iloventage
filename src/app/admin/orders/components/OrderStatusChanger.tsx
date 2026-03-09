@@ -16,9 +16,10 @@ import { MoreHorizontal } from 'lucide-react';
 interface OrderStatusChangerProps {
   orderId: string;
   currentStatus: Order['orderStatus'];
+  isEditable?: boolean;
 }
 
-export function OrderStatusChanger({ orderId, currentStatus }: OrderStatusChangerProps) {
+export function OrderStatusChanger({ orderId, currentStatus, isEditable = true }: OrderStatusChangerProps) {
   const [status, setStatus] = useState(currentStatus);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -54,7 +55,7 @@ export function OrderStatusChanger({ orderId, currentStatus }: OrderStatusChange
     };
     
   // Admin cannot change status for these states
-  const canChangeStatus = !['pending', 'cancelled', 'delivered'].includes(status);
+  const canChangeStatus = isEditable && !['pending', 'cancelled', 'delivered'].includes(status);
 
 
   return (
