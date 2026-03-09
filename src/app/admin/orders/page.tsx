@@ -18,9 +18,9 @@ import { getAllOrders } from '@/lib/data';
 import { format } from 'date-fns';
 import { OrderStatusChanger } from './components/OrderStatusChanger';
 import type { Order } from '@/lib/types';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { OrderImagePreview } from './components/OrderImagePreview';
 
 export default async function AdminOrdersPage() {
     const statusOrder: Record<Order['orderStatus'], number> = {
@@ -72,13 +72,7 @@ export default async function AdminOrdersPage() {
                             <TableCell>
                                 {firstItem ? (
                                     <div className="flex items-center gap-3">
-                                        <Image
-                                            alt={firstItem.name}
-                                            className="aspect-square rounded-md object-cover"
-                                            height="64"
-                                            src={firstItem.imageUrl || '/placeholder.svg'}
-                                            width="64"
-                                        />
+                                        <OrderImagePreview item={firstItem} />
                                         <div className="grid gap-0.5">
                                             <p className="font-medium line-clamp-2">{firstItem.name}</p>
                                             <p className="text-xs text-muted-foreground">
