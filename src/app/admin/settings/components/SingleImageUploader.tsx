@@ -30,26 +30,31 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
     if (!file) return;
 
     setIsUploading(true);
-
-    const currentImageUrl = getValues(fieldName);
-    if (currentImageUrl && (currentImageUrl.includes('firebasestorage.googleapis.com') || currentImageUrl.includes('storage.googleapis.com'))) {
-        try {
-            const imageRef = ref(storage, currentImageUrl);
-            await deleteObject(imageRef);
-        } catch (error: any) {
-             if (error.code !== 'storage/object-not-found') {
-                console.error("Old image deletion failed:", error);
-             }
-        }
-    }
     
     try {
+      // First, attempt to delete the old image if it exists and is a Firebase URL
+      const currentImageUrl = getValues(fieldName);
+      if (currentImageUrl && (currentImageUrl.includes('firebasestorage.googleapis.com') || currentImageUrl.includes('storage.googleapis.com'))) {
+          try {
+              const imageRef = ref(storage, currentImageUrl);
+              await deleteObject(imageRef);
+          } catch (error: any) {
+               if (error.code !== 'storage/object-not-found') {
+                  // Log the error but don't block the upload
+                  console.error("Old image deletion failed, continuing with upload:", error);
+               }
+          }
+      }
+
+      // Now, upload the new image
       const fileId = short.generate();
       const storageRef = ref(storage, `settings/${fileId}-${file.name}`);
       const snapshot = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(snapshot.ref);
+      
       setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });
       toast({ title: 'Upload successful', description: 'Image has been uploaded.' });
+
     } catch (error) {
       console.error("Image upload failed:", error);
       toast({ variant: 'destructive', title: 'Upload failed', description: 'Could not upload image.' });

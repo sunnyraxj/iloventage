@@ -28,19 +28,25 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
+
     setIsUploading(true);
     
     try {
-      for (const file of Array.from(files)) {
+      const uploadPromises = Array.from(files).map(async (file) => {
         const fileId = short.generate();
         const storageRef = ref(storage, `products/${fileId}-${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        // @ts-ignore
-        append({ value: downloadURL });
-      }
-      toast({ title: 'Upload successful', description: `${files.length} image(s) uploaded.` });
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        return { value: downloadURL };
+      });
+      
+      const uploadedImages = await Promise.all(uploadPromises);
+
+      // @ts-ignore
+      append(uploadedImages);
+
+      toast({ title: 'Upload successful', description: `${uploadedImages.length} image(s) uploaded.` });
     } catch (error) {
       console.error("Image upload failed:", error);
       toast({ variant: 'destructive', title: 'Upload failed', description: 'Could not upload images.' });
