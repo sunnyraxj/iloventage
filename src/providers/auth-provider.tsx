@@ -9,7 +9,7 @@ import { getUserById } from '@/lib/data';
 interface AuthContextType {
   user: User | null;
   firebaseUser: FirebaseUser | null;
-  login: (role: 'admin' | 'customer') => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
@@ -48,13 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  const login = async (role: 'admin' | 'customer') => {
-    // For demo purposes, using hardcoded credentials.
-    // In a real app, you would have a proper login form.
-    // IMPORTANT: Make sure these users exist in your Firebase Authentication.
-    const email = role === 'admin' ? 'thriftzone@gmail.com' : 'customer@iloventag.com';
-    const password = 'password'; // Use a strong password in production
-
+  const login = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
