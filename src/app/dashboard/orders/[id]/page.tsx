@@ -16,8 +16,7 @@ import { CheckCircle, Circle, Package, Truck, Home } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Order } from '@/lib/types';
 
-export default function OrderDetailsPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function OrderDetailsPage({ params: { id } }: { params: { id: string } }) {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [order, setOrder] = useState<Order | null>(null);
