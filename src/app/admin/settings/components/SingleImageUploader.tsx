@@ -11,6 +11,7 @@ import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
+import imageCompression from 'browser-image-compression';
 
 interface SingleImageUploaderProps {
   fieldName: string;
@@ -46,10 +47,21 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
           }
       }
 
+      const options = {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        fileType: 'image/jpeg',
+        stripExif: true,
+      };
+
+      const compressedFile = await imageCompression(file, options);
+      const fileName = file.name.split('.').slice(0, -1).join('.') + '.jpg';
+
       // Now, upload the new image
       const fileId = short.generate();
-      const storageRef = ref(storage, `settings/${fileId}-${file.name}`);
-      const snapshot = await uploadBytes(storageRef, file);
+      const storageRef = ref(storage, `settings/${fileId}-${fileName}`);
+      const snapshot = await uploadBytes(storageRef, compressedFile);
       const downloadURL = await getDownloadURL(snapshot.ref);
       
       setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });
@@ -59,7 +71,9 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
       console.error("Image upload failed:", error);
       
       let errorMessage = 'Could not upload image.';
-      if (error.code) {
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error.code) {
           switch (error.code) {
               case 'storage/unauthorized':
                   errorMessage = `Permission denied. Please check your storage rules.`;
@@ -77,8 +91,6 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
                   errorMessage = error.message;
                   break;
           }
-      } else if (error.message) {
-          errorMessage = error.message;
       }
 
       toast({ variant: 'destructive', title: 'Upload failed', description: errorMessage, duration: 9000 });

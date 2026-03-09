@@ -11,6 +11,7 @@ import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
+import imageCompression from 'browser-image-compression';
 
 interface ImageUploaderProps {
   variantIndex: number;
@@ -31,21 +32,34 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
+
+    const options = {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        fileType: 'image/jpeg',
+        stripExif: true,
+    };
     
     for (const file of Array.from(files)) {
         try {
+            const compressedFile = await imageCompression(file, options);
+            const fileName = file.name.split('.').slice(0, -1).join('.') + '.jpg';
+
             const fileId = short.generate();
-            const storageRef = ref(storage, `products/${fileId}-${file.name}`);
-            await uploadBytes(storageRef, file);
+            const storageRef = ref(storage, `products/${fileId}-${fileName}`);
+            await uploadBytes(storageRef, compressedFile);
             const downloadURL = await getDownloadURL(storageRef);
             append({ value: downloadURL });
 
-            toast({ title: 'Image Uploaded', description: `${file.name} uploaded successfully.` });
+            toast({ title: 'Image Uploaded', description: `${fileName} uploaded successfully.` });
         } catch (error: any) {
             console.error(`Upload failed for ${file.name}:`, error);
 
             let errorMessage = `Could not upload ${file.name}.`;
-            if (error.code) {
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } else if (error.code) {
                 switch (error.code) {
                     case 'storage/unauthorized':
                         errorMessage = `Permission denied for ${file.name}. Please check your storage rules.`;
@@ -63,8 +77,6 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
                         errorMessage = `For ${file.name}: ${error.message}`;
                         break;
                 }
-            } else if (error.message) {
-                errorMessage = error.message;
             }
 
             toast({ variant: 'destructive', title: 'Upload Failed', description: errorMessage, duration: 9000 });
