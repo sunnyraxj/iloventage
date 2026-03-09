@@ -11,13 +11,14 @@ import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
+  const { slug } = params;
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
-      const fetchedProduct = await getProductBySlug(params.slug);
+      const fetchedProduct = await getProductBySlug(slug);
       if (!fetchedProduct) {
         notFound();
         return;
@@ -26,7 +27,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       setLoading(false);
     };
     fetchProduct();
-  }, [params.slug]);
+  }, [slug]);
 
   if (loading) {
     return (
