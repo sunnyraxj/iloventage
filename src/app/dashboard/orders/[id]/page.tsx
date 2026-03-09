@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { getOrderById } from '@/lib/data';
 import {
@@ -16,7 +16,9 @@ import { format } from 'date-fns';
 import type { Order } from '@/lib/types';
 import { OrderStatusChanger } from '@/app/admin/orders/components/OrderStatusChanger';
 
-export default function OrderDetailsPage({ params: { id } }: { params: { id: string } }) {
+export default function OrderDetailsPage() {
+    const params = useParams();
+    const id = params.id as string;
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [order, setOrder] = useState<Order | null>(null);
@@ -24,6 +26,7 @@ export default function OrderDetailsPage({ params: { id } }: { params: { id: str
 
     useEffect(() => {
         const fetchOrder = async () => {
+            if (!id) return;
             setLoading(true);
             const fetchedOrder = await getOrderById(id);
             if (!fetchedOrder) {
