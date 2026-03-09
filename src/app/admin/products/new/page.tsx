@@ -5,8 +5,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ProductForm } from '../components/ProductForm';
+import { getCategories } from '@/lib/data';
 
-export default function NewProductPage() {
+export default async function NewProductPage() {
+    const categories = await getCategories();
+
   return (
     <Card>
       <CardHeader>
@@ -14,7 +18,7 @@ export default function NewProductPage() {
         <CardDescription>Fill out the form to add a new product.</CardDescription>
       </CardHeader>
       <CardContent>
-        <p>Product form will be here.</p>
+        <ProductForm categories={categories} />
       </CardContent>
     </Card>
   );

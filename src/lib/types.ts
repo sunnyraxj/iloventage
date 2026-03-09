@@ -1,5 +1,6 @@
 
 
+
 // From collections collection
 export type Category = {
     id: string;
@@ -31,7 +32,7 @@ export type Product = {
     gender: 'male' | 'female' | 'unisex';
     collectionId: string;
     price: number;
-    mrp: number;
+    mrp?: number;
     moq: number;
     clicks: number;
     isVisible: boolean;

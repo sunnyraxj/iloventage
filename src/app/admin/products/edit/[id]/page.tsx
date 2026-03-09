@@ -5,10 +5,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getProductById } from '@/lib/data';
+import { getProductById, getCategories } from '@/lib/data';
+import { ProductForm } from '../components/ProductForm';
 
 export default async function EditProductPage({ params }: { params: { id: string } }) {
-  const product = await getProductById(params.id);
+  const [product, categories] = await Promise.all([
+    getProductById(params.id),
+    getCategories()
+  ]);
 
   if (!product) {
     return (
@@ -30,7 +34,7 @@ export default async function EditProductPage({ params }: { params: { id: string
         <CardDescription>Editing: {product.name}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p>Product edit form will be here.</p>
+        <ProductForm product={product} categories={categories} />
       </CardContent>
     </Card>
   );
