@@ -39,8 +39,8 @@ export function ProductCard({ product }: ProductCardProps) {
               alt={product.name}
               data-ai-hint={productImage.imageHint}
               width={600}
-              height={600}
-              className="aspect-square w-full object-cover"
+              height={800}
+              className="aspect-[3/4] w-full object-cover"
             />
           )}
           {product.stock > 0 && (

@@ -49,8 +49,8 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
                   alt={product.name}
                   data-ai-hint={productImage.imageHint}
                   width={600}
-                  height={600}
-                  className="h-full w-full object-cover aspect-square"
+                  height={800}
+                  className="h-full w-full object-cover aspect-[3/4]"
                 />
               )}
             </div>
