@@ -2,19 +2,24 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
-import { getCategories, getProducts } from '@/lib/data';
+import { getCategories, getProducts, getStoreSettings } from '@/lib/data';
 import { ProductCard } from '@/components/product-card';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default async function HomePage() {
-  const products = await getProducts();
-  const categories = await getCategories();
+  const [products, categories, settings] = await Promise.all([
+    getProducts(),
+    getCategories(),
+    getStoreSettings(),
+  ]);
 
   // Simple logic to get some "featured" products, e.g. first 8
   const featuredProducts = products.slice(0, 8);
-  const heroImageUrl = "https://picsum.photos/seed/1/1920/1080";
+  const heroImageUrl =
+    settings?.storeDetails?.heroImageUrl ||
+    'https://picsum.photos/seed/1/1920/1080';
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -24,7 +29,7 @@ export default async function HomePage() {
           {heroImageUrl ? (
             <Image
               src={heroImageUrl}
-              alt={'Hero Image'}
+              alt={settings?.storeDetails?.name || 'Hero Image'}
               fill
               className="object-cover"
               priority
@@ -35,7 +40,7 @@ export default async function HomePage() {
           )}
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 p-4 text-center">
             <h1 className="mb-4 font-headline text-4xl font-bold md:text-6xl">
-              {"Welcome to our store"}
+              {settings?.storeDetails?.name || 'Welcome to our store'}
             </h1>
             <p className="mb-8 max-w-2xl text-lg md:text-xl">
               Discover curated collections that blend timeless elegance with

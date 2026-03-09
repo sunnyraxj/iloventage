@@ -14,7 +14,7 @@ import {
     Timestamp,
   } from 'firebase/firestore';
 import { db } from '@/firebase/config';
-import type { Product, Category, User, Order, UserAddress, OrderItem, OrderAddress } from './types';
+import type { Product, Category, User, Order, UserAddress, OrderItem, OrderAddress, StoreSettings } from './types';
   
 const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
@@ -161,6 +161,18 @@ export const createOrder = async (orderPayload: OrderPayload): Promise<Order> =>
         confirmedAt: new Date().toISOString(),
     };
 };
+
+// --- Settings Functions ---
+export const getStoreSettings = async (): Promise<StoreSettings | null> => {
+    const settingsRef = doc(db, 'settings', 'details');
+    const settingsSnap = await getDoc(settingsRef);
+    if (!settingsSnap.exists()) {
+        console.warn("Store settings not found in Firestore. Using default/hardcoded values.");
+        return null;
+    }
+    return docToType<StoreSettings>(settingsSnap);
+};
+
 
 // --- Admin Functions ---
 
