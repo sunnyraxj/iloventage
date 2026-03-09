@@ -1,4 +1,5 @@
 import type { Product, Category, User, Order } from './types';
+import short from 'short-uuid';
 
 export const categories: Category[] = [
   { id: '1', name: 'Apparel', slug: 'apparel', image: 'category-apparel' },
@@ -135,7 +136,7 @@ export const users: User[] = [
     { id: '2', name: 'Customer User', email: 'customer@iloventag.com', role: 'customer' },
 ];
 
-export const orders: Order[] = [
+export let orders: Order[] = [
     {
         id: 'ORD-001',
         userId: '2',
@@ -187,3 +188,15 @@ export const getUserByEmail = (email: string) => users.find(u => u.email === ema
 export const getOrders = () => orders;
 export const getOrdersByUserId = (userId: string) => orders.filter(o => o.userId === userId);
 export const getOrderById = (id: string) => orders.find(o => o.id === id);
+
+// Function to add a new order
+export const addOrder = (orderData: Omit<Order, 'id' | 'createdAt' | 'orderStatus'>): Order => {
+    const newOrder: Order = {
+        ...orderData,
+        id: `ORD-${short.generate().slice(0, 7).toUpperCase()}`,
+        createdAt: new Date().toISOString(),
+        orderStatus: 'Confirmed',
+    };
+    orders.unshift(newOrder); // Add to the beginning of the array
+    return newOrder;
+};
