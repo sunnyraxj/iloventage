@@ -30,8 +30,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
-import { getCategories } from '@/lib/data';
-import type { Category } from '@/lib/types';
+import { getCategories, getStoreSettings } from '@/lib/data';
+import type { Category, StoreSettings } from '@/lib/types';
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -39,17 +39,24 @@ export function Header() {
   const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
   const [hasMounted, setHasMounted] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [settings, setSettings] = useState<StoreSettings | null>(null);
 
   useEffect(() => {
     setHasMounted(true);
     const fetchInitialData = async () => {
-        const appCategories = await getCategories();
+        const [appCategories, appSettings] = await Promise.all([
+            getCategories(),
+            getStoreSettings()
+        ]);
         setCategories(appCategories);
+        setSettings(appSettings);
     }
     fetchInitialData();
   }, []);
 
   const navLinks = categories.map(c => ({ href: `/categories/${c.slug}`, label: c.name }));
+  const logoUrl = settings?.storeDetails?.logoUrl;
+  const storeName = settings?.storeDetails?.name || 'My Store';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -81,10 +88,11 @@ export function Header() {
             </Sheet>
           )}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-muted rounded-full" />
-            <span className="hidden font-bold sm:inline-block text-lg">
-              My Store
-            </span>
+            {logoUrl ? (
+                <Image src={logoUrl} alt={storeName} width={120} height={32} className="h-8 w-auto" />
+            ) : (
+                <div className="h-8 w-8 bg-muted rounded-full" />
+            )}
           </Link>
         </div>
 
@@ -129,7 +137,7 @@ export function Header() {
                         className="rounded-full"
                         aria-label="User Menu"
                       >
-                         {user.photoURL ? <Image src={user.photoURL} alt={user.name} width={24} height={24} className="rounded-full" /> : <UserCircle className="h-5 w-5" /> }
+                         {user.photoURL ? <Image src={user.photoURL} alt={user.name} width={32} height={32} className="rounded-full" /> : <UserCircle className="h-5 w-5" /> }
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">

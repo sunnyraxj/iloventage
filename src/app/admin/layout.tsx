@@ -9,7 +9,7 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Package, ShoppingBag, Users } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Settings } from 'lucide-react';
 import { hasConfirmedOrders as checkHasConfirmedOrders } from '@/lib/data';
 
 const navItems = [
@@ -17,6 +17,7 @@ const navItems = [
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/users', label: 'Customers', icon: Users },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function AdminLayout({
