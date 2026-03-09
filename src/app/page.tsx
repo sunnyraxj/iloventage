@@ -47,9 +47,15 @@ export default function HomePage() {
             <h2 className="mb-8 text-center font-headline text-3xl font-bold">
               Shop by Category
             </h2>
-            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+            <div className="flex items-center justify-start gap-4 overflow-x-auto pb-4 md:justify-center md:gap-6">
               {categories.map((category) => (
-                <Button key={category.id} variant="outline" size="lg" asChild>
+                <Button
+                  key={category.id}
+                  variant="outline"
+                  size="lg"
+                  asChild
+                  className="flex-shrink-0"
+                >
                   <Link href={`/categories/${category.slug}`}>
                     {category.name}
                   </Link>
