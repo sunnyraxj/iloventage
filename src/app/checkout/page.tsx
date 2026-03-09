@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
-import { initiatePayment, verifyAndCreateOrder } from '@/app/actions/payment';
+import { createOrderAndInitiatePayment, verifyPaymentAndUpdateOrder } from '@/app/actions/payment';
 import type { UserAddress, OrderAddress } from '@/lib/types';
 
 const FREE_SHIPPING_THRESHOLD = 1000;
@@ -97,15 +97,27 @@ export default function CheckoutPage() {
     setIsLoading(true);
 
     try {
-        const razorpayOrder = await initiatePayment(finalTotal);
+        const orderPayload = {
+            userId: user?.id || null,
+            guestEmail: user ? undefined : guestEmail,
+            items,
+            total: finalTotal,
+            shipping: shippingCost,
+            address: shippingInfo,
+        };
+        const paymentInitiationResult = await createOrderAndInitiatePayment(orderPayload);
+
+        if (!paymentInitiationResult.success || !paymentInitiationResult.razorpayOrderId) {
+            throw new Error(paymentInitiationResult.message || "Could not initiate payment.");
+        }
 
         const options = {
             key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-            amount: razorpayOrder.amount,
-            currency: razorpayOrder.currency,
+            amount: paymentInitiationResult.amount,
+            currency: paymentInitiationResult.currency,
             name: "My Store",
             description: "Order Payment",
-            order_id: razorpayOrder.id,
+            order_id: paymentInitiationResult.razorpayOrderId,
             handler: async function (response: any) {
                 const verificationData = {
                     razorpay_order_id: response.razorpay_order_id,
@@ -113,19 +125,7 @@ export default function CheckoutPage() {
                     razorpay_signature: response.razorpay_signature,
                 };
                 
-                const result = await verifyAndCreateOrder(verificationData, {
-                    userId: user?.id || null,
-                    guestEmail: user ? undefined : guestEmail,
-                    items,
-                    total: finalTotal,
-                    shipping: shippingCost,
-                    address: shippingInfo,
-                    razorpay: {
-                        orderId: response.razorpay_order_id,
-                        paymentId: response.razorpay_payment_id,
-                        method: response.method || 'card',
-                    }
-                });
+                const result = await verifyPaymentAndUpdateOrder(verificationData);
 
                 if (result.success && result.orderId) {
                     toast({
@@ -171,7 +171,7 @@ export default function CheckoutPage() {
         toast({
             variant: "destructive",
             title: "Uh oh! Something went wrong.",
-            description: "Could not initiate payment. Please try again.",
+            description: error instanceof Error ? error.message : "Could not initiate payment. Please try again.",
         });
         setIsLoading(false);
     }
