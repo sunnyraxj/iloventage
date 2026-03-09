@@ -82,7 +82,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                     <p className="text-sm text-muted-foreground">Quantity: {quantity}</p>
                                 </div>
                                 <div className="text-right font-semibold">
-                                    ${(product.price * quantity).toFixed(2)}
+                                    RS. {(product.price * quantity).toFixed(2)}
                                 </div>
                                 </li>
                             );
@@ -110,15 +110,15 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                     <CardContent className="space-y-2">
                         <div className="flex justify-between">
                             <span>Subtotal</span>
-                            <span>${order.totalPrice.toFixed(2)}</span>
+                            <span>RS. {order.totalPrice.toFixed(2)}</span>
                         </div>
                          <div className="flex justify-between">
                             <span>Shipping</span>
-                            <span>$0.00</span>
+                            <span>RS. 0.00</span>
                         </div>
                         <div className="flex justify-between border-t pt-2 font-bold">
                             <span>Total</span>
-                            <span>${order.totalPrice.toFixed(2)}</span>
+                            <span>RS. {order.totalPrice.toFixed(2)}</span>
                         </div>
                     </CardContent>
                 </Card>

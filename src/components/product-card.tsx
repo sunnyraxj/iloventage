@@ -6,7 +6,6 @@ import { Plus } from 'lucide-react';
 
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +19,9 @@ export function ProductCard({ product }: ProductCardProps) {
   const { toast } = useToast();
   const productImage = PlaceHolderImages.find((img) => img.id === product.images[0]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     addItem({ product, quantity: 1 });
     toast({
       title: 'Added to cart',
@@ -29,33 +30,46 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden transition-all duration-300 hover:shadow-lg">
-      <CardHeader className="p-0">
-        <Link href={`/products/${product.slug}`} className="block overflow-hidden">
+    <div className="group text-center md:text-left">
+      <Link href={`/products/${product.slug}`} className="block">
+        <div className="relative overflow-hidden rounded-md">
           {productImage && (
-             <Image
-                src={productImage.imageUrl}
-                alt={product.name}
-                data-ai-hint={productImage.imageHint}
-                width={600}
-                height={600}
-                className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            <Image
+              src={productImage.imageUrl}
+              alt={product.name}
+              data-ai-hint={productImage.imageHint}
+              width={600}
+              height={600}
+              className="aspect-square w-full object-cover"
             />
           )}
-        </Link>
-      </CardHeader>
-      <CardContent className="flex-grow p-4">
-        <CardTitle className="mb-2 text-lg font-semibold">
-          <Link href={`/products/${product.slug}`}>{product.name}</Link>
-        </CardTitle>
-        <p className="text-muted-foreground">{product.category}</p>
-      </CardContent>
-      <CardFooter className="flex items-center justify-between p-4 pt-0">
-        <p className="text-xl font-bold text-primary">${product.price.toFixed(2)}</p>
-        <Button size="icon" variant="outline" onClick={handleAddToCart} aria-label={`Add ${product.name} to cart`}>
-          <Plus className="h-5 w-5" />
-        </Button>
-      </CardFooter>
-    </Card>
+          {product.stock > 0 && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={handleAddToCart}
+              aria-label={`Add ${product.name} to cart`}
+              className="absolute bottom-2 left-2 h-9 w-9 rounded-sm bg-black/50 p-2 text-white hover:bg-black/70"
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
+        <div className="pt-2">
+          <h3 className="text-sm font-bold uppercase tracking-wider">{product.name}</h3>
+          <div className="flex items-baseline justify-center gap-2 md:justify-start">
+            <p className="font-semibold text-foreground">RS. {product.price.toFixed(2)}</p>
+            {product.originalPrice && (
+              <p className="text-xs text-muted-foreground line-through">
+                RS. {product.originalPrice.toFixed(2)}
+              </p>
+            )}
+          </div>
+          {product.stock === 0 && (
+            <p className="text-sm font-bold text-red-500">SOLD OUT</p>
+          )}
+        </div>
+      </Link>
+    </div>
   );
 }

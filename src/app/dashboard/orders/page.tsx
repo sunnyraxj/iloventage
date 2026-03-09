@@ -65,7 +65,7 @@ export default function DashboardOrdersPage() {
                             <TableCell>
                                 <Badge variant={getStatusVariant(order.orderStatus) as any}>{order.orderStatus}</Badge>
                             </TableCell>
-                            <TableCell className="text-right">${order.totalPrice.toFixed(2)}</TableCell>
+                            <TableCell className="text-right">RS. {order.totalPrice.toFixed(2)}</TableCell>
                             <TableCell className="text-right">
                                 <Button asChild variant="outline" size="sm">
                                     <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>

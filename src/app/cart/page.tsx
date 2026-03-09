@@ -54,7 +54,7 @@ export default function CartPage() {
                             </div>
                             <div className="ml-4 flex-grow">
                               <h3 className="font-semibold">{item.product.name}</h3>
-                              <p className="text-sm text-muted-foreground">${item.product.price.toFixed(2)}</end>
+                              <p className="text-sm text-muted-foreground">RS. {item.product.price.toFixed(2)}</end>
                             </div>
                             <div className="flex items-center">
                                 <div className="flex items-center rounded-md border">
@@ -74,7 +74,7 @@ export default function CartPage() {
                                 </div>
                             </div>
                             <div className="ml-4 text-right font-semibold">
-                              ${(item.product.price * item.quantity).toFixed(2)}
+                              RS. {(item.product.price * item.quantity).toFixed(2)}
                             </div>
                             <Button variant="ghost" size="icon" className="ml-4" onClick={() => removeItem(item.product.id)}>
                               <Trash2 className="h-5 w-5 text-destructive" />
@@ -95,7 +95,7 @@ export default function CartPage() {
                   <CardContent className="space-y-4">
                     <div className="flex justify-between">
                       <span>Subtotal</span>
-                      <span>${totalPrice.toFixed(2)}</span>
+                      <span>RS. {totalPrice.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Shipping</span>
@@ -103,7 +103,7 @@ export default function CartPage() {
                     </div>
                     <div className="flex justify-between border-t pt-4 font-bold">
                       <span>Total</span>
-                      <span>${totalPrice.toFixed(2)}</span>
+                      <span>RS. {totalPrice.toFixed(2)}</span>
                     </div>
                   </CardContent>
                   <CardFooter>

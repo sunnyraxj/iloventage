@@ -15,6 +15,7 @@ export const products: Product[] = [
     description:
       'A timeless piece that adds an edge to any outfit. Made from 100% genuine leather, this jacket is built to last and will only get better with age. Features a classic collar, zip-front closure, and multiple pockets for functionality.',
     price: 299.99,
+    originalPrice: 350.0,
     images: ['product-1'],
     category: 'apparel',
     stock: 15,
@@ -43,7 +44,7 @@ export const products: Product[] = [
     price: 120.0,
     images: ['product-3'],
     category: 'shoes',
-    stock: 50,
+    stock: 0,
     featured: false,
     keywords: ['running', 'shoes', 'sneakers', 'sport'],
   },
@@ -54,6 +55,7 @@ export const products: Product[] = [
     description:
       'A versatile backpack that combines style and functionality. Made from water-resistant materials, it features a padded laptop compartment, multiple organizational pockets, and comfortable shoulder straps. Perfect for work, travel, or school.',
     price: 89.99,
+    originalPrice: 110.0,
     images: ['product-4'],
     category: 'accessories',
     stock: 40,
@@ -119,6 +121,7 @@ export const products: Product[] = [
     description:
       'A wardrobe staple, these classic denim jeans are made for comfort and style. Featuring a slim-fit design and durable denim fabric, they are perfect for casual wear. Versatile and timeless.',
     price: 75.99,
+    originalPrice: 90.0,
     images: ['product-9'],
     category: 'apparel',
     stock: 80,

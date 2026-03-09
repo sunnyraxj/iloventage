@@ -54,7 +54,7 @@ export default function AdminProductsPage() {
                         <TableCell>
                             <Badge variant="outline">{product.category}</Badge>
                         </TableCell>
-                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                        <TableCell>RS. {product.price.toFixed(2)}</TableCell>
                         <TableCell>{product.stock}</TableCell>
                         <TableCell>
                             <DropdownMenu>
