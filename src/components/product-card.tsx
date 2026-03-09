@@ -132,10 +132,10 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
         <div className="pt-2 text-left">
           <p className="text-xs text-muted-foreground">{product.brand}</p>
           <h3 className="text-xs font-semibold h-8 line-clamp-2">{product.name}</h3>
-          <div className="flex items-baseline justify-start gap-2">
-            <p className="font-semibold text-foreground">₹{product.price.toFixed(2)}</p>
+          <div className="flex items-baseline justify-start gap-1">
+            <p className="text-sm font-semibold text-foreground">₹{product.price.toFixed(2)}</p>
             {product.mrp && product.mrp > product.price && (
-              <p className="text-sm text-muted-foreground line-through">
+              <p className="text-xs text-muted-foreground line-through">
                 ₹{product.mrp.toFixed(2)}
               </p>
             )}
