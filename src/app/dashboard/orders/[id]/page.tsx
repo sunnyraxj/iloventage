@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import type { Order } from '@/lib/types';
 
 export default function OrderDetailsPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [order, setOrder] = useState<Order | null>(null);
@@ -25,7 +26,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
     useEffect(() => {
         const fetchOrder = async () => {
             setLoading(true);
-            const fetchedOrder = await getOrderById(params.id);
+            const fetchedOrder = await getOrderById(id);
             if (!fetchedOrder) {
                 notFound();
                 return;
@@ -44,7 +45,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         if (!authLoading) {
             fetchOrder();
         }
-    }, [params.id, user, authLoading, router]);
+    }, [id, user, authLoading, router]);
     
     if (loading || authLoading) {
         return <div className="text-center p-8">Loading order details...</div>
