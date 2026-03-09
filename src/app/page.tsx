@@ -61,7 +61,7 @@ export default function HomePage() {
             <h2 className="mb-8 text-center font-headline text-3xl font-bold">
               Shop Our Collection
             </h2>
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
               {featuredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
