@@ -11,6 +11,9 @@ import {
   LayoutDashboard,
   LogOut,
   LogIn,
+  User,
+  MapPin,
+  ShoppingBag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -143,12 +146,35 @@ export function Header() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href={user.role === 'admin' ? '/admin' : '/dashboard'}>
-                          <LayoutDashboard className="mr-2 h-4 w-4" />
-                          <span>Dashboard</span>
-                        </Link>
-                      </DropdownMenuItem>
+                        {user.role === 'admin' ? (
+                            <DropdownMenuItem asChild>
+                                <Link href="/admin">
+                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                <span>Dashboard</span>
+                                </Link>
+                            </DropdownMenuItem>
+                        ) : (
+                            <>
+                            <DropdownMenuItem asChild>
+                                <Link href="/dashboard">
+                                <User className="mr-2 h-4 w-4" />
+                                <span>My Account</span>
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href="/dashboard/addresses">
+                                <MapPin className="mr-2 h-4 w-4" />
+                                <span>Addresses</span>
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href="/dashboard/orders">
+                                <ShoppingBag className="mr-2 h-4 w-4" />
+                                <span>My Orders</span>
+                                </Link>
+                            </DropdownMenuItem>
+                            </>
+                        )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={logout}>
                         <LogOut className="mr-2 h-4 w-4" />
