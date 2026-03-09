@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -37,7 +38,7 @@ const formSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters."),
   brand: z.string().min(2, "Brand is required."),
   gender: z.enum(["male", "female", "unisex"]),
-  collectionId: z.string().min(1, "Category is required."),
+  categoryName: z.string().min(1, "Category is required."),
   price: z.coerce.number().min(0, "Price must be a positive number."),
   mrp: z.coerce.number().min(0, "MRP must be a positive number.").optional(),
   moq: z.coerce.number().int().min(1, "MOQ must be at least 1."),
@@ -58,15 +59,17 @@ export type ProductFormValues = z.infer<typeof formSchema>
 interface ProductFormProps {
     product?: Product | null;
     categories: Category[];
+    categoryName?: string;
 }
 
-export function ProductForm({ product, categories }: ProductFormProps) {
+export function ProductForm({ product, categories, categoryName }: ProductFormProps) {
     const { toast } = useToast();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const defaultValues: Partial<ProductFormValues> = product ? {
         ...product,
+        categoryName: categoryName || "",
         mrp: product.mrp || 0,
         additionalDetails: product.additionalDetails?.map(d => ({ value: d })),
         variants: product.variants.map(v => ({
@@ -78,7 +81,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
         description: "",
         brand: "",
         gender: "unisex",
-        collectionId: "",
+        categoryName: "",
         price: 0,
         mrp: 0,
         moq: 1,
@@ -179,7 +182,29 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                             <CardHeader><CardTitle>Organization</CardTitle></CardHeader>
                             <CardContent className="space-y-4">
                                 <FormField control={form.control} name="brand" render={({ field }) => (<FormItem><FormLabel>Brand</FormLabel><FormControl><Input placeholder="e.g. Nike" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={form.control} name="collectionId" render={({ field }) => (<FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl><SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
+                                <FormField
+                                    control={form.control}
+                                    name="categoryName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Category</FormLabel>
+                                            <FormControl>
+                                                <>
+                                                    <Input
+                                                        placeholder="Select or create a category"
+                                                        {...field}
+                                                        list="category-list"
+                                                    />
+                                                    <datalist id="category-list">
+                                                        {categories.map(c => <option key={c.id} value={c.name} />)}
+                                                    </datalist>
+                                                </>
+                                            </FormControl>
+                                            <FormDescription>Type to create a new category or select from the list.</FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                                 <FormField control={form.control} name="gender" render={({ field }) => (<FormItem><FormLabel>Gender</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger></FormControl><SelectContent><SelectItem value="male">Men</SelectItem><SelectItem value="female">Women</SelectItem><SelectItem value="unisex">Unisex</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                             </CardContent>
                         </Card>

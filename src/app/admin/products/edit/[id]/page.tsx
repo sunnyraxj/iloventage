@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -7,6 +8,7 @@ import {
 } from '@/components/ui/card';
 import { getProductById, getCategories } from '@/lib/data';
 import { ProductForm } from '../../components/ProductForm';
+import { notFound } from 'next/navigation';
 
 export default async function EditProductPage({ params }: { params: { id: string } }) {
   const [product, categories] = await Promise.all([
@@ -15,17 +17,10 @@ export default async function EditProductPage({ params }: { params: { id: string
   ]);
 
   if (!product) {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Product not found</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p>The product you are trying to edit does not exist.</p>
-            </CardContent>
-        </Card>
-    )
+    return notFound();
   }
+
+  const categoryName = categories.find(c => c.id === product.collectionId)?.name;
 
   return (
     <Card>
@@ -34,7 +29,7 @@ export default async function EditProductPage({ params }: { params: { id: string
         <CardDescription>Editing: {product.name}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ProductForm product={product} categories={categories} />
+        <ProductForm product={product} categories={categories} categoryName={categoryName} />
       </CardContent>
     </Card>
   );

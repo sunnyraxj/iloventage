@@ -1,29 +1,14 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { getCategoryById } from '@/lib/data';
-import { CategoryForm } from '../../components/CategoryForm';
-import { notFound } from 'next/navigation';
 
-export default async function EditCategoryPage({ params }: { params: { id: string } }) {
-  const category = await getCategoryById(params.id);
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-  if (!category) {
-    notFound();
-  }
-
+export default function EditCategoryPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Edit Category</CardTitle>
-        <CardDescription>Editing: {category.name}</CardDescription>
+        <CardTitle>Section Removed</CardTitle>
       </CardHeader>
       <CardContent>
-        <CategoryForm category={category} />
+        <p>Category management is now done directly from the product page when you add or edit a product.</p>
       </CardContent>
     </Card>
   );

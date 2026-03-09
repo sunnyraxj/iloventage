@@ -1,21 +1,14 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { CategoryForm } from '../components/CategoryForm';
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function NewCategoryPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add New Category</CardTitle>
-        <CardDescription>Fill out the form to add a new category.</CardDescription>
+        <CardTitle>Section Removed</CardTitle>
       </CardHeader>
       <CardContent>
-        <CategoryForm />
+        <p>Category management is now done directly from the product page when you add or edit a product.</p>
       </CardContent>
     </Card>
   );

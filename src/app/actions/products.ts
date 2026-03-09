@@ -1,6 +1,7 @@
+
 'use server';
 
-import { doc, addDoc, updateDoc, collection, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, addDoc, updateDoc, collection, serverTimestamp, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { revalidatePath } from 'next/cache';
 import { type ProductFormValues } from '@/app/admin/products/components/ProductForm';
@@ -10,8 +11,30 @@ const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').rep
 
 export async function upsertProduct(data: ProductFormValues, productId?: string) {
     try {
+        // Find or create category
+        let collectionId: string;
+        const categoriesRef = collection(db, 'collections');
+        const categoryQuery = query(categoriesRef, where('name', '==', data.categoryName));
+        const querySnapshot = await getDocs(categoryQuery);
+
+        if (!querySnapshot.empty) {
+            collectionId = querySnapshot.docs[0].id;
+        } else {
+            const newCategoryData = {
+                name: data.categoryName,
+                description: "",
+                gender: "all", // default gender
+                createdAt: serverTimestamp(),
+            };
+            const newCategoryRef = await addDoc(collection(db, 'collections'), newCategoryData);
+            collectionId = newCategoryRef.id;
+        }
+
+        const { categoryName, ...productDataInput } = data;
+
         const productData = {
-            ...data,
+            ...productDataInput,
+            collectionId, // Use the resolved collectionId
             price: Number(data.price),
             mrp: Number(data.mrp),
             moq: Number(data.moq),
@@ -42,16 +65,10 @@ export async function upsertProduct(data: ProductFormValues, productId?: string)
         revalidatePath(`/products/${slug}`);
         
         // Revalidate category paths
-        const categoryRef = doc(db, 'collections', data.collectionId);
-        const categorySnap = await getDoc(categoryRef);
-        if (categorySnap.exists()) {
-            const categoryData = categorySnap.data();
-            if(categoryData.name) {
-                const categorySlug = createSlug(categoryData.name);
-                revalidatePath(`/categories/${categorySlug}`);
-            }
-        }
+        const newCategorySlug = createSlug(data.categoryName);
+        revalidatePath(`/categories/${newCategorySlug}`);
         revalidatePath('/categories');
+        revalidatePath('/'); // Homepage uses categories
 
 
         return { success: true };
