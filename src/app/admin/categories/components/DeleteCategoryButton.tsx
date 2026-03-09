@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import {
@@ -11,7 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { deleteCategory } from '@/app/actions/categories';
 import { useRouter } from 'next/navigation';
@@ -19,17 +20,16 @@ import { useRouter } from 'next/navigation';
 
 interface DeleteCategoryButtonProps {
     categoryId: string;
-    imageUrl?: string;
 }
 
-export function DeleteCategoryButton({ categoryId, imageUrl }: DeleteCategoryButtonProps) {
+export function DeleteCategoryButton({ categoryId }: DeleteCategoryButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
 
     const handleDelete = async () => {
         setIsLoading(true);
-        const result = await deleteCategory(categoryId, imageUrl);
+        const result = await deleteCategory(categoryId);
         if (result.success) {
             toast({ title: 'Category Deleted' });
             router.refresh();

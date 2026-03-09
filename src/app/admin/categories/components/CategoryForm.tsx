@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -28,13 +29,11 @@ import { upsertCategory } from "@/app/actions/categories"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { CategoryImageUploader } from "./CategoryImageUploader"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   description: z.string().optional(),
   gender: z.enum(["male", "female", "unisex", "all"]),
-  imageUrl: z.string().url("An image is required.").min(1, "An image is required."),
 })
 
 export type CategoryFormValues = z.infer<typeof formSchema>
@@ -54,7 +53,6 @@ export function CategoryForm({ category }: CategoryFormProps) {
         name: "",
         description: "",
         gender: "all",
-        imageUrl: "",
     }
     
     const form = useForm<CategoryFormValues>({
@@ -93,7 +91,6 @@ export function CategoryForm({ category }: CategoryFormProps) {
                         <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Category Name</FormLabel><FormControl><Input placeholder="e.g. T-Shirts" {...field} /></FormControl><FormMessage /></FormItem>)} />
                         <FormField control={form.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Describe the category..." {...field} /></FormControl><FormMessage /></FormItem>)} />
                         <FormField control={form.control} name="gender" render={({ field }) => (<FormItem><FormLabel>Gender</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select gender association" /></SelectTrigger></FormControl><SelectContent><SelectItem value="all">All</SelectItem><SelectItem value="male">Men</SelectItem><SelectItem value="female">Women</SelectItem><SelectItem value="unisex">Unisex</SelectItem></SelectContent></Select><FormDescription>Associate this category with a gender for filtering.</FormDescription><FormMessage /></FormItem>)} />
-                        <CategoryImageUploader fieldName="imageUrl" label="Category Image" />
                     </CardContent>
                 </Card>
                 <Button type="submit" disabled={isSubmitting}>

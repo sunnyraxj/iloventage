@@ -12,6 +12,7 @@ import {
     serverTimestamp,
     DocumentData,
     Timestamp,
+    orderBy,
   } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import type { Product, Category, User, Order, UserAddress, OrderItem, OrderAddress, StoreSettings } from './types';
@@ -39,6 +40,11 @@ function docToType<T>(doc: DocumentData): T {
     }
     
     return result as T;
+}
+
+const getSafeUrl = (url: any): string | null => {
+    if (!url) return null;
+    return typeof url === 'string' ? url : url.value;
 }
   
 // --- Product Functions ---
@@ -76,14 +82,54 @@ export const getProductsByCollectionId = async (collectionId: string): Promise<P
 export const getCategories = async (): Promise<Category[]> => {
     const categoriesCol = collection(db, 'collections');
     const categoriesSnapshot = await getDocs(categoriesCol);
-    return categoriesSnapshot.docs.map(doc => docToType<Category>(doc));
+    const categories = categoriesSnapshot.docs.map(doc => docToType<Category>(doc));
+
+    const productsQuery = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+    const productsSnapshot = await getDocs(productsQuery);
+    const products = productsSnapshot.docs.map(doc => docToType<Product>(doc));
+
+    const categoryImageMap = new Map<string, string>();
+    for (const product of products) {
+        if (!categoryImageMap.has(product.collectionId)) {
+            const imageUrl = getSafeUrl(product.variants?.[0]?.imageUrls?.[0]);
+            if (imageUrl) {
+                categoryImageMap.set(product.collectionId, imageUrl);
+            }
+        }
+    }
+
+    return categories.map(category => ({
+        ...category,
+        imageUrl: categoryImageMap.get(category.id) || '',
+    }));
 };
   
 export const getCategoryBySlug = async (slug: string): Promise<Category | null> => {
     const categoriesSnapshot = await getDocs(collection(db, 'collections'));
     const categories = categoriesSnapshot.docs.map(doc => docToType<Category>(doc));
     const category = categories.find(c => c.slug === slug);
-    return category || null;
+
+    if (!category) {
+        return null;
+    }
+
+    const productsQuery = query(
+        collection(db, 'products'),
+        where('collectionId', '==', category.id),
+        where('isVisible', '==', true),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+    );
+    const productsSnapshot = await getDocs(productsQuery);
+
+    if (!productsSnapshot.empty) {
+        const latestProduct = docToType<Product>(productsSnapshot.docs[0]);
+        category.imageUrl = getSafeUrl(latestProduct.variants?.[0]?.imageUrls?.[0]) || '';
+    } else {
+        category.imageUrl = '';
+    }
+
+    return category;
 };
 
 export const getCategoryById = async (id: string): Promise<Category | null> => {

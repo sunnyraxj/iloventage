@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -89,7 +90,7 @@ export default async function AdminCategoriesPage() {
                                         <Link href={`/admin/categories/edit/${category.id}`}>Edit</Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DeleteCategoryButton categoryId={category.id} imageUrl={category.imageUrl} />
+                                    <DeleteCategoryButton categoryId={category.id} />
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </TableCell>

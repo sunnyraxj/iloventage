@@ -1,10 +1,10 @@
+
 'use server';
 
 import { doc, addDoc, updateDoc, deleteDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db, storage } from '@/firebase/config';
+import { db } from '@/firebase/config';
 import { revalidatePath } from 'next/cache';
 import { type CategoryFormValues } from '@/app/admin/categories/components/CategoryForm';
-import { ref, deleteObject } from 'firebase/storage';
 
 const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
@@ -36,23 +36,8 @@ export async function upsertCategory(data: CategoryFormValues, categoryId?: stri
     }
 }
 
-export async function deleteCategory(categoryId: string, imageUrl?: string) {
+export async function deleteCategory(categoryId: string) {
     try {
-        if (imageUrl) {
-            const isFirebaseUrl = imageUrl.includes('firebasestorage.googleapis.com') || imageUrl.includes('storage.googleapis.com');
-            if (isFirebaseUrl) {
-                try {
-                    const imageRef = ref(storage, imageUrl);
-                    await deleteObject(imageRef);
-                } catch (error: any) {
-                    if (error.code !== 'storage/object-not-found') {
-                        console.error("Failed to delete category image from storage:", error);
-                        // Don't block deletion of firestore doc if image deletion fails
-                    }
-                }
-            }
-        }
-        
         await deleteDoc(doc(db, 'collections', categoryId));
 
         revalidatePath('/admin/categories');
