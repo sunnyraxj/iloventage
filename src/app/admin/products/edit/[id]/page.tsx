@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getProductById, getCategories } from '@/lib/data';
-import { ProductForm } from '../components/ProductForm';
+import { ProductForm } from '../../components/ProductForm';
 
 export default async function EditProductPage({ params }: { params: { id: string } }) {
   const [product, categories] = await Promise.all([
