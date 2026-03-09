@@ -5,42 +5,17 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { getCategories } from '@/lib/data';
 
 export default async function AdminCategoriesPage() {
-    const categories = await getCategories();
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Categories</CardTitle>
-                <CardDescription>Manage your product categories.</CardDescription>
+                <CardDescription>This page is no longer in use.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Slug</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {categories.map((category) => (
-                            <TableRow key={category.id}>
-                                <TableCell className="font-medium">{category.name}</TableCell>
-                                <TableCell>{category.slug}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                <p>Categories are now managed directly from the product form. When you create or edit a product, you can type in a new category name, and it will be created automatically if it doesn't exist.</p>
             </CardContent>
         </Card>
     );

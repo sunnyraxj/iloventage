@@ -90,6 +90,20 @@ import {
       return docToType<Category>(querySnapshot.docs[0]);
   };
   
+  export const addCategory = async (categoryData: { name: string, slug: string }) => {
+    const categoriesCol = collection(db, 'categories');
+    // Check if category with this slug already exists to prevent duplicates
+    const q = query(categoriesCol, where('slug', '==', categoryData.slug), limit(1));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+        await addDoc(categoriesCol, {
+            ...categoryData,
+            image: '', // default empty image
+            createdAt: serverTimestamp()
+        });
+    }
+  }
+
   // --- User Functions ---
   export const getUserById = async (userId: string): Promise<User | null> => {
       const userRef = doc(db, 'users', userId);

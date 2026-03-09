@@ -17,19 +17,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import type { Product } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DescriptionGenerator } from './description-generator';
-import { addProduct, getCategories, updateProduct } from '@/lib/data';
+import { addProduct, getCategoryBySlug, addCategory, updateProduct } from '@/lib/data';
 import { useEffect, useState } from 'react';
-import { Category } from '@/lib/types';
 
 const productFormSchema = z.object({
   name: z.string().min(2, {
@@ -45,7 +37,7 @@ const productFormSchema = z.object({
     message: 'Stock can not be negative.',
   }),
   category: z.string({
-    required_error: 'Please select a category.',
+    required_error: 'Please enter a category.',
   }),
   keywords: z.string().optional(),
   images: z.array(z.string()).optional(), // Assuming images are handled elsewhere
@@ -62,20 +54,14 @@ interface ProductFormProps {
 export function ProductForm({ product }: ProductFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    async function fetchCategories() {
-        const fetchedCategories = await getCategories();
-        setCategories(fetchedCategories);
-    }
-    fetchCategories();
-  }, []);
-
-  const defaultValues = product
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: product
     ? {
         ...product,
+        category: '', // Will be set in useEffect
         keywords: product.keywords.join(', '),
       }
     : {
@@ -88,18 +74,41 @@ export function ProductForm({ product }: ProductFormProps) {
         images: [],
         slug: '',
         featured: false,
-      };
-
-  const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productFormSchema),
-    defaultValues,
+      },
   });
+
+  useEffect(() => {
+    if (product?.category) {
+      async function fetchCategoryName() {
+        const categoryData = await getCategoryBySlug(product.category);
+        if (categoryData) {
+          form.setValue('category', categoryData.name);
+        } else {
+          // If slug doesn't correspond to a category, show the slug itself
+          form.setValue('category', product.category);
+        }
+      }
+      fetchCategoryName();
+    }
+  }, [product, form]);
+
 
   async function onSubmit(data: ProductFormValues) {
     setIsLoading(true);
     try {
+        const categoryName = data.category;
+        const categorySlug = categoryName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+
+        if (categoryName) {
+            const existingCategory = await getCategoryBySlug(categorySlug);
+            if (!existingCategory) {
+                await addCategory({ name: categoryName, slug: categorySlug });
+            }
+        }
+        
         const productData = {
             ...data,
+            category: categoryName ? categorySlug : '',
             keywords: data.keywords ? data.keywords.split(',').map(k => k.trim()) : [],
             slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
         };
@@ -190,20 +199,12 @@ export function ProductForm({ product }: ProductFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.slug}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Input placeholder="e.g. Apparel" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Type a category name. If it doesn't exist, it will be created.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

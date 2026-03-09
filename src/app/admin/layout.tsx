@@ -21,7 +21,6 @@ import {
   LayoutGrid,
   LogOut,
   UserCircle,
-  Shapes,
 } from 'lucide-react';
 import { IloventagLogo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,6 @@ const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
-  { href: '/admin/categories', label: 'Categories', icon: Shapes },
 ];
 
 export default function AdminLayout({
