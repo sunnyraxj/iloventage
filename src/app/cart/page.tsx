@@ -54,7 +54,7 @@ export default function CartPage() {
                             </div>
                             <div className="ml-4 flex-grow">
                               <h3 className="font-semibold">{item.product.name}</h3>
-                              <p className="text-sm text-muted-foreground">RS. {item.product.price.toFixed(2)}</end>
+                              <p className="text-sm text-muted-foreground">RS. {item.product.price.toFixed(2)}</p>
                             </div>
                             <div className="flex items-center">
                                 <div className="flex items-center rounded-md border">
