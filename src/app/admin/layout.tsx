@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
@@ -10,6 +10,7 @@ import { Footer } from '@/components/footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, Package, ShoppingBag, Users } from 'lucide-react';
+import { hasConfirmedOrders as checkHasConfirmedOrders } from '@/lib/data';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,6 +27,7 @@ export default function AdminLayout({
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [hasConfirmedOrders, setHasConfirmedOrders] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -36,6 +38,22 @@ export default function AdminLayout({
       }
     }
   }, [user, loading, router]);
+
+  useEffect(() => {
+    const checkOrders = async () => {
+      if (user?.role === 'admin') {
+        const hasConfirmed = await checkHasConfirmedOrders();
+        setHasConfirmedOrders(hasConfirmed);
+      }
+    };
+    
+    if (user) {
+      checkOrders();
+      // Optional: Poll for new orders periodically
+      const interval = setInterval(checkOrders, 60000); // every minute
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   if (loading || !user || user.role !== 'admin') {
     return (
@@ -57,16 +75,20 @@ export default function AdminLayout({
                   <nav className="flex flex-col space-y-1">
                     {navItems.map((item) => {
                       const isActive = (item.href === '/admin' && pathname === '/admin') || (item.href !== '/admin' && pathname.startsWith(item.href));
+                      const isOrdersLink = item.label === 'Orders';
                       return (
                         <Button
                           key={item.label}
                           asChild
                           variant={isActive ? 'secondary' : 'ghost'}
-                          className="justify-start"
+                          className="justify-start relative"
                         >
                           <Link href={item.href}>
                             <item.icon className="mr-2 h-4 w-4" />
                             {item.label}
+                            {isOrdersLink && hasConfirmedOrders && (
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-red-500" />
+                            )}
                           </Link>
                         </Button>
                       )

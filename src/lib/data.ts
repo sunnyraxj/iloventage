@@ -124,6 +124,12 @@ export const getOrderById = async (id: string): Promise<Order | null> => {
     return docToType<Order>(orderSnap);
 };
 
+export const hasConfirmedOrders = async (): Promise<boolean> => {
+    const q = query(collection(db, 'orders'), where('orderStatus', '==', 'confirmed'), limit(1));
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
+};
+
 interface OrderPayload {
     userId: string | null;
     guestEmail?: string;
@@ -168,7 +174,24 @@ export const getStoreSettings = async (): Promise<StoreSettings | null> => {
     const settingsSnap = await getDoc(settingsRef);
     if (!settingsSnap.exists()) {
         console.warn("Store settings not found in Firestore. Using default/hardcoded values.");
-        return null;
+        return {
+            id: 'default',
+            storeDetails: {
+                name: 'My Store',
+                heroImageUrl: 'https://picsum.photos/seed/1/1920/1080',
+                logoUrl: '',
+                email: '',
+                phone: '',
+                address: '',
+                city: '',
+                state: '',
+                pincode: '',
+            },
+            shippingSettings: {
+                belowThresholdRate: 50,
+                freeShippingThreshold: 1000,
+            }
+        };
     }
     return docToType<StoreSettings>(settingsSnap);
 };
