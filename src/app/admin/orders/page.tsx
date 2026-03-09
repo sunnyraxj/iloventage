@@ -16,7 +16,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { getAllOrders } from '@/lib/data';
 import { format } from 'date-fns';
-import { OrderStatusSelector } from './components/OrderStatusSelector';
+import { OrderStatusChanger } from './components/OrderStatusChanger';
 
 export default async function AdminOrdersPage() {
     const orders = (await getAllOrders()).sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -54,7 +54,7 @@ export default async function AdminOrdersPage() {
                             <Badge variant={order.paymentStatus === 'paid' ? 'secondary' : 'destructive'} className="capitalize">{order.paymentStatus}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
-                            <OrderStatusSelector orderId={order.id} currentStatus={order.orderStatus} />
+                            <OrderStatusChanger orderId={order.id} currentStatus={order.orderStatus} />
                         </TableCell>
                     </TableRow>
                 ))}
