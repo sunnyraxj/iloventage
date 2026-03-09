@@ -85,6 +85,15 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
     const category = categories.find(c => c.slug === slug);
     return category || null;
 };
+
+export const getCategoryById = async (id: string): Promise<Category | null> => {
+    const categoryRef = doc(db, 'collections', id);
+    const categorySnap = await getDoc(categoryRef);
+    if (!categorySnap.exists()) {
+        return null;
+    }
+    return docToType<Category>(categorySnap);
+};
   
 // --- User Functions ---
 export const getUserById = async (userId: string): Promise<User | null> => {

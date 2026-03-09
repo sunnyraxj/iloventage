@@ -58,19 +58,22 @@ export default async function HomePage() {
             <h2 className="mb-8 text-center font-headline text-3xl font-bold">
               Shop by Category
             </h2>
-            <div className="flex items-center justify-start gap-4 overflow-x-auto pb-4 md:justify-center md:gap-6">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
               {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant="outline"
-                  size="lg"
-                  asChild
-                  className="flex-shrink-0"
-                >
-                  <Link href={`/categories/${category.slug}`}>
-                    {category.name}
-                  </Link>
-                </Button>
+                <Link key={category.id} href={`/categories/${category.slug}`} className="group relative block overflow-hidden rounded-lg">
+                  <div className="aspect-square w-full">
+                    <Image
+                      src={category.imageUrl || '/placeholder.svg'}
+                      alt={category.name}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      sizes="(max-width: 767px) 50vw, 25vw"
+                    />
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-colors group-hover:bg-black/50">
+                      <h3 className="text-xl font-bold text-white text-center p-2">{category.name}</h3>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
