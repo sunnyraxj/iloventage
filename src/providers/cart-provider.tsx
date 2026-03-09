@@ -29,7 +29,11 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         updatedItems[existingItemIndex].quantity += action.payload.quantity;
         return { ...state, items: updatedItems };
       } else {
-        return { ...state, items: [...state.items, action.payload] };
+        const newItem: CartItem = {
+            product: action.payload.product,
+            quantity: action.payload.quantity
+        }
+        return { ...state, items: [...state.items, newItem] };
       }
     }
     case 'REMOVE_ITEM':
