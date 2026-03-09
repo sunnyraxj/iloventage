@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { IloventagLogo } from '@/components/icons';
+import { ShoppingBag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
@@ -82,7 +82,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <form onSubmit={handleLogin}>
             <CardHeader className="text-center">
-            <IloventagLogo className="mx-auto h-12 w-12 text-primary" />
+            <ShoppingBag className="mx-auto h-12 w-12 text-primary" />
             <CardTitle className="mt-4 text-2xl">Welcome Back</CardTitle>
             <CardDescription>Enter your credentials to access your account.</CardDescription>
             </CardHeader>
