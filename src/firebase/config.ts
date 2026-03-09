@@ -18,4 +18,10 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
+// Increase retry times to better handle large files or slow network connections.
+// Default for operations is 2 minutes (120000ms). Increased to 5 minutes.
+storage.maxOperationRetryTime = 5 * 60 * 1000;
+// Default for uploads is 10 minutes (600000ms). Increased to 20 minutes.
+storage.maxUploadRetryTime = 20 * 60 * 1000;
+
 export { app, db, auth, storage };
