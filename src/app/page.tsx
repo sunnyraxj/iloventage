@@ -67,11 +67,11 @@ export default function HomePage() {
 
         <section className="bg-secondary py-12 md:py-20">
           <div className="container mx-auto px-4">
-            <div className="mb-8 text-center">
-              <h2 className="text-center font-headline text-3xl font-bold uppercase tracking-wider">
+            <div className="mb-8 text-left">
+              <h2 className="font-headline text-2xl font-bold uppercase tracking-wider">
                 New Products
               </h2>
-              <p className="text-sm uppercase tracking-widest text-muted-foreground">
+              <p className="-mt-1 text-xs uppercase tracking-widest text-muted-foreground">
                 Fresh Arrivals
               </p>
             </div>
