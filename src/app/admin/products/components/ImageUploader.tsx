@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef } from 'react';
@@ -6,7 +7,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { Upload, Trash2, Loader2 } from 'lucide-react';
+import { Upload, Trash2, Loader2, Download } from 'lucide-react';
 import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
@@ -129,15 +130,30 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
               fill
               className="object-cover rounded-md border"
             />
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => handleRemoveImage(index)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="h-6 w-6"
+                    asChild
+                >
+                    <a href={(field as any).value} download target="_blank" rel="noopener noreferrer">
+                        <Download className="h-4 w-4" />
+                        <span className="sr-only">Download image</span>
+                    </a>
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => handleRemoveImage(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Remove image</span>
+                </Button>
+            </div>
           </div>
         ))}
         <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed rounded-md cursor-pointer hover:bg-accent hover:border-primary transition-colors">
