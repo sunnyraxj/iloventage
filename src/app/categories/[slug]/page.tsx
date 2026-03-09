@@ -46,6 +46,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                 fill
                 sizes="100vw"
                 className="object-cover"
+                priority
               />
             )}
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 p-4 text-center text-white">
@@ -71,11 +72,12 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                 ) : (
                     <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
                         {products.length > 0 ? (
-                            products.map((product) => (
+                            products.map((product, index) => (
                                 <ProductCard 
                                   key={product.id} 
                                   product={product} 
                                   sizes="(max-width: 1023px) 50vw, 25vw"
+                                  priority={index < 4}
                                 />
                             ))
                         ) : (

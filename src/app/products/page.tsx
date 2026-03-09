@@ -120,11 +120,12 @@ export default function ProductsPage() {
                          <p className="text-sm text-muted-foreground mb-4">{filteredProducts.length} products found.</p>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {filteredProducts.length > 0 ? (
-                                filteredProducts.map((product) => (
+                                filteredProducts.map((product, index) => (
                                     <ProductCard 
                                       key={product.id} 
                                       product={product} 
                                       sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                                      priority={index < 3}
                                     />
                                 ))
                             ) : (

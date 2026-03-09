@@ -12,16 +12,23 @@ import { useToast } from '@/hooks/use-toast';
 interface ProductCardProps {
   product: Product;
   sizes?: string;
+  priority?: boolean;
 }
 
-export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw" }: ProductCardProps) {
+export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
 
-  const firstVariant = product.variants[0];
-  const firstSize = firstVariant?.sizes[0];
-  const rawImageUrl = firstVariant?.imageUrls[0];
-  const imageUrl = rawImageUrl && typeof rawImageUrl === 'object' ? (rawImageUrl as any).value : rawImageUrl;
+  const firstVariant = product.variants?.[0];
+  const firstSize = firstVariant?.sizes?.[0];
+  const rawImageUrl = firstVariant?.imageUrls?.[0];
+
+  const getSafeUrl = (url: any): string | null => {
+    if (!url) return null;
+    return typeof url === 'string' ? url : url.value;
+  }
+
+  const imageUrl = getSafeUrl(rawImageUrl);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -69,6 +76,7 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw" }
               className="aspect-[3/4] w-full object-cover transition-transform duration-300 group-hover:scale-105"
               sizes={sizes}
               quality={75}
+              priority={priority}
             />
           ) : (
             <div className="aspect-[3/4] w-full bg-secondary flex items-center justify-center">
