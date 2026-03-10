@@ -97,7 +97,7 @@ export function ProductFilters({
             </div>
             <div>
                 <h3 className="mb-4 font-medium">Colors</h3>
-                <div className="space-y-2 h-40 overflow-y-auto">
+                <div className="space-y-2 max-h-40 overflow-y-auto">
                     {colors.map(color => (
                         <div key={color} className="flex items-center space-x-2">
                             <Checkbox 
