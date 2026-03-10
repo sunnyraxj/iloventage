@@ -37,23 +37,32 @@ function docToType<T>(doc: DocumentData): T {
         }
     }
     
-    // Specifically process product variants to ensure imageUrls are strings
-    if (doc.ref.parent.id === 'products' && processedData.variants) {
+    // Specifically process product variants to ensure imageUrls are always clean strings
+    if (doc.ref.parent.id === 'products' && processedData.variants && Array.isArray(processedData.variants)) {
         processedData.variants = processedData.variants.map((variant: any) => {
-            let imageUrls: string[] = [];
+            if (typeof variant !== 'object' || variant === null) {
+                return variant; // Return as-is if it's not a processable object
+            }
+
+            let newImageUrls: string[] = [];
             if (Array.isArray(variant.imageUrls)) {
-                imageUrls = variant.imageUrls
+                newImageUrls = variant.imageUrls
                     .map((url: any) => {
-                        if (typeof url === 'string') return url;
-                        if (typeof url === 'object' && url !== null && typeof url.value === 'string') return url.value;
+                        // Case 1: URL is already a valid string
+                        if (typeof url === 'string' && url.startsWith('http')) {
+                            return url;
+                        }
+                        // Case 2: URL is an object like { value: '...' }
+                        if (typeof url === 'object' && url !== null && typeof url.value === 'string' && url.value.startsWith('http')) {
+                            return url.value;
+                        }
+                        // It's an invalid format, so it will be filtered out
                         return null;
                     })
-                    .filter((url: string | null): url is string => !!url);
+                    .filter((url: string | null): url is string => url !== null); // Filter out any nulls
             }
-            return {
-                ...variant,
-                imageUrls: imageUrls,
-            };
+            
+            return { ...variant, imageUrls: newImageUrls };
         });
     }
 
