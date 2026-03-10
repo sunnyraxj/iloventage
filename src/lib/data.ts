@@ -16,6 +16,7 @@ import {
   } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import type { Product, Category, User, Order, UserAddress, OrderItem, OrderAddress, StoreSettings } from './types';
+import { unstable_cache as cache } from 'next/cache';
   
 const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
@@ -46,12 +47,12 @@ function docToType<T>(doc: DocumentData): T {
 }
   
 // --- Product Functions ---
-export const getProducts = async (): Promise<Product[]> => {
+export const getProducts = cache(async (): Promise<Product[]> => {
     const productsCol = collection(db, 'products');
     const q = query(productsCol, where('isVisible', '==', true));
     const productsSnapshot = await getDocs(q);
     return productsSnapshot.docs.map(doc => docToType<Product>(doc));
-};
+}, ['products'], { revalidate: 60 });
   
 export const getProductBySlug = async (slug: string): Promise<Product | null> => {
     const productsCol = collection(db, 'products');
@@ -77,7 +78,7 @@ export const getProductsByCollectionId = async (collectionId: string): Promise<P
 };
 
 // --- Category Functions ---
-export const getCategories = async (): Promise<Category[]> => {
+export const getCategories = cache(async (): Promise<Category[]> => {
     const categoriesCol = collection(db, 'collections');
     const categoriesSnapshot = await getDocs(categoriesCol);
     const categories = categoriesSnapshot.docs.map(doc => docToType<Category>(doc));
@@ -100,7 +101,7 @@ export const getCategories = async (): Promise<Category[]> => {
         ...category,
         imageUrl: category.imageUrl || categoryImageMap.get(category.id) || '',
     }));
-};
+}, ['categories'], { revalidate: 60 });
   
 export const getCategoryBySlug = async (slug: string): Promise<Category | null> => {
     const categoriesSnapshot = await getDocs(collection(db, 'collections'));
@@ -226,7 +227,7 @@ export const createOrder = async (orderPayload: OrderPayload): Promise<Order> =>
 };
 
 // --- Settings Functions ---
-export const getStoreSettings = async (): Promise<StoreSettings | null> => {
+export const getStoreSettings = cache(async (): Promise<StoreSettings | null> => {
     const settingsRef = doc(db, 'settings', 'details');
     const settingsSnap = await getDoc(settingsRef);
     if (!settingsSnap.exists()) {
@@ -251,7 +252,7 @@ export const getStoreSettings = async (): Promise<StoreSettings | null> => {
         };
     }
     return docToType<StoreSettings>(settingsSnap);
-};
+}, ['settings'], { revalidate: 60 });
 
 
 // --- Admin Functions ---
