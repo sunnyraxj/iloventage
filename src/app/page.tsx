@@ -54,7 +54,7 @@ export default async function HomePage() {
         <section className="py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="mb-6 text-left">
-                <h2 className="font-headline text-2xl font-bold uppercase tracking-wider">
+                <h2 className="font-headline text-xl font-bold uppercase tracking-wider">
                     Shop by Category
                 </h2>
                 <p className="-mt-1 text-xs uppercase tracking-widest text-muted-foreground">
@@ -82,7 +82,7 @@ export default async function HomePage() {
         <section className="bg-secondary py-12 md:py-20">
           <div className="container mx-auto px-4">
             <div className="mb-8 text-left">
-              <h2 className="font-headline text-2xl font-bold uppercase tracking-wider">
+              <h2 className="font-headline text-xl font-bold uppercase tracking-wider">
                 New Products
               </h2>
               <p className="-mt-1 text-xs uppercase tracking-widest text-muted-foreground">
