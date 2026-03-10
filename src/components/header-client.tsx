@@ -33,6 +33,7 @@ import {
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
 import type { Category, StoreSettings } from '@/lib/types';
+import { getConfirmedOrdersCount } from '@/lib/data';
 
 interface HeaderClientProps {
     categories: Category[];
@@ -44,10 +45,33 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
   const { items } = useCart();
   const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
   const [hasMounted, setHasMounted] = useState(false);
+  const [confirmedOrdersCount, setConfirmedOrdersCount] = useState(0);
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
+  
+  useEffect(() => {
+    const fetchOrderCount = async () => {
+      if (user?.role === 'admin') {
+        const count = await getConfirmedOrdersCount();
+        setConfirmedOrdersCount(count);
+      } else {
+        setConfirmedOrdersCount(0); // Reset if not admin or logged out
+      }
+    };
+    
+    if (user) {
+        fetchOrderCount();
+      // Poll for new orders periodically
+      const interval = setInterval(fetchOrderCount, 60000); // every minute
+      return () => clearInterval(interval);
+    } else {
+        // Clear count if user logs out
+        setConfirmedOrdersCount(0);
+    }
+  }, [user]);
+
 
   const navLinks = categories.map(c => ({ href: `/categories/${c.slug}`, label: c.name }));
   const logoUrl = settings?.storeDetails?.logoUrl;
@@ -135,10 +159,15 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                       <Button
                         variant="secondary"
                         size="icon"
-                        className="rounded-full"
+                        className="rounded-full relative"
                         aria-label="User Menu"
                       >
                          {user.photoURL ? <img src={user.photoURL} alt={user.name} width={32} height={32} className="rounded-full" /> : <UserCircle className="h-5 w-5" /> }
+                         {user.role === 'admin' && confirmedOrdersCount > 0 && (
+                            <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
+                                {confirmedOrdersCount}
+                            </span>
+                         )}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
