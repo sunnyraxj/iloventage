@@ -3,17 +3,22 @@
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { revalidatePath } from 'next/cache';
-import { type StoreDetails } from '@/lib/types';
+import { type StoreDetails, type ShippingSettings } from '@/lib/types';
 
-export async function updateStoreSettings(data: StoreDetails) {
+export async function updateStoreSettings(data: { storeDetails: StoreDetails, shippingSettings: ShippingSettings }) {
     try {
         const settingsRef = doc(db, 'settings', 'details');
         
-        await setDoc(settingsRef, { storeDetails: data }, { merge: true });
+        await setDoc(settingsRef, {
+             storeDetails: data.storeDetails, 
+             shippingSettings: data.shippingSettings 
+        }, { merge: true });
 
         // Revalidate paths to ensure data is fresh across the app
         revalidatePath('/');
         revalidatePath('/admin/settings');
+        revalidatePath('/cart');
+        revalidatePath('/checkout');
         revalidatePath('/', 'layout');
 
 

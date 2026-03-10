@@ -14,9 +14,8 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createOrderAndInitiatePayment, verifyPaymentAndUpdateOrder } from '@/app/actions/payment';
 import type { UserAddress, OrderAddress } from '@/lib/types';
-
-const FREE_SHIPPING_THRESHOLD = 1000;
-const BELOW_THRESHOLD_RATE = 50;
+import { getStoreSettings } from '@/lib/data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
@@ -34,12 +33,22 @@ export default function CheckoutPage() {
   });
   const [guestEmail, setGuestEmail] = useState('');
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [shippingSettings, setShippingSettings] = useState<{
+    freeShippingThreshold: number;
+    belowThresholdRate: number;
+  } | null>(null);
 
   useEffect(() => {
-    if (items.length === 0) {
+    getStoreSettings().then(settings => {
+      setShippingSettings(settings?.shippingSettings || { freeShippingThreshold: 1000, belowThresholdRate: 50 });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (items.length === 0 && shippingSettings) { // check shippingSettings to avoid race condition on first load
       router.push('/cart');
     }
-  }, [items, router]);
+  }, [items, router, shippingSettings]);
 
   useEffect(() => {
     if (user && user.addresses && user.addresses.length > 0) {
@@ -76,11 +85,10 @@ export default function CheckoutPage() {
     setSelectedAddressId(address.id);
   }
 
-  const shippingCost = totalPrice > FREE_SHIPPING_THRESHOLD ? 0 : BELOW_THRESHOLD_RATE;
-  const finalTotal = totalPrice + shippingCost;
-
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!shippingSettings) return;
+
     if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
         toast({
             variant: "destructive",
@@ -95,6 +103,11 @@ export default function CheckoutPage() {
     }
 
     setIsLoading(true);
+
+    const { freeShippingThreshold, belowThresholdRate } = shippingSettings;
+    const shippingCost = (totalPrice > 0 && totalPrice < freeShippingThreshold) ? belowThresholdRate : 0;
+    const finalTotal = totalPrice + shippingCost;
+
 
     try {
         const orderPayload = {
@@ -180,6 +193,39 @@ export default function CheckoutPage() {
   if (items.length === 0) {
       return null;
   }
+  
+  if (!shippingSettings) {
+    return (
+        <>
+            <Script
+                id="razorpay-checkout-js"
+                src="https://checkout.razorpay.com/v1/checkout.js"
+            />
+            <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1 bg-secondary py-8 md:py-12">
+                    <div className="container mx-auto px-4">
+                        <Skeleton className="h-10 w-1/3 mb-8" />
+                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                            <div className="lg:col-span-2">
+                                <Skeleton className="h-96 w-full" />
+                            </div>
+                            <div>
+                                <Skeleton className="h-64 w-full" />
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        </>
+    )
+  }
+
+  const { freeShippingThreshold, belowThresholdRate } = shippingSettings;
+  const shippingCost = (totalPrice > 0 && totalPrice < freeShippingThreshold) ? belowThresholdRate : 0;
+  const finalTotal = totalPrice + shippingCost;
+
 
   return (
     <>

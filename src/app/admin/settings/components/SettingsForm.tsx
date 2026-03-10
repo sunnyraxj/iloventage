@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { StoreSettings, StoreDetails } from "@/lib/types";
+import type { StoreSettings, StoreDetails, ShippingSettings } from "@/lib/types";
 import { updateStoreSettings } from "@/app/actions/settings";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -33,6 +34,8 @@ const formSchema = z.object({
     pincode: z.string().min(6, "Please enter a valid pincode."),
     instagramUrl: z.string().url("Must be a valid URL.").or(z.literal('')).optional(),
     whatsappGroupUrl: z.string().url("Must be a valid URL.").or(z.literal('')).optional(),
+    freeShippingThreshold: z.coerce.number().min(0, "Threshold must be a positive number."),
+    belowThresholdRate: z.coerce.number().min(0, "Rate must be a positive number."),
 });
 
 export type SettingsFormValues = z.infer<typeof formSchema>;
@@ -58,6 +61,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         pincode: settings?.storeDetails?.pincode || "",
         instagramUrl: settings?.storeDetails?.instagramUrl || "",
         whatsappGroupUrl: settings?.storeDetails?.whatsappGroupUrl || "",
+        freeShippingThreshold: settings?.shippingSettings?.freeShippingThreshold ?? 1000,
+        belowThresholdRate: settings?.shippingSettings?.belowThresholdRate ?? 50,
     };
     
     const form = useForm<SettingsFormValues>({
@@ -69,24 +74,27 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     async function onSubmit(data: SettingsFormValues) {
         setIsSubmitting(true);
         try {
-            const baseDetails: StoreDetails = settings?.storeDetails || {
-                name: '',
-                logoUrl: '',
-                heroImageUrl: '',
-                email: '',
-                phone: '',
-                address: '',
-                city: '',
-                state: '',
-                pincode: '',
+            const storeDetails: StoreDetails = {
+                name: data.name,
+                logoUrl: data.logoUrl,
+                heroImageUrl: data.heroImageUrl,
+                email: data.email,
+                phone: data.phone,
+                phone2: data.phone2,
+                address: data.address,
+                city: data.city,
+                state: data.state,
+                pincode: data.pincode,
+                instagramUrl: data.instagramUrl,
+                whatsappGroupUrl: data.whatsappGroupUrl,
+            };
+    
+            const shippingSettings: ShippingSettings = {
+                freeShippingThreshold: data.freeShippingThreshold,
+                belowThresholdRate: data.belowThresholdRate,
             };
             
-            const fullSettingsData: StoreDetails = {
-                ...baseDetails,
-                ...data
-            };
-            
-            const result = await updateStoreSettings(fullSettingsData);
+            const result = await updateStoreSettings({ storeDetails, shippingSettings });
 
             if (result.success) {
                 toast({ title: "Success", description: `Settings updated successfully.` });
@@ -145,6 +153,35 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                     <CardContent className="space-y-6">
                         <FormField control={form.control} name="instagramUrl" render={({ field }) => (<FormItem><FormLabel>Instagram URL</FormLabel><FormControl><Input placeholder="https://instagram.com/your-store" {...field} /></FormControl><FormMessage /></FormItem>)} />
                         <FormField control={form.control} name="whatsappGroupUrl" render={({ field }) => (<FormItem><FormLabel>WhatsApp Group URL</FormLabel><FormControl><Input placeholder="https://chat.whatsapp.com/your-group" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>Shipping Settings</CardTitle></CardHeader>
+                    <CardContent className="space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="freeShippingThreshold"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Free Shipping Threshold (₹)</FormLabel>
+                                    <FormControl><Input type="number" placeholder="1000" {...field} /></FormControl>
+                                    <FormDescription>Orders with a total above this amount will have free shipping.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="belowThresholdRate"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Standard Shipping Rate (₹)</FormLabel>
+                                    <FormControl><Input type="number" placeholder="50" {...field} /></FormControl>
+                                    <FormDescription>This rate will be applied to orders below the free shipping threshold.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </CardContent>
                 </Card>
                 <Button type="submit" disabled={isSubmitting}>

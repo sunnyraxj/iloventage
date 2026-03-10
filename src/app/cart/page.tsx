@@ -10,17 +10,50 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-
-const FREE_SHIPPING_THRESHOLD = 1000;
-const BELOW_THRESHOLD_RATE = 50;
+import { useState, useEffect } from 'react';
+import { getStoreSettings } from '@/lib/data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, totalPrice } = useCart();
+  const [shippingSettings, setShippingSettings] = useState<{
+    freeShippingThreshold: number;
+    belowThresholdRate: number;
+  } | null>(null);
 
-  const shippingCost = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : BELOW_THRESHOLD_RATE;
+  useEffect(() => {
+    getStoreSettings().then(settings => {
+      setShippingSettings(settings?.shippingSettings || { freeShippingThreshold: 1000, belowThresholdRate: 50 });
+    });
+  }, []);
+
+  if (!shippingSettings) {
+    return (
+        <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1 bg-secondary">
+                <div className="container mx-auto px-4 py-8 md:py-12">
+                    <Skeleton className="h-10 w-1/3 mb-8" />
+                    <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
+                        <div className="lg:col-span-2 space-y-4">
+                           <Skeleton className="h-40 w-full" />
+                        </div>
+                        <div className="lg:col-span-1 lg:sticky lg:top-24">
+                           <Skeleton className="h-80 w-full" />
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <Footer />
+        </div>
+    );
+  }
+
+  const { freeShippingThreshold, belowThresholdRate } = shippingSettings;
+  const shippingCost = (totalPrice > 0 && totalPrice < freeShippingThreshold) ? belowThresholdRate : 0;
   const finalTotal = totalPrice + shippingCost;
-  const freeShippingProgress = Math.min((totalPrice / FREE_SHIPPING_THRESHOLD) * 100, 100);
-  const amountForFreeShipping = FREE_SHIPPING_THRESHOLD - totalPrice;
+  const freeShippingProgress = Math.min((totalPrice / freeShippingThreshold) * 100, 100);
+  const amountForFreeShipping = freeShippingThreshold - totalPrice;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -105,7 +138,7 @@ export default function CartPage() {
                       <CardTitle>Order Summary</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {totalPrice < FREE_SHIPPING_THRESHOLD ? (
+                      {totalPrice < freeShippingThreshold ? (
                         <div className="space-y-2 rounded-lg bg-secondary p-3 text-center">
                            <p className="text-sm">Add <span className="font-bold text-primary">₹{amountForFreeShipping.toFixed(2)}</span> more to get FREE shipping!</p>
                            <Progress value={freeShippingProgress} className="h-2" />
