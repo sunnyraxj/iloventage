@@ -16,7 +16,9 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
+import { AddressForm } from './components/AddressForm';
+import { DeleteAddressButton } from './components/DeleteAddressButton';
 
 export default function AddressesPage() {
     const { user } = useAuth();
@@ -30,10 +32,12 @@ export default function AddressesPage() {
             <CardTitle>My Addresses</CardTitle>
             <CardDescription>Manage your shipping addresses.</CardDescription>
         </div>
-        <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add New Address
-        </Button>
+        <AddressForm>
+            <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Address
+            </Button>
+        </AddressForm>
       </CardHeader>
       <CardContent className="space-y-4">
         {user.addresses && user.addresses.length > 0 ? (
@@ -54,8 +58,12 @@ export default function AddressesPage() {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">Delete</DropdownMenuItem>
+                                    <AddressForm address={address}>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            Edit
+                                        </DropdownMenuItem>
+                                    </AddressForm>
+                                    <DeleteAddressButton addressId={address.id} />
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </CardContent>
@@ -65,7 +73,9 @@ export default function AddressesPage() {
         ) : (
             <div className="text-center text-muted-foreground py-8 border-2 border-dashed rounded-lg">
                 <p>You have no saved addresses.</p>
-                <Button variant="outline" size="sm" className="mt-4">Add your first address</Button>
+                 <AddressForm>
+                    <Button variant="outline" size="sm" className="mt-4">Add your first address</Button>
+                </AddressForm>
             </div>
         )}
       </CardContent>
