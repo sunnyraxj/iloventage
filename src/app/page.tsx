@@ -37,11 +37,11 @@ export default async function HomePage() {
           ) : (
             <Skeleton className="h-full w-full" />
           )}
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 p-4 text-center">
-            <h1 className="mb-4 font-headline text-4xl font-bold md:text-6xl">
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+            <h1 className="mb-4 font-headline text-4xl font-bold md:text-6xl [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">
               {settings?.storeDetails?.name || 'Welcome to our store'}
             </h1>
-            <p className="mb-8 max-w-2xl text-lg md:text-xl">
+            <p className="mb-8 max-w-2xl text-lg md:text-xl [text-shadow:1px_1px_2px_rgba(0,0,0,0.5)]">
               Discover curated collections that blend timeless elegance with
               modern trends.
             </p>
