@@ -90,15 +90,24 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                   <span className="sr-only">Toggle Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="pr-0 sm:max-w-xs">
-                <SheetTitle className='p-4'>{storeName}</SheetTitle>
-                <nav className="flex flex-col space-y-2 p-4">
-                  <Link href="/products" className="px-4 py-2 text-sm font-medium hover:bg-accent rounded-md">All Products</Link>
+              <SheetContent side="left" className="flex flex-col p-0 sm:max-w-xs">
+                <div className="p-4 border-b">
+                    <Link href="/" className="flex items-center gap-2">
+                        {logoUrl ? (
+                            <img src={logoUrl} alt={storeName} width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
+                        ) : (
+                            <div className="h-8 w-8 bg-muted rounded-full" />
+                        )}
+                        <span className="font-bold text-lg">{storeName}</span>
+                    </Link>
+                </div>
+                <nav className="flex-1 space-y-1 p-4">
+                  <Link href="/products" className="block rounded-lg px-3 py-2 text-base font-medium text-foreground hover:bg-accent">All Products</Link>
                   {navLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
-                      className="px-4 py-2 text-sm font-medium hover:bg-accent rounded-md"
+                      className="block rounded-lg px-3 py-2 text-base font-medium text-foreground hover:bg-accent"
                     >
                       {link.label}
                     </Link>
