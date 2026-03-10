@@ -56,20 +56,18 @@ export default async function HomePage() {
             <h2 className="mb-8 text-center font-headline text-3xl font-bold">
               Shop by Category
             </h2>
-            <div className="grid grid-flow-col auto-cols-[22vw] gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:auto-cols-[18vw] md:grid-flow-row md:auto-cols-auto md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid auto-cols-[22vw] grid-flow-col gap-4 overflow-x-auto pb-4 sm:auto-cols-[18vw] md:auto-cols-auto md:grid-cols-3 md:grid-flow-row lg:grid-cols-4 -mx-4 px-4">
               {categories.map((category) => (
-                <Link key={category.id} href={`/categories/${category.slug}`} className="group relative block overflow-hidden rounded-lg">
-                  <div className="aspect-square w-full">
+                <Link key={category.id} href={`/categories/${category.slug}`} className="group block">
+                  <div className="overflow-hidden rounded-lg">
                     <img
                       src={category.imageUrl || `https://picsum.photos/seed/${category.id}/400/400`}
                       alt={category.name}
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
                     />
                   </div>
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-colors group-hover:bg-black/50">
-                      <h3 className="text-xl font-bold text-white text-center p-2">{category.name}</h3>
-                  </div>
+                  <h3 className="mt-2 text-sm font-semibold text-center text-foreground">{category.name}</h3>
                 </Link>
               ))}
             </div>
