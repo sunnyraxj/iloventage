@@ -1,10 +1,10 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
-import { getOrdersByUserId } from '@/lib/data';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/firebase/config';
 import {
   Card,
   CardContent,
@@ -128,15 +128,36 @@ export default function DashboardOrdersPage() {
 
     useEffect(() => {
         if (!authLoading && user) {
-            const fetchOrders = async () => {
-                setLoading(true);
-                const userOrders = await getOrdersByUserId(user.id);
+            setLoading(true);
+            const q = query(collection(db, 'orders'), where('userId', '==', user.id));
+
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                const userOrders = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    
+                    // Manually convert Timestamps to ISO strings
+                    const orderData = { id: doc.id, ...data };
+                    if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+                        orderData.createdAt = data.createdAt.toDate().toISOString();
+                    }
+                    if (data.confirmedAt && data.confirmedAt.toDate) {
+                        orderData.confirmedAt = data.confirmedAt.toDate().toISOString();
+                    }
+                    return orderData as Order;
+                });
+                
                 setOrders(userOrders.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
                 setLoading(false);
-            };
-            fetchOrders();
+            }, (error) => {
+                console.error("Failed to subscribe to order updates:", error);
+                setLoading(false);
+            });
+
+            return () => unsubscribe(); // Cleanup listener on component unmount
         } else if (!authLoading && !user) {
+            // Not logged in
             setLoading(false);
+            setOrders([]);
         }
     }, [user, authLoading]);
 
