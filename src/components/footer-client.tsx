@@ -48,6 +48,7 @@ export function FooterClient({ categories, settings }: FooterClientProps) {
             <ul className="space-y-1.5">
               <li><Link href="#" className="text-muted-foreground transition-colors hover:text-primary">Our Story</Link></li>
               <li><Link href="/contact" className="text-muted-foreground transition-colors hover:text-primary">Contact Us</Link></li>
+              <li><Link href="/privacy-policy" className="text-muted-foreground transition-colors hover:text-primary">Privacy Policy</Link></li>
             </ul>
           </div>
 
