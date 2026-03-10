@@ -1,4 +1,3 @@
-
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
@@ -183,21 +182,21 @@ export default function ProductPage() {
             </div>
 
             {/* Product Details */}
-            <div className="flex flex-col">
-                <p className="font-semibold uppercase tracking-wide text-muted-foreground">{product.brand}</p>
-                <h1 className="my-1 font-headline text-2xl font-bold md:text-3xl">{product.name}</h1>
-                <div className="flex items-baseline gap-2 mb-4">
-                    <p className="text-2xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
+            <div className="flex flex-col space-y-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground md:text-sm">{product.brand}</p>
+                <h1 className="font-headline text-2xl font-bold md:text-3xl">{product.name}</h1>
+                <div className="flex items-baseline gap-2">
+                    <p className="text-xl font-semibold text-primary md:text-2xl">₹{product.price.toFixed(2)}</p>
                     {product.mrp && product.mrp > product.price && (
                       <>
-                        <p className="text-xl text-muted-foreground line-through">₹{product.mrp.toFixed(2)}</p>
-                        <p className="text-sm font-bold text-green-600">({Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF)</p>
+                        <p className="text-base text-muted-foreground line-through md:text-lg">₹{product.mrp.toFixed(2)}</p>
+                        <p className="text-xs font-bold text-green-600 md:text-sm">({Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF)</p>
                       </>
                     )}
                 </div>
                 
                 {/* Color Selector */}
-                <div className="mb-6">
+                <div>
                     <h3 className="mb-2 text-sm font-medium">Color: <span className="font-bold">{selectedVariant?.color}</span></h3>
                     <div className="flex flex-wrap gap-2">
                         {product.variants.map(variant => {
@@ -208,7 +207,7 @@ export default function ProductPage() {
                                     variant="outline"
                                     size="icon"
                                     disabled={isOutOfStock}
-                                    className={cn("h-10 w-10 rounded-full border-2 relative", { 
+                                    className={cn("h-8 w-8 rounded-full border-2 relative md:h-10 md:w-10", { 
                                         'border-primary ring-2 ring-primary': selectedVariant?.color === variant.color,
                                         'cursor-not-allowed': isOutOfStock
                                     })}
@@ -225,13 +224,14 @@ export default function ProductPage() {
                 </div>
 
                 {/* Size Selector */}
-                <div className="mb-6">
+                <div>
                     <h3 className="mb-2 text-sm font-medium">Size: <span className="font-bold">{selectedSize?.size || 'Select a size'}</span></h3>
                     <div className="flex flex-wrap gap-2">
                         {selectedVariant?.sizes.map(size => (
                              <Button
                                 key={size.size}
                                 variant={selectedSize?.size === size.size ? "default" : "outline"}
+                                size="sm"
                                 onClick={() => setSelectedSize(size)}
                                 disabled={size.stock === 0}
                                 className={cn("relative", { 'disabled:bg-secondary disabled:text-muted-foreground/50': size.stock === 0})}
@@ -252,13 +252,13 @@ export default function ProductPage() {
                      )}
                 </div>
                 
-                <p className="mb-4 text-sm text-muted-foreground">Minimum Order Quantity: {product.moq}</p>
+                <p className="text-xs text-muted-foreground md:text-sm">Minimum Order Quantity: {product.moq}</p>
 
                 <Button size="lg" onClick={handleAddToCart} disabled={!canAddToCart}>
                     {canAddToCart ? 'Add to Cart' : 'Out of Stock'}
                 </Button>
 
-                <Accordion type="single" collapsible className="w-full mt-8">
+                <Accordion type="single" collapsible className="w-full mt-2">
                     <AccordionItem value="description">
                         <AccordionTrigger>Description</AccordionTrigger>
                         <AccordionContent>
