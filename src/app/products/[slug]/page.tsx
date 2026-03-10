@@ -185,7 +185,7 @@ export default function ProductPage() {
             {/* Product Details */}
             <div className="flex flex-col">
                 <p className="font-semibold uppercase tracking-wide text-muted-foreground">{product.brand}</p>
-                <h1 className="my-2 font-headline text-3xl font-bold md:text-4xl">{product.name}</h1>
+                <h1 className="my-1 font-headline text-2xl font-bold md:text-3xl">{product.name}</h1>
                 <div className="flex items-baseline gap-2 mb-4">
                     <p className="text-2xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
                     {product.mrp && product.mrp > product.price && (
