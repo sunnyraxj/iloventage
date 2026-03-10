@@ -44,7 +44,7 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
 
     const options = {
         maxSizeMB: 1,
-        maxWidthOrHeight: 1920,
+        maxWidthOrHeight: 2000,
         useWebWorker: true,
         initialQuality: 0.75,
         fileType: 'image/webp',
