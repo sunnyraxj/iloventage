@@ -19,45 +19,50 @@ import type { Product, Category, User, Order, UserAddress, OrderItem, OrderAddre
   
 const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
-const getSafeUrl = (url: any): string | null => {
-    if (!url) return null;
-    if (typeof url === 'string' && url) return url;
-    if (typeof url === 'object' && url !== null && typeof url.value === 'string' && url.value) return url.value;
-    return null;
-}
-
 function docToType<T>(doc: DocumentData): T {
     const data = doc.data();
-    
-    // Specifically process product variants to ensure imageUrls are strings
-    if (doc.ref.parent.id === 'products' && data.variants) {
-        data.variants = data.variants.map((variant: any) => {
-            return {
-                ...variant,
-                imageUrls: (variant.imageUrls || []).map((url: any) => getSafeUrl(url)).filter((url: any): url is string => !!url),
-            };
-        });
-    }
+    const id = doc.id;
 
-    const result: { [key: string]: any } = { id: doc.id };
+    // Create a new object to avoid mutating the original data from getDoc
+    const processedData: { [key: string]: any } = { id };
 
     for (const key in data) {
-        if (data.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
             const value = data[key];
             if (value instanceof Timestamp) {
-                result[key] = value.toDate().toISOString();
+                processedData[key] = value.toDate().toISOString();
             } else {
-                result[key] = value;
+                processedData[key] = value;
             }
         }
     }
     
+    // Specifically process product variants to ensure imageUrls are strings
+    if (doc.ref.parent.id === 'products' && processedData.variants) {
+        processedData.variants = processedData.variants.map((variant: any) => {
+            let imageUrls: string[] = [];
+            if (Array.isArray(variant.imageUrls)) {
+                imageUrls = variant.imageUrls
+                    .map((url: any) => {
+                        if (typeof url === 'string') return url;
+                        if (typeof url === 'object' && url !== null && typeof url.value === 'string') return url.value;
+                        return null;
+                    })
+                    .filter((url: string | null): url is string => !!url);
+            }
+            return {
+                ...variant,
+                imageUrls: imageUrls,
+            };
+        });
+    }
+
     // Add slug for products and categories if name exists
-    if (data.name && (doc.ref.parent.id === 'products' || doc.ref.parent.id === 'collections')) {
-      result.slug = createSlug(data.name);
+    if (processedData.name && (doc.ref.parent.id === 'products' || doc.ref.parent.id === 'collections')) {
+      processedData.slug = createSlug(processedData.name);
     }
     
-    return result as T;
+    return processedData as T;
 }
   
 // --- Product Functions ---
