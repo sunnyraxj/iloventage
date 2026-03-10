@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getProducts, getCategories } from '@/lib/data';
 import type { Product, Category } from '@/lib/types';
 import { Header } from '@/components/header';
@@ -20,11 +20,41 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(20);
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [visibleCount, setVisibleCount] = useState(20);
+  const [colorFilters, setColorFilters] = useState<string[]>([]);
+  const [sizeFilters, setSizeFilters] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState<number[]>([0, 0]);
+
+  // Derived data for filters
+  const { uniqueColors, uniqueSizes, maxPrice } = useMemo(() => {
+    if (!products.length) return { uniqueColors: [], uniqueSizes: [], maxPrice: 0 };
+    
+    const colors = new Set<string>();
+    const sizes = new Set<string>();
+    let max = 0;
+
+    products.forEach(product => {
+      if (product.price > max) max = product.price;
+      product.variants.forEach(variant => {
+        colors.add(variant.color);
+        variant.sizes.forEach(size => {
+          sizes.add(size.size);
+        });
+      });
+    });
+    
+    return {
+      uniqueColors: Array.from(colors).sort(),
+      uniqueSizes: Array.from(sizes).sort(),
+      maxPrice: Math.ceil(max)
+    };
+  }, [products]);
 
   useEffect(() => {
     async function fetchProductsAndCategories() {
@@ -36,6 +66,10 @@ export default function ProductsPage() {
       setProducts(allProducts);
       setFilteredProducts(allProducts);
       setCategories(allCategories);
+
+      const max = allProducts.reduce((acc, p) => p.price > acc ? p.price : acc, 0);
+      setPriceRange([0, Math.ceil(max)]);
+
       setLoading(false);
     }
     fetchProductsAndCategories();
@@ -44,6 +78,7 @@ export default function ProductsPage() {
   useEffect(() => {
     let tempProducts = [...products];
 
+    // Search filter
     if (searchTerm) {
         tempProducts = tempProducts.filter(p =>
             p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,29 +86,61 @@ export default function ProductsPage() {
         );
     }
 
+    // Gender filter
     if (genderFilter !== 'all') {
       tempProducts = tempProducts.filter(p => p.gender === genderFilter);
     }
-
+    
+    // Category filter
     if (categoryFilters.length > 0) {
       tempProducts = tempProducts.filter(p => categoryFilters.includes(p.collectionId));
     }
     
+    // Color filter
+    if (colorFilters.length > 0) {
+        tempProducts = tempProducts.filter(p => 
+            p.variants.some(v => colorFilters.includes(v.color))
+        );
+    }
+
+    // Size filter
+    if (sizeFilters.length > 0) {
+        tempProducts = tempProducts.filter(p => 
+            p.variants.some(v => v.sizes.some(s => sizeFilters.includes(s.size)))
+        );
+    }
+    
+    // Price filter
+    tempProducts = tempProducts.filter(p => p.price <= priceRange[1]);
+    
     setFilteredProducts(tempProducts);
     setVisibleCount(20); // Reset visible count on filter change
-  }, [genderFilter, categoryFilters, products, searchTerm]);
+  }, [searchTerm, genderFilter, categoryFilters, colorFilters, sizeFilters, priceRange, products]);
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
-    if (checked) {
-      setCategoryFilters(prev => [...prev, categoryId]);
-    } else {
-      setCategoryFilters(prev => prev.filter(id => id !== categoryId));
-    }
+    setCategoryFilters(prev => checked ? [...prev, categoryId] : prev.filter(id => id !== categoryId));
+  }
+
+  const handleColorChange = (color: string, checked: boolean) => {
+    setColorFilters(prev => checked ? [...prev, color] : prev.filter(c => c !== color));
+  }
+
+  const handleSizeChange = (size: string, checked: boolean) => {
+    setSizeFilters(prev => checked ? [...prev, size] : prev.filter(s => s !== size));
   }
 
   const loadMoreProducts = () => {
     setVisibleCount(prevCount => prevCount + 20);
   };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setGenderFilter('all');
+    setCategoryFilters([]);
+    setColorFilters([]);
+    setSizeFilters([]);
+    setPriceRange([0, maxPrice]);
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -102,7 +169,17 @@ export default function ProductsPage() {
                                     onGenderChange={setGenderFilter}
                                     categoryFilters={categoryFilters}
                                     onCategoryChange={handleCategoryChange}
+                                    colors={uniqueColors}
+                                    sizes={uniqueSizes}
+                                    priceRange={priceRange}
+                                    maxPrice={maxPrice}
+                                    colorFilters={colorFilters}
+                                    sizeFilters={sizeFilters}
+                                    onPriceChange={setPriceRange}
+                                    onColorChange={handleColorChange}
+                                    onSizeChange={handleSizeChange}
                                 />
+                                <Button variant="ghost" onClick={clearFilters} className="w-full justify-start mt-4">Clear All Filters</Button>
                             </CollapsibleContent>
                         </Collapsible>
                     </div>
@@ -118,7 +195,7 @@ export default function ProductsPage() {
                                         Filters
                                     </Button>
                                 </SheetTrigger>
-                                <SheetContent side="left" className="w-[300px]">
+                                <SheetContent side="left" className="w-[300px] overflow-y-auto">
                                     <SheetHeader>
                                         <SheetTitle>Filters</SheetTitle>
                                     </SheetHeader>
@@ -129,7 +206,17 @@ export default function ProductsPage() {
                                             onGenderChange={setGenderFilter}
                                             categoryFilters={categoryFilters}
                                             onCategoryChange={handleCategoryChange}
+                                            colors={uniqueColors}
+                                            sizes={uniqueSizes}
+                                            priceRange={priceRange}
+                                            maxPrice={maxPrice}
+                                            colorFilters={colorFilters}
+                                            sizeFilters={sizeFilters}
+                                            onPriceChange={setPriceRange}
+                                            onColorChange={handleColorChange}
+                                            onSizeChange={handleSizeChange}
                                         />
+                                         <Button variant="ghost" onClick={clearFilters} className="w-full justify-start mt-4">Clear All Filters</Button>
                                     </div>
                                 </SheetContent>
                             </Sheet>

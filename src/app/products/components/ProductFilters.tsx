@@ -4,6 +4,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import type { Category } from '@/lib/types';
+import { Slider } from "@/components/ui/slider"
 
 interface ProductFiltersProps {
     categories: Category[];
@@ -11,11 +12,52 @@ interface ProductFiltersProps {
     onGenderChange: (value: string) => void;
     onCategoryChange: (categoryId: string, checked: boolean) => void;
     categoryFilters: string[];
+
+    // New props
+    colors: string[];
+    sizes: string[];
+    priceRange: number[]; // [min, max]
+    maxPrice: number;
+    colorFilters: string[];
+    sizeFilters: string[];
+    onPriceChange: (value: number[]) => void;
+    onColorChange: (color: string, checked: boolean) => void;
+    onSizeChange: (size: string, checked: boolean) => void;
 }
 
-export function ProductFilters({ categories, genderFilter, onGenderChange, onCategoryChange, categoryFilters }: ProductFiltersProps) {
+export function ProductFilters({
+    categories,
+    genderFilter,
+    onGenderChange,
+    onCategoryChange,
+    categoryFilters,
+
+    colors,
+    sizes,
+    priceRange,
+    maxPrice,
+    colorFilters,
+    sizeFilters,
+    onPriceChange,
+    onColorChange,
+    onSizeChange,
+}: ProductFiltersProps) {
     return (
         <div className="space-y-6">
+             <div>
+                <h3 className="mb-4 font-medium">Price</h3>
+                <Slider
+                    value={[priceRange[1]]} // Controlled component for max price
+                    max={maxPrice}
+                    step={10}
+                    onValueChange={(value) => onPriceChange([0, value[0]])}
+                    className="mb-2"
+                />
+                 <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>₹0</span>
+                    <span>₹{priceRange[1]}</span>
+                </div>
+            </div>
             <div>
                 <h3 className="mb-4 font-medium">Gender</h3>
                 <RadioGroup defaultValue="all" value={genderFilter} onValueChange={onGenderChange}>
@@ -48,6 +90,36 @@ export function ProductFilters({ categories, genderFilter, onGenderChange, onCat
                                 checked={categoryFilters.includes(cat.id)}
                             />
                             <Label htmlFor={`cat-filter-${cat.id}`}>{cat.name}</Label>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <div>
+                <h3 className="mb-4 font-medium">Colors</h3>
+                <div className="space-y-2 h-40 overflow-y-auto">
+                    {colors.map(color => (
+                        <div key={color} className="flex items-center space-x-2">
+                            <Checkbox 
+                                id={`color-filter-${color}`}
+                                onCheckedChange={(checked) => onColorChange(color, checked as boolean)}
+                                checked={colorFilters.includes(color)}
+                            />
+                            <Label htmlFor={`color-filter-${color}`} className="capitalize">{color}</Label>
+                        </div>
+                    ))}
+                </div>
+            </div>
+             <div>
+                <h3 className="mb-4 font-medium">Sizes</h3>
+                <div className="space-y-2">
+                    {sizes.map(size => (
+                        <div key={size} className="flex items-center space-x-2">
+                            <Checkbox 
+                                id={`size-filter-${size}`}
+                                onCheckedChange={(checked) => onSizeChange(size, checked as boolean)}
+                                checked={sizeFilters.includes(size)}
+                            />
+                            <Label htmlFor={`size-filter-${size}`}>{size}</Label>
                         </div>
                     ))}
                 </div>
