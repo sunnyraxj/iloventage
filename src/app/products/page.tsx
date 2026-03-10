@@ -7,10 +7,14 @@ import type { Product, Category } from '@/lib/types';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { ProductCard } from '@/components/product-card';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Search, Filter, ChevronsUpDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ProductFilters } from './components/ProductFilters';
+
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -19,6 +23,7 @@ export default function ProductsPage() {
   const [genderFilter, setGenderFilter] = useState('all');
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     async function fetchProductsAndCategories() {
@@ -38,6 +43,13 @@ export default function ProductsPage() {
   useEffect(() => {
     let tempProducts = [...products];
 
+    if (searchTerm) {
+        tempProducts = tempProducts.filter(p =>
+            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.brand.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+
     if (genderFilter !== 'all') {
       tempProducts = tempProducts.filter(p => p.gender === genderFilter);
     }
@@ -47,7 +59,7 @@ export default function ProductsPage() {
     }
     
     setFilteredProducts(tempProducts);
-  }, [genderFilter, categoryFilters, products]);
+  }, [genderFilter, categoryFilters, products, searchTerm]);
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     if (checked) {
@@ -64,47 +76,69 @@ export default function ProductsPage() {
         <div className="container mx-auto px-4">
             <h1 className="mb-8 font-headline text-3xl font-bold md:text-4xl">All Products</h1>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-                <aside className="md:col-span-1">
-                    <div className="sticky top-24 rounded-lg bg-background p-6 shadow-sm space-y-6">
-                        <h2 className="text-lg font-semibold">Filters</h2>
-                        <div>
-                            <h3 className="mb-2 font-medium">Gender</h3>
-                            <RadioGroup defaultValue="all" value={genderFilter} onValueChange={setGenderFilter}>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="all" id="gender-all" />
-                                    <Label htmlFor="gender-all">All</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="male" id="gender-male" />
-                                    <Label htmlFor="gender-male">Men</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="female" id="gender-female" />
-                                    <Label htmlFor="gender-female">Women</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="unisex" id="gender-unisex" />
-                                    <Label htmlFor="gender-unisex">Unisex</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-                        <div>
-                            <h3 className="mb-2 font-medium">Category</h3>
-                            <div className="space-y-2">
-                                {categories.map(cat => (
-                                    <div key={cat.id} className="flex items-center space-x-2">
-                                        <Checkbox 
-                                            id={`cat-${cat.id}`}
-                                            onCheckedChange={(checked) => handleCategoryChange(cat.id, checked as boolean)}
-                                        />
-                                        <Label htmlFor={`cat-${cat.id}`}>{cat.name}</Label>
-                                    </div>
-                                ))}
+                {/* Desktop Filters */}
+                <aside className="hidden md:block md:col-span-1">
+                    <div className="sticky top-24 rounded-lg bg-background p-6 shadow-sm">
+                        <Collapsible defaultOpen={true}>
+                             <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold">Filters</h2>
+                                <CollapsibleTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="w-9 p-0">
+                                        <ChevronsUpDown className="h-4 w-4" />
+                                        <span className="sr-only">Toggle filters</span>
+                                    </Button>
+                                </CollapsibleTrigger>
                             </div>
-                        </div>
+                            <CollapsibleContent className="mt-4 data-[state=closed]:mt-0">
+                                <ProductFilters
+                                    categories={categories}
+                                    genderFilter={genderFilter}
+                                    onGenderChange={setGenderFilter}
+                                    categoryFilters={categoryFilters}
+                                    onCategoryChange={handleCategoryChange}
+                                />
+                            </CollapsibleContent>
+                        </Collapsible>
                     </div>
                 </aside>
+
                 <div className="md:col-span-3">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="md:hidden">
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="outline">
+                                        <Filter className="mr-2 h-4 w-4" />
+                                        Filters
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="left" className="w-[300px]">
+                                    <SheetHeader>
+                                        <SheetTitle>Filters</SheetTitle>
+                                    </SheetHeader>
+                                    <div className="p-4">
+                                        <ProductFilters
+                                            categories={categories}
+                                            genderFilter={genderFilter}
+                                            onGenderChange={setGenderFilter}
+                                            categoryFilters={categoryFilters}
+                                            onCategoryChange={handleCategoryChange}
+                                        />
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
+                        </div>
+                        <div className="relative w-full">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                type="search"
+                                placeholder="Search products..."
+                                className="w-full rounded-lg bg-background pl-10"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
                     {loading ? (
                          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
                             {Array.from({ length: 9 }).map((_, i) => (
@@ -129,7 +163,7 @@ export default function ProductsPage() {
                                     />
                                 ))
                             ) : (
-                                <p>No products found for the selected filters.</p>
+                                <p className="col-span-full text-center py-10 text-muted-foreground">No products found for the selected filters.</p>
                             )}
                         </div>
                         </>
