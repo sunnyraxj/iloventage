@@ -131,7 +131,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             )}
           </div>
           {!hasStock && (
-            <p className="text-sm font-bold text-red-500">SOLD OUT</p>
+            <p className="text-xs font-semibold text-red-500">SOLD OUT</p>
           )}
         </div>
       </Link>
