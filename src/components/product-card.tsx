@@ -15,12 +15,6 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
-const getSafeUrl = (url: any, productId: string): string => {
-  if (typeof url === 'string' && url) return url;
-  if (typeof url === 'object' && url !== null && typeof url.value === 'string' && url.value) return url.value;
-  return `https://picsum.photos/seed/${productId}/600/800`;
-}
-
 export function ProductCard({ product, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
@@ -28,9 +22,8 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
   const firstVariant = product.variants?.[0];
   const firstSize = firstVariant?.sizes?.[0];
 
-  const imageUrl = getSafeUrl(firstVariant?.imageUrls?.[0], product.id);
-  const hoverImageUrl = firstVariant?.imageUrls?.[1] ? getSafeUrl(firstVariant.imageUrls[1], product.id) : null;
-
+  const imageUrl = firstVariant?.imageUrls?.[0] || `https://picsum.photos/seed/${product.id}/600/800`;
+  const hoverImageUrl = firstVariant?.imageUrls?.[1] || null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();

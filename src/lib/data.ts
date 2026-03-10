@@ -19,8 +19,26 @@ import type { Product, Category, User, Order, UserAddress, OrderItem, OrderAddre
   
 const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
+const getSafeUrl = (url: any): string | null => {
+    if (!url) return null;
+    if (typeof url === 'string' && url) return url;
+    if (typeof url === 'object' && url !== null && typeof url.value === 'string' && url.value) return url.value;
+    return null;
+}
+
 function docToType<T>(doc: DocumentData): T {
     const data = doc.data();
+    
+    // Specifically process product variants to ensure imageUrls are strings
+    if (doc.ref.parent.id === 'products' && data.variants) {
+        data.variants = data.variants.map((variant: any) => {
+            return {
+                ...variant,
+                imageUrls: (variant.imageUrls || []).map((url: any) => getSafeUrl(url)).filter((url: any): url is string => !!url),
+            };
+        });
+    }
+
     const result: { [key: string]: any } = { id: doc.id };
 
     for (const key in data) {
@@ -40,11 +58,6 @@ function docToType<T>(doc: DocumentData): T {
     }
     
     return result as T;
-}
-
-const getSafeUrl = (url: any): string | null => {
-    if (!url) return null;
-    return typeof url === 'string' ? url : url.value;
 }
   
 // --- Product Functions ---
@@ -91,7 +104,7 @@ export const getCategories = async (): Promise<Category[]> => {
     const categoryImageMap = new Map<string, string>();
     for (const product of products) {
         if (!categoryImageMap.has(product.collectionId)) {
-            const imageUrl = getSafeUrl(product.variants?.[0]?.imageUrls?.[0]);
+            const imageUrl = product.variants?.[0]?.imageUrls?.[0];
             if (imageUrl) {
                 categoryImageMap.set(product.collectionId, imageUrl);
             }
@@ -100,7 +113,7 @@ export const getCategories = async (): Promise<Category[]> => {
 
     return categories.map(category => ({
         ...category,
-        imageUrl: categoryImageMap.get(category.id) || '',
+        imageUrl: category.imageUrl || categoryImageMap.get(category.id) || '',
     }));
 };
   
@@ -111,6 +124,10 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
 
     if (!category) {
         return null;
+    }
+    
+    if (category.imageUrl) {
+        return category;
     }
 
     const productsQuery = query(
@@ -124,7 +141,7 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
 
     if (!productsSnapshot.empty) {
         const latestProduct = docToType<Product>(productsSnapshot.docs[0]);
-        category.imageUrl = getSafeUrl(latestProduct.variants?.[0]?.imageUrls?.[0]) || '';
+        category.imageUrl = latestProduct.variants?.[0]?.imageUrls?.[0] || '';
     } else {
         category.imageUrl = '';
     }

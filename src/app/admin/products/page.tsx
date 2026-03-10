@@ -28,12 +28,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import type { Product } from '@/lib/types';
 
-const getSafeImageUrl = (url: any, productId: string): string => {
-    if (typeof url === 'string' && url) return url;
-    if (typeof url === 'object' && url !== null && typeof url.value === 'string' && url.value) return url.value;
-    return `https://picsum.photos/seed/${productId}/64/64`;
-};
-
 export default async function AdminProductsPage() {
     const products = await getAllProducts();
 
@@ -76,14 +70,16 @@ export default async function AdminProductsPage() {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {products.map((product) => (
+                {products.map((product) => {
+                    const imageUrl = product.variants?.[0]?.imageUrls?.[0] || `https://picsum.photos/seed/${product.id}/64/64`;
+                    return (
                     <TableRow key={product.id}>
                         <TableCell className="hidden sm:table-cell">
                             <Image
                                 alt={product.name}
                                 className="aspect-square rounded-md object-cover"
                                 height="64"
-                                src={getSafeImageUrl(product.variants?.[0]?.imageUrls?.[0], product.id)}
+                                src={imageUrl}
                                 width="64"
                             />
                         </TableCell>
@@ -117,7 +113,7 @@ export default async function AdminProductsPage() {
                             </DropdownMenu>
                         </TableCell>
                     </TableRow>
-                ))}
+                )})}
             </TableBody>
         </Table>
       </CardContent>

@@ -15,12 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-const getSafeUrl = (url: any): string | null => {
-    if (typeof url === 'string' && url) return url;
-    if (typeof url === 'object' && url !== null && typeof url.value === 'string' && url.value) return url.value;
-    return null;
-}
-
 export default function ProductPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -47,7 +41,7 @@ export default function ProductPage() {
         const firstVariant = fetchedProduct.variants[0];
         setSelectedVariant(firstVariant);
         
-        setSelectedImageUrl(getSafeUrl(firstVariant.imageUrls?.[0]));
+        setSelectedImageUrl(firstVariant.imageUrls?.[0] || null);
 
         const firstAvailableSize = firstVariant.sizes.find(s => s.stock > 0);
         setSelectedSize(firstAvailableSize || null);
@@ -59,7 +53,7 @@ export default function ProductPage() {
 
   const handleSelectVariant = (variant: ProductVariant) => {
     setSelectedVariant(variant);
-    setSelectedImageUrl(getSafeUrl(variant.imageUrls?.[0]));
+    setSelectedImageUrl(variant.imageUrls?.[0] || null);
     const firstAvailableSize = variant.sizes.find(s => s.stock > 0);
     setSelectedSize(firstAvailableSize || null);
   }
@@ -83,7 +77,7 @@ export default function ProductPage() {
         return;
     }
 
-    const cartImageUrl = getSafeUrl(selectedVariant.imageUrls?.[0]);
+    const cartImageUrl = selectedVariant.imageUrls?.[0];
 
     const cartItem = {
         id: `${product.id}-${selectedVariant.color}-${selectedSize.size}`,
@@ -163,8 +157,7 @@ export default function ProductPage() {
                     />
                 </div>
                 <div className="grid grid-cols-4 gap-4">
-                    {selectedVariant?.imageUrls.map((rawUrl, i) => {
-                        const url = getSafeUrl(rawUrl);
+                    {selectedVariant?.imageUrls.map((url, i) => {
                         if (!url) return null;
 
                         return (
