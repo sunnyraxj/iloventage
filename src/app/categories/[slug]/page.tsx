@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -69,55 +68,53 @@ export default function CategoryPage() {
 
   return (
     <>
-      <main className="flex-1">
-        {loading ? (
-          <Skeleton className="h-48 w-full" />
-        ) : category ? (
-          <section className="relative h-48 w-full bg-secondary">
-            {category.imageUrl && (
-              <img 
-                src={category.imageUrl}
-                alt={category.name}
-                className="absolute inset-0 h-full w-full object-cover"
-                loading="eager"
-              />
-            )}
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 p-4 text-center text-white">
-                <h1 className="font-headline text-4xl font-bold">{category.name}</h1>
-                {category.description && <p className="mt-2 max-w-2xl">{category.description}</p>}
-            </div>
-          </section>
-        ) : null}
-
-        <div className="bg-secondary">
-            <div className="container mx-auto px-4 py-8 md:py-12">
-                {loading ? (
-                    <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="space-y-2">
-                                <Skeleton className="aspect-[3/4] w-full" />
-                                <Skeleton className="h-4 w-1/4" />
-                                <Skeleton className="h-5 w-3/4" />
-                                <Skeleton className="h-5 w-1/2" />
-                            </div>
-                        ))}
-                    </div>
+      <main className="flex-1 bg-secondary">
+        <div className="container mx-auto px-4 py-8 md:py-12">
+          {loading ? (
+            <>
+              <Skeleton className="mb-8 h-10 w-1/3" />
+              <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="aspect-[3/4] w-full" />
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-5 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              {category && (
+                <div className="mb-8 text-left">
+                  <h1 className="font-headline text-3xl font-bold md:text-4xl">
+                    {category.name}
+                  </h1>
+                  {category.description && (
+                    <p className="mt-2 max-w-2xl text-muted-foreground">
+                      {category.description}
+                    </p>
+                  )}
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
+                {products.length > 0 ? (
+                  products.map((product, index) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      priority={index < 4}
+                    />
+                  ))
                 ) : (
-                    <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
-                        {products.length > 0 ? (
-                            products.map((product, index) => (
-                                <ProductCard 
-                                  key={product.id} 
-                                  product={product} 
-                                  priority={index < 4}
-                                />
-                            ))
-                        ) : (
-                            <p className="col-span-full text-center text-muted-foreground">No products found in this category yet.</p>
-                        )}
-                    </div>
+                  <p className="col-span-full text-center text-muted-foreground">
+                    No products found in this category yet.
+                  </p>
                 )}
-            </div>
+              </div>
+            </>
+          )}
         </div>
       </main>
     </>
