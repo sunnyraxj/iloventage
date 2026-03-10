@@ -12,6 +12,15 @@ import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
 import imageCompression from 'browser-image-compression';
 
+const formatBytes = (bytes: number, decimals = 2) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
 interface ImageUploaderProps {
   variantIndex: number;
 }
@@ -41,15 +50,21 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
 
     for (const file of Array.from(files)) {
         try {
+            const originalSize = file.size;
             const compressedFile = await imageCompression(file, options);
+            const compressedSize = compressedFile.size;
             const fileName = compressedFile.name;
             const fileId = short.generate();
             const storageRef = ref(storage, `products/${fileId}-${fileName}`);
             await uploadBytes(storageRef, compressedFile);
             const downloadURL = await getDownloadURL(storageRef);
-            append({ value: downloadURL });
+            append({ 
+                value: downloadURL,
+                originalSize,
+                compressedSize,
+            });
 
-            toast({ title: 'Image Uploaded', description: `${fileName} uploaded successfully.` });
+            toast({ title: 'Image Uploaded', description: `${fileName} (${formatBytes(originalSize)} -> ${formatBytes(compressedSize)})` });
         } catch (error: any) {
             console.error(`Upload failed for ${file.name}:`, error);
 
@@ -125,6 +140,11 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
               alt={`Product image ${index + 1}`}
               className="h-full w-full object-cover rounded-md border"
             />
+            {(field as any).compressedSize && (
+                <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1 py-0.5 rounded">
+                    {formatBytes((field as any).compressedSize)}
+                </div>
+            )}
             <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                 <Button
                     type="button"

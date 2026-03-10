@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,15 @@ import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
 import imageCompression from 'browser-image-compression';
 
+const formatBytes = (bytes: number, decimals = 2) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
 interface CategoryImageUploaderProps {
   fieldName: string;
   label: string;
@@ -20,16 +29,24 @@ interface CategoryImageUploaderProps {
 export function CategoryImageUploader({ fieldName, label }: CategoryImageUploaderProps) {
   const { control, getValues, setValue, watch } = useFormContext();
   const [isUploading, setIsUploading] = useState(false);
+  const [compressedSize, setCompressedSize] = useState<number | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   
   const imageUrl = watch(fieldName);
+
+  useEffect(() => {
+    if (!imageUrl) {
+        setCompressedSize(null);
+    }
+  }, [imageUrl]);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
+    setCompressedSize(null);
     
     const options = {
         maxSizeMB: 2,
@@ -51,7 +68,9 @@ export function CategoryImageUploader({ fieldName, label }: CategoryImageUploade
           }
       }
 
+      const originalSize = file.size;
       const compressedFile = await imageCompression(file, options);
+      const compressedSizeVal = compressedFile.size;
       const fileName = compressedFile.name;
       const fileId = short.generate();
       const storageRef = ref(storage, `categories/${fileId}-${fileName}`);
@@ -59,7 +78,8 @@ export function CategoryImageUploader({ fieldName, label }: CategoryImageUploade
       const downloadURL = await getDownloadURL(snapshot.ref);
       
       setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });
-      toast({ title: 'Upload successful', description: 'Image has been uploaded.' });
+      setCompressedSize(compressedSizeVal);
+      toast({ title: 'Upload successful', description: `Size: ${formatBytes(originalSize)} -> ${formatBytes(compressedSizeVal)}` });
 
     } catch (error: any) {
       console.error("Image upload failed:", error);
@@ -116,6 +136,7 @@ export function CategoryImageUploader({ fieldName, label }: CategoryImageUploade
     }
     
     setValue(fieldName, '', { shouldValidate: true, shouldDirty: true });
+    setCompressedSize(null);
     toast({ title: 'Image removed' });
   };
 
@@ -130,6 +151,11 @@ export function CategoryImageUploader({ fieldName, label }: CategoryImageUploade
                 alt={`${label} preview`}
                 className="h-full w-full object-cover rounded-md border"
                 />
+                {compressedSize && (
+                    <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1 py-0.5 rounded">
+                        {formatBytes(compressedSize)}
+                    </div>
+                )}
                 <Button
                 type="button"
                 variant="destructive"

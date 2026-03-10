@@ -47,7 +47,11 @@ const formSchema = z.object({
   additionalDetails: z.array(z.object({ value: z.string() })).optional(),
   variants: z.array(z.object({
     color: z.string().min(1, "Color is required."),
-    imageUrls: z.array(z.object({ value: z.string().url() })).min(1, "At least one image is required."),
+    imageUrls: z.array(z.object({ 
+        value: z.string().url(),
+        originalSize: z.number().optional(),
+        compressedSize: z.number().optional(),
+    })).min(1, "At least one image is required."),
     sizes: z.array(z.object({
         size: z.string().min(1, "Size is required."),
         stock: z.coerce.number().int().min(0, "Stock must be a positive integer."),
