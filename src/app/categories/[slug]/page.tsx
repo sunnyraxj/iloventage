@@ -6,17 +6,20 @@ import { getProductsByCollectionId, getCategoryBySlug } from '@/lib/data';
 import type { Product, Category } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 
-export default function CategoryPage({ params }: { params: { slug: string } }) {
+export default function CategoryPage() {
+  const params = useParams();
+  const slug = params.slug as string;
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchCategoryData() {
+      if (!slug) return;
       setLoading(true);
-      const categoryData = await getCategoryBySlug(params.slug);
+      const categoryData = await getCategoryBySlug(slug);
       if (!categoryData) {
         notFound();
         return;
@@ -27,7 +30,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
       setLoading(false);
     }
     fetchCategoryData();
-  }, [params.slug]);
+  }, [slug]);
 
   return (
     <>
