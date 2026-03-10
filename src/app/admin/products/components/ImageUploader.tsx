@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef } from 'react';
@@ -42,20 +43,23 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     setIsUploading(true);
 
     const options = {
-        maxSizeMB: 2,
+        maxSizeMB: 1,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
-        initialQuality: 0.7,
+        initialQuality: 0.75,
+        fileType: 'image/webp',
     };
 
     for (const file of Array.from(files)) {
         try {
             const originalSize = file.size;
+            const originalName = file.name;
             const compressedFile = await imageCompression(file, options);
             const compressedSize = compressedFile.size;
-            const fileName = compressedFile.name;
+            const newName = compressedFile.name;
+            
             const fileId = short.generate();
-            const storageRef = ref(storage, `products/${fileId}-${fileName}`);
+            const storageRef = ref(storage, `products/${fileId}-${newName}`);
             await uploadBytes(storageRef, compressedFile);
             const downloadURL = await getDownloadURL(storageRef);
             append({ 
@@ -64,7 +68,7 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
                 compressedSize,
             });
 
-            toast({ title: 'Image Uploaded', description: `${fileName} (${formatBytes(originalSize)} -> ${formatBytes(compressedSize)})` });
+            toast({ title: 'Image Optimized & Uploaded', description: `${originalName} (${formatBytes(originalSize)}) → ${newName} (${formatBytes(compressedSize)})` });
         } catch (error: any) {
             console.error(`Upload failed for ${file.name}:`, error);
 

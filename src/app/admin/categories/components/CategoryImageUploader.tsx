@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -49,10 +50,11 @@ export function CategoryImageUploader({ fieldName, label }: CategoryImageUploade
     setCompressedSize(null);
     
     const options = {
-        maxSizeMB: 2,
+        maxSizeMB: 1,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
-        initialQuality: 0.7,
+        initialQuality: 0.75,
+        fileType: 'image/webp',
     };
 
     try {
@@ -69,17 +71,18 @@ export function CategoryImageUploader({ fieldName, label }: CategoryImageUploade
       }
 
       const originalSize = file.size;
+      const originalName = file.name;
       const compressedFile = await imageCompression(file, options);
       const compressedSizeVal = compressedFile.size;
-      const fileName = compressedFile.name;
+      const newName = compressedFile.name;
       const fileId = short.generate();
-      const storageRef = ref(storage, `categories/${fileId}-${fileName}`);
+      const storageRef = ref(storage, `categories/${fileId}-${newName}`);
       const snapshot = await uploadBytes(storageRef, compressedFile);
       const downloadURL = await getDownloadURL(snapshot.ref);
       
       setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });
       setCompressedSize(compressedSizeVal);
-      toast({ title: 'Upload successful', description: `Size: ${formatBytes(originalSize)} -> ${formatBytes(compressedSizeVal)}` });
+      toast({ title: 'Image Optimized & Uploaded', description: `${originalName} (${formatBytes(originalSize)}) → ${newName} (${formatBytes(compressedSizeVal)})` });
 
     } catch (error: any) {
       console.error("Image upload failed:", error);
@@ -107,7 +110,7 @@ export function CategoryImageUploader({ fieldName, label }: CategoryImageUploade
           }
       }
 
-      toast({ variant: 'destructive', title: 'Upload failed', description: errorMessage, duration: 9000 });
+      toast({ variant: 'destructive', title: 'Upload Failed', description: errorMessage, duration: 9000 });
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
