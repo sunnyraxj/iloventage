@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation'
 import type { Product, Category } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +17,7 @@ import { db } from '@/firebase/config';
 
 interface ProductsViewProps {
     categories: Category[];
+    searchParams?: { [key: string]: string | string[] | undefined };
 }
 
 function docToProduct(doc: DocumentData): Product {
@@ -44,7 +46,7 @@ const FilterSkeleton = () => (
 );
 
 
-export function ProductsView({ categories }: ProductsViewProps) {
+export function ProductsView({ categories, searchParams: serverSearchParams }: ProductsViewProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -69,7 +71,7 @@ export function ProductsView({ categories }: ProductsViewProps) {
   }, []);
 
   // Filter states
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(serverSearchParams?.search as string || '');
   const [genderFilter, setGenderFilter] = useState('all');
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [colorFilters, setColorFilters] = useState<string[]>([]);
@@ -121,10 +123,10 @@ export function ProductsView({ categories }: ProductsViewProps) {
   }, [products]);
   
   useEffect(() => {
-    if (maxPrice > 0) {
+    if (maxPrice > 0 && priceRange[1] === 0) { // Only set initial price range once
         setPriceRange([0, maxPrice]);
     }
-  }, [maxPrice]);
+  }, [maxPrice, priceRange]);
 
 
   useEffect(() => {
@@ -195,7 +197,7 @@ export function ProductsView({ categories }: ProductsViewProps) {
   }
 
   const filterControls = (
-      <div className='max-h-[calc(100vh-14rem)] overflow-y-auto -mr-6 pr-6'>
+      <div className='h-full overflow-y-auto'>
         <ProductFilters
             categories={categories}
             genderFilter={genderFilter}
@@ -223,9 +225,9 @@ export function ProductsView({ categories }: ProductsViewProps) {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
               {/* Desktop Filters */}
               <aside className="hidden md:block md:col-span-1">
-                  <div className="sticky top-24 rounded-lg bg-background p-6 shadow-sm">
-                      {isClient ? (
-                        <Collapsible defaultOpen={true}>
+                  <div className="sticky top-24 rounded-lg bg-background p-6 shadow-sm h-[calc(100vh-7rem)] flex flex-col">
+                      {isClient && maxPrice > 0 ? (
+                        <Collapsible defaultOpen={true} className='flex-1 flex flex-col min-h-0'>
                               <div className="flex items-center justify-between">
                                 <h2 className="text-lg font-semibold">Filters</h2>
                                 <CollapsibleTrigger asChild>
@@ -235,7 +237,7 @@ export function ProductsView({ categories }: ProductsViewProps) {
                                     </Button>
                                 </CollapsibleTrigger>
                             </div>
-                            <CollapsibleContent className="mt-4 data-[state=closed]:mt-0">
+                            <CollapsibleContent className="mt-4 data-[state=closed]:mt-0 flex-1 min-h-0">
                                 {filterControls}
                             </CollapsibleContent>
                         </Collapsible>
@@ -256,11 +258,11 @@ export function ProductsView({ categories }: ProductsViewProps) {
                                         Filters
                                     </Button>
                                 </SheetTrigger>
-                                <SheetContent side="left" className="w-[300px] overflow-y-auto">
-                                    <SheetHeader>
+                                <SheetContent side="left" className="w-[300px] flex flex-col">
+                                    <SheetHeader className='pr-6'>
                                         <SheetTitle>Filters</SheetTitle>
                                     </SheetHeader>
-                                    <div className="p-4">
+                                    <div className="py-4 flex-1 min-h-0">
                                         {filterControls}
                                     </div>
                                 </SheetContent>

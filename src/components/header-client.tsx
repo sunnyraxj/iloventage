@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {
   Menu,
@@ -42,6 +43,7 @@ interface HeaderClientProps {
 
 export function HeaderClient({ categories, settings }: HeaderClientProps) {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const { items } = useCart();
   const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
   const [hasMounted, setHasMounted] = useState(false);
@@ -76,6 +78,18 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
   const navLinks = categories.map(c => ({ href: `/categories/${c.slug}`, label: c.name }));
   const logoUrl = settings?.storeDetails?.logoUrl;
   const storeName = settings?.storeDetails?.name || 'My Store';
+
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const searchQuery = formData.get('search') as string;
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/products');
+    }
+  };
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -138,11 +152,12 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
         
         {/* Right Section */}
         <div className="flex items-center justify-end gap-2 md:gap-4">
-          <form className="hidden sm:block sm:flex-1 sm:max-w-xs">
+          <form className="hidden sm:block sm:flex-1 sm:max-w-xs" onSubmit={handleSearchSubmit}>
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
+                  name="search"
                   placeholder="Search products..."
                   className="w-full rounded-lg bg-secondary pl-8"
                 />

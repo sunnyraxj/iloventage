@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { Twitter, Facebook, Instagram } from 'lucide-react';
+import { Instagram } from 'lucide-react';
 import type { Category, StoreSettings } from '@/lib/types';
 
 const WhatsAppIcon = () => (
@@ -46,7 +46,6 @@ export function FooterClient({ categories, settings }: FooterClientProps) {
           <div>
             <h3 className="mb-2 font-medium text-sm">Company</h3>
             <ul className="space-y-1.5">
-              <li><Link href="#" className="text-muted-foreground transition-colors hover:text-primary">Our Story</Link></li>
               <li><Link href="/contact" className="text-muted-foreground transition-colors hover:text-primary">Contact Us</Link></li>
               <li><Link href="/privacy-policy" className="text-muted-foreground transition-colors hover:text-primary">Privacy Policy</Link></li>
             </ul>
@@ -55,12 +54,6 @@ export function FooterClient({ categories, settings }: FooterClientProps) {
           <div>
              <h3 className="mb-2 font-medium text-sm">Follow</h3>
             <div className="flex space-x-3">
-               <Link href="#" aria-label="Twitter">
-                <Twitter className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
-              </Link>
-              <Link href="#" aria-label="Facebook">
-                <Facebook className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
-              </Link>
               {settings?.storeDetails?.instagramUrl && (
                 <Link href={settings.storeDetails.instagramUrl} aria-label="Instagram" target="_blank" rel="noopener noreferrer">
                     <Instagram className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
