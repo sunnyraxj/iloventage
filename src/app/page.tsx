@@ -56,9 +56,9 @@ export default async function HomePage() {
             <h2 className="mb-8 text-center font-headline text-3xl font-bold">
               Shop by Category
             </h2>
-            <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 md:grid md:grid-cols-4 md:gap-6 md:mx-0 md:px-0 md:pb-0">
+            <div className="grid grid-flow-col auto-cols-[28vw] gap-4 overflow-x-auto pb-4 -mx-4 px-4 md:grid md:grid-flow-row md:auto-cols-auto md:grid-cols-3 md:gap-6 md:mx-0 md:px-0 md:pb-0 lg:grid-cols-4">
               {categories.map((category) => (
-                <Link key={category.id} href={`/categories/${category.slug}`} className="group relative block overflow-hidden rounded-lg flex-shrink-0 w-[28vw] md:w-auto">
+                <Link key={category.id} href={`/categories/${category.slug}`} className="group relative block overflow-hidden rounded-lg">
                   <div className="aspect-square w-full">
                     <img
                       src={category.imageUrl || `https://picsum.photos/seed/${category.id}/400/400`}
