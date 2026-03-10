@@ -1,4 +1,3 @@
-
 'use client';
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -112,7 +111,7 @@ export function ProductFilters({
             </div>
              <div>
                 <h3 className="mb-4 font-medium">Sizes</h3>
-                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                <div className="flex flex-wrap gap-x-4 gap-y-2 max-h-40 overflow-y-auto pr-2">
                     {sizes.map(size => (
                         <div key={size} className="flex items-center space-x-2">
                             <Checkbox 
