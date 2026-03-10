@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -41,7 +42,8 @@ export default function AdminProductsPage() {
         async function fetchProducts() {
             setLoading(true);
             const allProducts = await getAllProducts();
-            setProducts(allProducts);
+            const sortedProducts = allProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            setProducts(sortedProducts);
             setLoading(false);
         }
         fetchProducts();
