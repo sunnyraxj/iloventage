@@ -12,6 +12,7 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
 import imageCompression from 'browser-image-compression';
+import heic2any from 'heic2any';
 
 const formatBytes = (bytes: number, decimals = 2) => {
     if (bytes === 0) return '0 Bytes';
@@ -52,9 +53,26 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
 
     for (const file of Array.from(files)) {
         try {
-            const originalSize = file.size;
-            const originalName = file.name;
-            const compressedFile = await imageCompression(file, options);
+            let fileToProcess = file;
+            const fileName = file.name.toLowerCase();
+            const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || fileName.endsWith('.heic') || fileName.endsWith('.heif');
+
+            if (isHeic) {
+                try {
+                    toast({ title: 'Converting HEIC...', description: 'Please wait while the image is being converted.' });
+                    const conversionResult = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
+                    const convertedBlob = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
+                    fileToProcess = new File([convertedBlob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+                } catch (e) {
+                    console.error("HEIC conversion failed", e);
+                    toast({ variant: 'destructive', title: 'Conversion Failed', description: 'Could not convert the HEIC file. Please try a different format.' });
+                    continue; // Move to the next file
+                }
+            }
+            
+            const originalSize = fileToProcess.size;
+            const originalName = fileToProcess.name;
+            const compressedFile = await imageCompression(fileToProcess, options);
             const compressedSize = compressedFile.size;
             const newName = compressedFile.name;
             
@@ -182,7 +200,7 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
             type="file" 
             className="hidden" 
             onChange={handleFileChange} 
-            accept="image/*" 
+            accept="image/*,.heic,.heif" 
             multiple
             disabled={isUploading}
           />
