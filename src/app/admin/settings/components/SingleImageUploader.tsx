@@ -11,7 +11,6 @@ import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
-import imageCompression from 'browser-image-compression';
 
 interface SingleImageUploaderProps {
   fieldName: string;
@@ -47,21 +46,12 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
           }
       }
 
-      const options = {
-        maxSizeMB: 0.5,
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
-        fileType: 'image/jpeg',
-        stripExif: true,
-      };
-
-      const compressedFile = await imageCompression(file, options);
-      const fileName = file.name.split('.').slice(0, -1).join('.') + '.jpg';
+      const fileName = file.name;
 
       // Now, upload the new image
       const fileId = short.generate();
       const storageRef = ref(storage, `settings/${fileId}-${fileName}`);
-      const snapshot = await uploadBytes(storageRef, compressedFile);
+      const snapshot = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(snapshot.ref);
       
       setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });
