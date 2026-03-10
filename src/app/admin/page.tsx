@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -17,7 +18,11 @@ export default async function AdminDashboardPage() {
 
     const confirmedOrders = allOrders.filter(order => order.orderStatus === 'confirmed');
 
-    const totalRevenue = confirmedOrders.reduce((acc, order) => acc + order.total, 0);
+    const ordersForRevenue = allOrders.filter(order => 
+        ['confirmed', 'shipped', 'delivered'].includes(order.orderStatus)
+    );
+
+    const totalRevenue = ordersForRevenue.reduce((acc, order) => acc + order.total, 0);
     const totalConfirmedOrders = confirmedOrders.length;
     const totalProducts = products.length;
     const totalCustomers = users.filter(u => u.role === 'customer').length;
