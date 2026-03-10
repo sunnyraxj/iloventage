@@ -103,8 +103,8 @@ export default function ProductPage() {
         <Header />
         <main className="flex-1 bg-secondary">
           <div className="container mx-auto px-4 py-8 md:py-12">
-            <div className="grid grid-cols-1 gap-8 rounded-lg bg-background p-8 shadow-sm md:grid-cols-2 md:gap-12">
-                <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-8 rounded-lg bg-background p-8 shadow-sm md:grid-cols-5 md:gap-12">
+                <div className="grid grid-cols-1 gap-4 md:col-span-3">
                     <Skeleton className="aspect-square w-full" />
                     <div className="grid grid-cols-4 gap-4">
                         <Skeleton className="aspect-square w-full" />
@@ -113,7 +113,7 @@ export default function ProductPage() {
                         <Skeleton className="aspect-square w-full" />
                     </div>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-4 md:col-span-2">
                     <Skeleton className="h-6 w-1/4" />
                     <Skeleton className="h-10 w-3/4" />
                     <Skeleton className="h-8 w-1/3" />
@@ -141,9 +141,9 @@ export default function ProductPage() {
       <Header />
       <main className="flex-1 bg-secondary">
         <div className="container mx-auto px-4 py-8 md:py-12">
-          <div className="grid grid-cols-1 gap-8 rounded-lg bg-background p-4 shadow-sm md:grid-cols-2 md:gap-12 md:p-8">
+          <div className="grid grid-cols-1 gap-8 rounded-lg bg-background p-4 shadow-sm md:grid-cols-5 md:gap-12 md:p-8">
             {/* Image Gallery */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:col-span-3">
                 <div className="aspect-square w-full overflow-hidden rounded-lg">
                     <img
                         src={selectedImageUrl || `https://picsum.photos/seed/${product.id}/800/800`}
@@ -182,15 +182,15 @@ export default function ProductPage() {
             </div>
 
             {/* Product Details */}
-            <div className="flex flex-col space-y-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground md:text-sm">{product.brand}</p>
+            <div className="flex flex-col space-y-4 md:col-span-2 md:space-y-6">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{product.brand}</p>
                 <h1 className="font-headline text-2xl font-bold md:text-3xl">{product.name}</h1>
                 <div className="flex items-baseline gap-2">
-                    <p className="text-xl font-semibold text-primary md:text-2xl">₹{product.price.toFixed(2)}</p>
+                    <p className="text-xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
                     {product.mrp && product.mrp > product.price && (
                       <>
-                        <p className="text-base text-muted-foreground line-through md:text-lg">₹{product.mrp.toFixed(2)}</p>
-                        <p className="text-xs font-bold text-green-600 md:text-sm">({Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF)</p>
+                        <p className="text-base text-muted-foreground line-through">₹{product.mrp.toFixed(2)}</p>
+                        <p className="text-xs font-bold text-green-600">({Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF)</p>
                       </>
                     )}
                 </div>
@@ -207,7 +207,7 @@ export default function ProductPage() {
                                     variant="outline"
                                     size="icon"
                                     disabled={isOutOfStock}
-                                    className={cn("h-8 w-8 rounded-full border-2 relative md:h-10 md:w-10", { 
+                                    className={cn("h-8 w-8 rounded-full border-2 relative", { 
                                         'border-primary ring-2 ring-primary': selectedVariant?.color === variant.color,
                                         'cursor-not-allowed': isOutOfStock
                                     })}
@@ -252,7 +252,7 @@ export default function ProductPage() {
                      )}
                 </div>
                 
-                <p className="text-xs text-muted-foreground md:text-sm">Minimum Order Quantity: {product.moq}</p>
+                <p className="text-xs text-muted-foreground">Minimum Order Quantity: {product.moq}</p>
 
                 <Button size="lg" onClick={handleAddToCart} disabled={!canAddToCart}>
                     {canAddToCart ? 'Add to Cart' : 'Out of Stock'}
