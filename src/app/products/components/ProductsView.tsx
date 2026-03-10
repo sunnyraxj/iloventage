@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -197,7 +198,7 @@ export function ProductsView({ initialProducts, categories }: ProductsViewProps)
           <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
               {/* Desktop Filters */}
               <aside className="hidden md:block md:col-span-1">
-                  <div className="sticky top-24 rounded-lg bg-background p-6 shadow-sm">
+                  <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto rounded-lg bg-background p-6 shadow-sm">
                       {isClient ? (
                         <Collapsible defaultOpen={true}>
                               <div className="flex items-center justify-between">

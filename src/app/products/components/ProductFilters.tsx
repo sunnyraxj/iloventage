@@ -1,3 +1,4 @@
+
 'use client';
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -88,7 +89,7 @@ export function ProductFilters({
             <AccordionItem value="categories">
                 <AccordionTrigger className="text-sm font-medium">Category</AccordionTrigger>
                 <AccordionContent>
-                    <div className="space-y-2 pt-2 max-h-40 overflow-y-auto">
+                    <div className="space-y-2 pt-2">
                         {categories.map(cat => (
                             <div key={cat.id} className="flex items-center space-x-2">
                                 <Checkbox 
@@ -106,7 +107,7 @@ export function ProductFilters({
             <AccordionItem value="colors">
                 <AccordionTrigger className="text-sm font-medium">Colors</AccordionTrigger>
                 <AccordionContent>
-                    <div className="space-y-2 max-h-40 overflow-y-auto pt-2">
+                    <div className="space-y-2 pt-2">
                         {colors.map(color => (
                             <div key={color} className="flex items-center space-x-2">
                                 <Checkbox 
@@ -124,7 +125,7 @@ export function ProductFilters({
              <AccordionItem value="sizes">
                 <AccordionTrigger className="text-sm font-medium">Sizes</AccordionTrigger>
                 <AccordionContent>
-                    <div className="flex flex-wrap gap-x-4 gap-y-2 max-h-40 overflow-y-auto pr-2 pt-2">
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 pt-2">
                         {sizes.map(size => (
                             <div key={size} className="flex items-center space-x-2">
                                 <Checkbox 
