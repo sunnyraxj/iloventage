@@ -74,7 +74,7 @@ export default function ProductsPage() {
       <Header />
       <main className="flex-1 bg-secondary py-8 md:py-12">
         <div className="container mx-auto px-4">
-            <h1 className="mb-8 font-headline text-3xl font-bold md:text-4xl">All Products</h1>
+            <h1 className="mb-6 font-headline text-3xl font-bold md:text-4xl text-left">All Products</h1>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
                 {/* Desktop Filters */}
                 <aside className="hidden md:block md:col-span-1">
