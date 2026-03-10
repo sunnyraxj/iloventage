@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { DollarSign, Package, ShoppingBag, Users } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, subMonths } from 'date-fns';
 import type { Product, Order, User } from '@/lib/types';
 import { ProductSalesChart } from './ProductSalesChart';
@@ -67,29 +66,23 @@ export function DashboardClient({ products, allOrders, users }: DashboardClientP
 
         return Object.values(sales).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
     }, [filteredOrders, products]);
+    
+    const selectedMonthLabel = useMemo(() => {
+        return months.find(m => m.value === selectedMonth)?.label;
+    }, [selectedMonth, months]);
 
     return (
         <div className="space-y-4">
             <h1 className="text-2xl font-bold">Dashboard</h1>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
-                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                            <SelectTrigger className="w-[150px] h-8 text-xs -translate-y-1">
-                                <SelectValue placeholder="Select month" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {months.map(month => (
-                                    <SelectItem key={month.value} value={month.value} className="text-xs">
-                                        {month.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">₹{totalRevenue.toFixed(2)}</div>
+                        <p className="text-xs text-muted-foreground">For {selectedMonthLabel}</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -121,7 +114,12 @@ export function DashboardClient({ products, allOrders, users }: DashboardClientP
                 </Card>
             </div>
             <div className="grid gap-4 grid-cols-1">
-                <ProductSalesChart data={productSalesData} />
+                <ProductSalesChart 
+                    data={productSalesData} 
+                    months={months}
+                    selectedMonth={selectedMonth}
+                    onMonthChange={setSelectedMonth}
+                />
             </div>
         </div>
     );

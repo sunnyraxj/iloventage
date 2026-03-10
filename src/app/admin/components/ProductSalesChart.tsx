@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SalesData {
     name: string;
@@ -10,14 +11,31 @@ interface SalesData {
 
 interface ProductSalesChartProps {
     data: SalesData[];
+    months: { value: string; label: string; }[];
+    selectedMonth: string;
+    onMonthChange: (value: string) => void;
 }
 
-export function ProductSalesChart({ data }: ProductSalesChartProps) {
+export function ProductSalesChart({ data, months, selectedMonth, onMonthChange }: ProductSalesChartProps) {
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Top Selling Products</CardTitle>
-                <CardDescription>Revenue from top 5 products for the selected month.</CardDescription>
+            <CardHeader className="flex flex-row items-start justify-between">
+                <div>
+                    <CardTitle>Top Selling Products</CardTitle>
+                    <CardDescription>Top 5 products by revenue.</CardDescription>
+                </div>
+                 <Select value={selectedMonth} onValueChange={onMonthChange}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {months.map(month => (
+                            <SelectItem key={month.value} value={month.value}>
+                                {month.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </CardHeader>
             <CardContent>
                 {data.length > 0 ? (
