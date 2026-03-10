@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { db } from '@/firebase/config';
-import { collection, query, where, getDocs, writeBatch, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 
 export async function POST(req: Request) {
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
             }
 
         } catch (error) {
-            console.error("Webhook handler error for 'order.paid':", error);
+            console.error("Webhook handler for 'order.paid':", error);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             return NextResponse.json({ error: 'Webhook handler failed', details: errorMessage }, { status: 500 });
         }

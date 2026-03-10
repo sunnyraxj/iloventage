@@ -66,13 +66,27 @@ export default function OrderDetailsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="mb-8 flex items-center gap-4">
-                        <h3 className="text-lg font-semibold">Order Status</h3>
-                        <OrderStatusChanger 
-                            orderId={order.id} 
-                            currentStatus={order.orderStatus}
-                            isEditable={user?.role === 'admin'}
-                        />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8 text-sm">
+                        <div className="space-y-1">
+                            <p className="text-muted-foreground">Order Status</p>
+                            <OrderStatusChanger 
+                                orderId={order.id} 
+                                currentStatus={order.orderStatus}
+                                isEditable={user?.role === 'admin'}
+                            />
+                        </div>
+                        {order.shippedAt && (
+                            <div className="space-y-1">
+                                <p className="text-muted-foreground">Shipped On</p>
+                                <p className="font-medium">{format(new Date(order.shippedAt), 'PP')}</p>
+                            </div>
+                        )}
+                        {order.deliveredAt && (
+                            <div className="space-y-1">
+                                <p className="text-muted-foreground">Delivered On</p>
+                                <p className="font-medium">{format(new Date(order.deliveredAt), 'PP')}</p>
+                            </div>
+                        )}
                     </div>
 
                     <h3 className="mb-4 text-lg font-semibold">Items Ordered</h3>

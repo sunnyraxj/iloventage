@@ -1,5 +1,6 @@
 
 
+
 // From collections collection
 export type Category = {
     id: string;
@@ -94,6 +95,8 @@ export type Order = {
     guestEmail?: string;
     createdAt: string; // ISO string
     confirmedAt?: string; // ISO string
+    shippedAt?: string; // ISO string
+    deliveredAt?: string; // ISO string
     shipping: number;
     total: number;
     address: OrderAddress;

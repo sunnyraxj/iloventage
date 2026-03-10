@@ -1,6 +1,6 @@
 'use server';
 
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { revalidatePath } from 'next/cache';
 
@@ -11,9 +11,18 @@ export async function updateOrderStatus(orderId: string, status: string) {
         }
 
         const orderRef = doc(db, 'orders', orderId);
-        await updateDoc(orderRef, {
+        
+        const updateData: { [key: string]: any } = {
             orderStatus: status,
-        });
+        };
+
+        if (status === 'shipped') {
+            updateData.shippedAt = serverTimestamp();
+        } else if (status === 'delivered') {
+            updateData.deliveredAt = serverTimestamp();
+        }
+
+        await updateDoc(orderRef, updateData);
 
         // Revalidate paths to ensure data is fresh
         revalidatePath('/admin/orders');
