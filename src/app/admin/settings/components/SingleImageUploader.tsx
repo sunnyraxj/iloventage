@@ -10,6 +10,7 @@ import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
+import imageCompression from 'browser-image-compression';
 
 interface SingleImageUploaderProps {
   fieldName: string;
@@ -29,6 +30,13 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
     if (!file) return;
 
     setIsUploading(true);
+
+    const options = {
+        maxSizeMB: 2,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        initialQuality: 0.7,
+    };
     
     try {
       // First, attempt to delete the old image if it exists and is a Firebase URL
@@ -45,12 +53,13 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
           }
       }
 
-      const fileName = file.name;
+      const compressedFile = await imageCompression(file, options);
+      const fileName = compressedFile.name;
 
       // Now, upload the new image
       const fileId = short.generate();
       const storageRef = ref(storage, `settings/${fileId}-${fileName}`);
-      const snapshot = await uploadBytes(storageRef, file);
+      const snapshot = await uploadBytes(storageRef, compressedFile);
       const downloadURL = await getDownloadURL(snapshot.ref);
       
       setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });

@@ -10,6 +10,7 @@ import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
+import imageCompression from 'browser-image-compression';
 
 interface CategoryImageUploaderProps {
   fieldName: string;
@@ -30,6 +31,13 @@ export function CategoryImageUploader({ fieldName, label }: CategoryImageUploade
 
     setIsUploading(true);
     
+    const options = {
+        maxSizeMB: 2,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        initialQuality: 0.7,
+    };
+
     try {
       const currentImageUrl = getValues(fieldName);
       if (currentImageUrl && (currentImageUrl.includes('firebasestorage.googleapis.com') || currentImageUrl.includes('storage.googleapis.com'))) {
@@ -43,10 +51,11 @@ export function CategoryImageUploader({ fieldName, label }: CategoryImageUploade
           }
       }
 
-      const fileName = file.name;
+      const compressedFile = await imageCompression(file, options);
+      const fileName = compressedFile.name;
       const fileId = short.generate();
       const storageRef = ref(storage, `categories/${fileId}-${fileName}`);
-      const snapshot = await uploadBytes(storageRef, file);
+      const snapshot = await uploadBytes(storageRef, compressedFile);
       const downloadURL = await getDownloadURL(snapshot.ref);
       
       setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });
