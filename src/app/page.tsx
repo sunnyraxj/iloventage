@@ -37,7 +37,7 @@ export default async function HomePage() {
           ) : (
             <Skeleton className="h-full w-full" />
           )}
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 p-4 text-center">
             <h1 className="mb-4 font-headline text-4xl font-bold md:text-6xl [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">
               {settings?.storeDetails?.name || 'Welcome to our store'}
             </h1>
@@ -51,12 +51,17 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="py-12 md:py-20">
+        <section className="py-12 md:py-16">
           <div className="container mx-auto px-4">
-            <h2 className="mb-8 text-center font-headline text-3xl font-bold">
-              Shop by Category
-            </h2>
-            <div className="grid auto-cols-[22vw] grid-flow-col gap-4 overflow-x-auto pb-4 sm:auto-cols-[18vw] md:auto-cols-auto md:grid-cols-3 md:grid-flow-row lg:grid-cols-4 xl:grid-cols-5 -mx-4 px-4">
+            <div className="mb-6 text-left">
+                <h2 className="font-headline text-2xl font-bold uppercase tracking-wider">
+                    Shop by Category
+                </h2>
+                <p className="-mt-1 text-xs uppercase tracking-widest text-muted-foreground">
+                    Curated Collections
+                </p>
+            </div>
+            <div className="grid auto-cols-[28vw] grid-flow-col gap-4 overflow-x-auto pb-4 sm:auto-cols-[20vw] md:auto-cols-auto md:grid-cols-3 md:grid-flow-row lg:grid-cols-4 xl:grid-cols-5 -mx-4 px-4">
               {categories.map((category) => (
                 <Link key={category.id} href={`/categories/${category.slug}`} className="group block">
                   <div className="overflow-hidden rounded-lg">
@@ -67,7 +72,7 @@ export default async function HomePage() {
                       loading="lazy"
                     />
                   </div>
-                  <h3 className="mt-2 text-sm font-semibold text-center text-foreground">{category.name}</h3>
+                  <h3 className="mt-2 text-sm font-semibold text-left text-foreground">{category.name}</h3>
                 </Link>
               ))}
             </div>
