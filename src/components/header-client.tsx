@@ -93,9 +93,9 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container grid h-16 grid-cols-3 items-center gap-4">
+      <div className="container flex h-16 items-center gap-4">
         {/* Left Section */}
-        <div className="flex items-center justify-start gap-4">
+        <div className="flex flex-1 items-center justify-start gap-4">
           {hasMounted && (
             <Sheet>
               <SheetTrigger asChild>
@@ -151,7 +151,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
         </div>
         
         {/* Right Section */}
-        <div className="flex items-center justify-end gap-2 md:gap-4">
+        <div className="flex flex-1 items-center justify-end gap-2 md:gap-4">
           <form className="hidden sm:block sm:flex-1 sm:max-w-xs" onSubmit={handleSearchSubmit}>
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
