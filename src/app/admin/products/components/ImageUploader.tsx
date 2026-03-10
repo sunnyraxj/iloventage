@@ -11,6 +11,7 @@ import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
+import imageCompression from 'browser-image-compression';
 
 interface ImageUploaderProps {
   variantIndex: number;
@@ -32,13 +33,21 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
 
     setIsUploading(true);
 
+    const compressionOptions = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        fileType: 'image/jpeg',
+    };
+
     for (const file of Array.from(files)) {
         try {
-            const fileName = file.name;
+            const compressedFile = await imageCompression(file, compressionOptions);
+            const fileName = compressedFile.name;
 
             const fileId = short.generate();
             const storageRef = ref(storage, `products/${fileId}-${fileName}`);
-            await uploadBytes(storageRef, file);
+            await uploadBytes(storageRef, compressedFile);
             const downloadURL = await getDownloadURL(storageRef);
             append({ value: downloadURL });
 
