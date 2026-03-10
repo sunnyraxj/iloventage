@@ -25,7 +25,7 @@ export default async function HomePage() {
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <section className="relative h-[60vh] w-full text-white">
+        <section className="relative h-[60vh] w-full overflow-hidden rounded-b-2xl text-white">
           {heroImageUrl ? (
             <img
               src={heroImageUrl}
