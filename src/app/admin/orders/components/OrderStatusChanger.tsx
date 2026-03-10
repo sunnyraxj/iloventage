@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
+import { Badge, badgeVariants } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Order } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface OrderStatusChangerProps {
   orderId: string;
@@ -75,34 +76,43 @@ export function OrderStatusChanger({ orderId, currentStatus, isEditable = true }
       }
     };
     
-  // Admin cannot change status for these states
   const canChangeStatus = isEditable && !['pending', 'cancelled', 'delivered'].includes(status);
+
+  if (!canChangeStatus) {
+      return (
+          <Badge variant={getStatusVariant(status)} className="capitalize w-24 justify-center">{status}</Badge>
+      );
+  }
 
 
   return (
     <>
-        <div className="flex items-center justify-center gap-1">
-            <Badge variant={getStatusVariant(status)} className="capitalize w-24 justify-center">{status}</Badge>
-            {canChangeStatus && (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" disabled={isLoading}>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        {status === 'confirmed' && (
-                            <DropdownMenuItem onSelect={() => openConfirmation('shipped')}>
-                                Mark as Shipped
-                            </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem onSelect={() => openConfirmation('delivered')}>
-                            Mark as Delivered
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )}
-        </div>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <button
+                    className={cn(
+                        badgeVariants({ variant: getStatusVariant(status) }),
+                        'capitalize w-24 justify-center flex items-center gap-1 cursor-pointer'
+                    )}
+                    disabled={isLoading}
+                >
+                    <span>{status}</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                {status === 'confirmed' && (
+                    <DropdownMenuItem onSelect={() => openConfirmation('shipped')}>
+                        Mark as Shipped
+                    </DropdownMenuItem>
+                )}
+                {status === 'shipped' && (
+                    <DropdownMenuItem onSelect={() => openConfirmation('delivered')}>
+                        Mark as Delivered
+                    </DropdownMenuItem>
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
         <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>

@@ -37,46 +37,42 @@ const OrderList = ({ orders }: { orders: Order[] }) => {
                 {orders.map(order => {
                     const firstItem = order.items && order.items.length > 0 ? order.items[0] : null;
                     return (
-                        <Card key={order.id} className="w-full">
-                            <CardContent className="grid gap-4 p-4">
-                                {firstItem ? (
-                                    <div className="flex items-start gap-4">
-                                        <OrderImagePreview item={firstItem} />
-                                        <div className="grid flex-1 gap-0.5">
-                                            <p className="font-medium line-clamp-2">{firstItem.name}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                Size: {firstItem.size} &middot; Qty: {firstItem.quantity}
-                                            </p>
-                                            {order.items.length > 1 && (
-                                                <p className="text-xs text-muted-foreground">
-                                                    + {order.items.length - 1} more item(s)
-                                                </p>
-                                            )}
+                        <Card key={order.id} className="w-full overflow-hidden">
+                             <CardHeader className="flex flex-row items-center justify-between bg-muted/50 p-3">
+                                <div className="grid gap-0.5">
+                                    <h3 className="font-semibold text-sm">Order #{order.orderNumber}</h3>
+                                    <p className="text-xs text-muted-foreground">{format(new Date(order.createdAt), 'PP')}</p>
+                                </div>
+                                <OrderStatusChanger orderId={order.id} currentStatus={order.orderStatus} />
+                            </CardHeader>
+                            <CardContent className="p-3 text-sm">
+                                <div className="flex items-start gap-3">
+                                    {firstItem && 
+                                        <div className="w-16 flex-shrink-0">
+                                            <OrderImagePreview item={firstItem} />
                                         </div>
+                                    }
+                                    <div className="flex-grow space-y-1">
+                                        {firstItem ? (
+                                            <>
+                                                <p className="font-medium line-clamp-2 leading-tight">{firstItem.name}</p>
+                                                {order.items.length > 1 && (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        + {order.items.length - 1} more item(s)
+                                                    </p>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <span className="text-muted-foreground">No items</span>
+                                        )}
                                     </div>
-                                ) : (
-                                    <span className="text-muted-foreground">No items</span>
-                                )}
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Date</span>
-                                        <span>{format(new Date(order.createdAt), 'PP')}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Total</span>
-                                        <span className="font-semibold">₹{order.total.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Payment</span>
-                                        <Badge variant={order.paymentStatus === 'paid' ? 'success' : 'destructive'} className="capitalize">{order.paymentStatus}</Badge>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Status</span>
-                                        <OrderStatusChanger orderId={order.id} currentStatus={order.orderStatus} />
+                                    <div className="text-right">
+                                        <p className="font-semibold">₹{order.total.toFixed(2)}</p>
+                                        <p className="text-xs text-muted-foreground">Total</p>
                                     </div>
                                 </div>
                             </CardContent>
-                            <CardFooter className="border-t p-4">
+                            <CardFooter className="bg-muted/50 p-2">
                                 <Button asChild variant="outline" size="sm" className="w-full">
                                     <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                                 </Button>
