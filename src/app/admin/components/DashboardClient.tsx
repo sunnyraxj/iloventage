@@ -50,21 +50,26 @@ export function DashboardClient({ products, allOrders, users }: DashboardClientP
     const totalCustomers = users.filter(u => u.role === 'customer').length;
     
     const productSalesData = useMemo(() => {
-        const sales: { [key: string]: { name: string, revenue: number } } = {};
+        const sales: { [key: string]: { name: string, revenue: number, quantity: number } } = {};
 
         filteredOrders.forEach(order => {
             order.items.forEach(item => {
                 const product = products.find(p => p.id === item.productId);
                 if (product) {
                     if (!sales[product.id]) {
-                        sales[product.id] = { name: product.name.length > 30 ? `${product.name.substring(0, 30)}...` : product.name, revenue: 0 };
+                        sales[product.id] = { 
+                            name: product.name.length > 30 ? `${product.name.substring(0, 30)}...` : product.name, 
+                            revenue: 0,
+                            quantity: 0
+                        };
                     }
                     sales[product.id].revenue += item.price * item.quantity;
+                    sales[product.id].quantity += item.quantity;
                 }
             });
         });
 
-        return Object.values(sales).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+        return Object.values(sales).sort((a, b) => b.revenue - a.revenue).slice(0, 10);
     }, [filteredOrders, products]);
     
     const selectedMonthLabel = useMemo(() => {

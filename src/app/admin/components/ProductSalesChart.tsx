@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface SalesData {
     name: string;
     revenue: number;
+    quantity: number;
 }
 
 interface ProductSalesChartProps {
@@ -22,7 +23,7 @@ export function ProductSalesChart({ data, months, selectedMonth, onMonthChange }
             <CardHeader className="flex flex-row items-start justify-between">
                 <div>
                     <CardTitle>Top Selling Products</CardTitle>
-                    <CardDescription>Top 5 products by revenue.</CardDescription>
+                    <CardDescription>Top 10 products by revenue.</CardDescription>
                 </div>
                  <Select value={selectedMonth} onValueChange={onMonthChange}>
                     <SelectTrigger className="w-[180px]">
@@ -58,7 +59,7 @@ export function ProductSalesChart({ data, months, selectedMonth, onMonthChange }
                                     if (active && payload && payload.length) {
                                         return (
                                             <div className="rounded-lg border bg-background p-2 shadow-sm">
-                                                <div className="grid grid-cols-2 gap-2">
+                                                <div className="grid grid-cols-1 gap-2">
                                                     <div className="flex flex-col">
                                                         <span className="text-[0.70rem] uppercase text-muted-foreground">
                                                             Product
@@ -67,13 +68,23 @@ export function ProductSalesChart({ data, months, selectedMonth, onMonthChange }
                                                             {payload[0].payload.name}
                                                         </span>
                                                     </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[0.70rem] uppercase text-muted-foreground">
-                                                            Revenue
-                                                        </span>
-                                                        <span className="font-bold">
-                                                        ₹{payload[0].value?.toLocaleString()}
-                                                        </span>
+                                                    <div className="flex justify-between gap-4">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[0.70rem] uppercase text-muted-foreground">
+                                                                Revenue
+                                                            </span>
+                                                            <span className="font-bold">
+                                                            ₹{payload[0].value?.toLocaleString()}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex flex-col text-right">
+                                                            <span className="text-[0.70rem] uppercase text-muted-foreground">
+                                                                Qty Sold
+                                                            </span>
+                                                            <span className="font-bold">
+                                                                {payload[0].payload.quantity}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
