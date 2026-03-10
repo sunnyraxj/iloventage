@@ -5,7 +5,6 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import Image from 'next/image';
 import { Upload, Trash2, Loader2, Download } from 'lucide-react';
 import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -122,11 +121,10 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
         {fields.map((field, index) => (
           <div key={field.id} className="relative aspect-square group">
-            <Image
+            <img
               src={(field as any).value}
               alt={`Product image ${index + 1}`}
-              fill
-              className="object-cover rounded-md border"
+              className="h-full w-full object-cover rounded-md border"
             />
             <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                 <Button

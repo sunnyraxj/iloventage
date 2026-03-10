@@ -5,7 +5,6 @@ import { useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import Image from 'next/image';
 import { Upload, Trash2, Loader2 } from 'lucide-react';
 import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -117,11 +116,10 @@ export function CategoryImageUploader({ fieldName, label }: CategoryImageUploade
         <div className="flex items-center gap-4">
             {imageUrl ? (
             <div className="relative aspect-square group w-48">
-                <Image
+                <img
                 src={imageUrl}
                 alt={`${label} preview`}
-                fill
-                className="object-cover rounded-md border"
+                className="h-full w-full object-cover rounded-md border"
                 />
                 <Button
                 type="button"

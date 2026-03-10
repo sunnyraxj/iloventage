@@ -5,9 +5,8 @@ import { useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import Image from 'next/image';
 import { Upload, Trash2, Loader2, Download } from 'lucide-react';
-import { storage } from '@/firebase/config';
+import { storage } => '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
@@ -130,11 +129,10 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
         <div className="flex items-center gap-4">
             {imageUrl ? (
             <div className="relative aspect-video group w-48">
-                <Image
+                <img
                 src={imageUrl}
                 alt={`${label} preview`}
-                fill
-                className="object-cover rounded-md border"
+                className="h-full w-full object-cover rounded-md border"
                 />
                 <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <Button
