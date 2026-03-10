@@ -80,7 +80,7 @@ export function OrderStatusChanger({ orderId, currentStatus, isEditable = true }
 
   if (!canChangeStatus) {
       return (
-          <Badge variant={getStatusVariant(status)} className="capitalize w-24 justify-center">{status}</Badge>
+          <Badge variant={getStatusVariant(status)} className="capitalize justify-center min-w-24">{status}</Badge>
       );
   }
 
@@ -92,7 +92,7 @@ export function OrderStatusChanger({ orderId, currentStatus, isEditable = true }
                 <button
                     className={cn(
                         badgeVariants({ variant: getStatusVariant(status) }),
-                        'capitalize w-24 justify-center flex items-center gap-1 cursor-pointer'
+                        'capitalize min-w-24 justify-center flex items-center gap-1 cursor-pointer'
                     )}
                     disabled={isLoading}
                 >
