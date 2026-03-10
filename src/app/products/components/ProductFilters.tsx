@@ -1,3 +1,4 @@
+
 'use client';
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -119,7 +120,7 @@ export function ProductFilters({
                                 onCheckedChange={(checked) => onSizeChange(size, checked as boolean)}
                                 checked={sizeFilters.includes(size)}
                             />
-                            <Label htmlFor={`size-filter-${size}`}>{size}</Label>
+                            <Label htmlFor={`size-filter-${size}`} className="uppercase">{size}</Label>
                         </div>
                     ))}
                 </div>

@@ -44,14 +44,33 @@ export default function ProductsPage() {
       product.variants?.forEach(variant => {
         colors.add(variant.color);
         variant.sizes.forEach(size => {
-          sizes.add(size.size);
+          if (size.size) {
+            sizes.add(size.size.toLowerCase());
+          }
         });
       });
     });
     
+    const sizeOrder = ['xxs', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'];
+    const sortedSizes = Array.from(sizes).sort((a, b) => {
+        const aIndex = sizeOrder.indexOf(a);
+        const bIndex = sizeOrder.indexOf(b);
+        if (aIndex !== -1 && bIndex !== -1) {
+            return aIndex - bIndex;
+        }
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        const aNum = parseInt(a, 10);
+        const bNum = parseInt(b, 10);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+            return aNum - bNum;
+        }
+        return a.localeCompare(b);
+    });
+
     return {
       uniqueColors: Array.from(colors).sort(),
-      uniqueSizes: Array.from(sizes).sort(),
+      uniqueSizes: sortedSizes,
       maxPrice: Math.ceil(max)
     };
   }, [products]);
@@ -106,7 +125,7 @@ export default function ProductsPage() {
     // Size filter
     if (sizeFilters.length > 0) {
         tempProducts = tempProducts.filter(p => 
-            p.variants?.some(v => v.sizes.some(s => sizeFilters.includes(s.size)))
+            p.variants?.some(v => v.sizes.some(s => s.size && sizeFilters.includes(s.size.toLowerCase())))
         );
     }
     
