@@ -41,7 +41,7 @@ export default function ProductsPage() {
 
     products.forEach(product => {
       if (product.price > max) max = product.price;
-      product.variants.forEach(variant => {
+      product.variants?.forEach(variant => {
         colors.add(variant.color);
         variant.sizes.forEach(size => {
           sizes.add(size.size);
@@ -99,14 +99,14 @@ export default function ProductsPage() {
     // Color filter
     if (colorFilters.length > 0) {
         tempProducts = tempProducts.filter(p => 
-            p.variants.some(v => colorFilters.includes(v.color))
+            p.variants?.some(v => colorFilters.includes(v.color))
         );
     }
 
     // Size filter
     if (sizeFilters.length > 0) {
         tempProducts = tempProducts.filter(p => 
-            p.variants.some(v => v.sizes.some(s => sizeFilters.includes(s.size)))
+            p.variants?.some(v => v.sizes.some(s => sizeFilters.includes(s.size)))
         );
     }
     

@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -55,7 +54,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
     });
   };
 
-  const hasStock = product.variants.some(v => v.sizes.some(s => s.stock > 0));
+  const hasStock = product.variants?.some(v => v.sizes.some(s => s.stock > 0)) ?? false;
 
   return (
     <div className="group relative">
@@ -131,7 +130,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             )}
           </div>
           {!hasStock && (
-            <p className="text-xs font-semibold text-red-500">SOLD OUT</p>
+            <p className="text-xs font-semibold text-destructive">SOLD OUT</p>
           )}
         </div>
       </Link>
