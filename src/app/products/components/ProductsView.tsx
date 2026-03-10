@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -15,7 +16,7 @@ import { db } from '@/firebase/config';
 
 interface ProductsViewProps {
     categories: Category[];
-    initialProducts: Product[];
+    initialProducts?: Product[];
     searchParams?: { [key: string]: string | string[] | undefined };
 }
 
@@ -45,7 +46,7 @@ const FilterSkeleton = () => (
 );
 
 
-export function ProductsView({ categories, initialProducts, searchParams: serverSearchParams }: ProductsViewProps) {
+export function ProductsView({ categories, initialProducts = [], searchParams: serverSearchParams }: ProductsViewProps) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(initialProducts.length === 0);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
@@ -194,7 +195,7 @@ export function ProductsView({ categories, initialProducts, searchParams: server
   }
 
   const filterControls = (
-      <div className="h-full overflow-y-auto pr-4 -mr-4">
+      <div className="overflow-y-auto pr-4 -mr-4 h-full">
         <ProductFilters
             categories={categories}
             genderFilter={genderFilter}
