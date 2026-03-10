@@ -1,3 +1,4 @@
+
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
@@ -12,6 +13,14 @@ import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel"
 
 export default function ProductPage() {
   const params = useParams();
@@ -23,7 +32,30 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
   const { toast } = useToast();
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  
+  const [api, setApi] = useState<CarouselApi>()
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    if (!api) {
+      return
+    }
+
+    const onSelect = () => {
+      if(api) {
+        setCurrentSlide(api.selectedScrollSnap())
+      }
+    }
+
+    api.on("select", onSelect)
+    onSelect();
+
+    return () => {
+      if (api) {
+        api.off("select", onSelect);
+      }
+    };
+  }, [api])
 
   useEffect(() => {
     if (!slug) return;
@@ -39,8 +71,6 @@ export default function ProductPage() {
         const firstVariant = fetchedProduct.variants[0];
         setSelectedVariant(firstVariant);
         
-        setSelectedImageUrl(firstVariant.imageUrls?.[0] || null);
-
         const firstAvailableSize = firstVariant.sizes.find(s => s.stock > 0);
         setSelectedSize(firstAvailableSize || null);
       }
@@ -51,7 +81,7 @@ export default function ProductPage() {
 
   const handleSelectVariant = (variant: ProductVariant) => {
     setSelectedVariant(variant);
-    setSelectedImageUrl(variant.imageUrls?.[0] || null);
+    api?.scrollTo(0, true);
     const firstAvailableSize = variant.sizes.find(s => s.stock > 0);
     setSelectedSize(firstAvailableSize || null);
   }
@@ -144,27 +174,37 @@ export default function ProductPage() {
           <div className="grid grid-cols-1 gap-8 rounded-lg bg-background p-4 shadow-sm md:grid-cols-5 md:gap-12 md:p-8">
             {/* Image Gallery */}
             <div className="grid grid-cols-1 gap-4 md:col-span-3">
-                <div className="aspect-square w-full overflow-hidden rounded-lg">
-                    <img
-                        src={selectedImageUrl || `https://picsum.photos/seed/${product.id}/800/800`}
-                        alt={`${product.name} - ${selectedVariant?.color}`}
-                        width={800}
-                        height={800}
-                        className="h-full w-full object-cover"
-                        loading="eager"
-                    />
-                </div>
-                <div className="grid grid-cols-4 gap-4">
+                <Carousel setApi={setApi} className="w-full">
+                    <CarouselContent>
+                        {selectedVariant?.imageUrls.map((url, index) => (
+                            <CarouselItem key={index}>
+                                <div className="aspect-square w-full overflow-hidden rounded-lg bg-secondary">
+                                    <img
+                                        src={url || `https://picsum.photos/seed/${product.id}/800/800`}
+                                        alt={`${product.name} - ${selectedVariant?.color} image ${index + 1}`}
+                                        width={800}
+                                        height={800}
+                                        className="h-full w-full object-cover"
+                                        loading={index === 0 ? "eager" : "lazy"}
+                                    />
+                                </div>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-3 top-1/2 -translate-y-1/2" />
+                    <CarouselNext className="absolute right-3 top-1/2 -translate-y-1/2" />
+                </Carousel>
+                <div className="grid grid-cols-5 gap-2">
                     {selectedVariant?.imageUrls.map((url, i) => {
                         if (!url) return null;
 
                         return (
                             <div 
                                 key={i} 
-                                onClick={() => setSelectedImageUrl(url)}
+                                onClick={() => api?.scrollTo(i)}
                                 className={cn(
                                     "aspect-square w-full overflow-hidden rounded-md border-2 cursor-pointer",
-                                    selectedImageUrl === url ? 'border-primary' : 'border-transparent hover:border-primary'
+                                    currentSlide === i ? 'border-primary' : 'border-transparent hover:border-primary'
                                 )}
                             >
                                 <img
@@ -182,14 +222,14 @@ export default function ProductPage() {
             </div>
 
             {/* Product Details */}
-            <div className="flex flex-col space-y-4 md:col-span-2 md:space-y-6">
+            <div className="flex flex-col space-y-3 md:col-span-2 md:space-y-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{product.brand}</p>
-                <h1 className="font-headline text-2xl font-bold md:text-3xl">{product.name}</h1>
+                <h1 className="font-headline text-xl font-bold md:text-2xl">{product.name}</h1>
                 <div className="flex items-baseline gap-2">
-                    <p className="text-xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
+                    <p className="text-lg font-semibold text-primary">₹{product.price.toFixed(2)}</p>
                     {product.mrp && product.mrp > product.price && (
                       <>
-                        <p className="text-base text-muted-foreground line-through">₹{product.mrp.toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground line-through">₹{product.mrp.toFixed(2)}</p>
                         <p className="text-xs font-bold text-green-600">({Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF)</p>
                       </>
                     )}
