@@ -16,7 +16,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getAllProducts } from '@/lib/data';
-import Image from 'next/image';
 import Link from 'next/link';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import {
@@ -75,12 +74,13 @@ export default async function AdminProductsPage() {
                     return (
                     <TableRow key={product.id}>
                         <TableCell className="hidden sm:table-cell">
-                            <Image
+                            <img
                                 alt={product.name}
                                 className="aspect-square rounded-md object-cover"
                                 height="64"
                                 src={imageUrl}
                                 width="64"
+                                loading="lazy"
                             />
                         </TableCell>
                         <TableCell className="font-medium">{product.name}</TableCell>

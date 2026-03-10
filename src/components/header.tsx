@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import {
   Menu,
@@ -92,7 +91,7 @@ export function Header() {
           )}
           <Link href="/" className="flex items-center space-x-2">
             {logoUrl ? (
-                <Image src={logoUrl} alt={storeName} width={120} height={32} className="h-8 w-auto" />
+                <img src={logoUrl} alt={storeName} width={120} height={32} className="h-8 w-auto" />
             ) : (
                 <div className="h-8 w-8 bg-muted rounded-full" />
             )}
@@ -140,7 +139,7 @@ export function Header() {
                         className="rounded-full"
                         aria-label="User Menu"
                       >
-                         {user.photoURL ? <Image src={user.photoURL} alt={user.name} width={32} height={32} className="rounded-full" /> : <UserCircle className="h-5 w-5" /> }
+                         {user.photoURL ? <img src={user.photoURL} alt={user.name} width={32} height={32} className="rounded-full" /> : <UserCircle className="h-5 w-5" /> }
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">

@@ -1,5 +1,4 @@
 
-import Image from 'next/image';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
@@ -28,12 +27,11 @@ export default async function HomePage() {
       <main className="flex-1">
         <section className="relative h-[60vh] w-full text-white">
           {heroImageUrl ? (
-            <Image
+            <img
               src={heroImageUrl}
               alt={settings?.storeDetails?.name || 'Hero Image'}
-              fill
-              className="object-cover"
-              priority
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="eager"
               data-ai-hint="hero image"
             />
           ) : (
@@ -62,11 +60,11 @@ export default async function HomePage() {
               {categories.map((category) => (
                 <Link key={category.id} href={`/categories/${category.slug}`} className="group relative block overflow-hidden rounded-lg flex-shrink-0 w-[28vw] md:w-auto">
                   <div className="aspect-square w-full">
-                    <Image
+                    <img
                       src={category.imageUrl || `https://picsum.photos/seed/${category.id}/400/400`}
                       alt={category.name}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
                     />
                   </div>
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-colors group-hover:bg-black/50">

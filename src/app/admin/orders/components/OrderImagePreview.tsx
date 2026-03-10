@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import {
   Dialog,
   DialogContent,
@@ -19,12 +18,13 @@ export function OrderImagePreview({ item }: OrderImagePreviewProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Image
+        <img
             alt={item.name}
             className="aspect-square rounded-md object-cover cursor-pointer"
             height="64"
             src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
             width="64"
+            loading="lazy"
         />
       </DialogTrigger>
       <DialogContent className="max-w-xl p-1">
@@ -33,11 +33,11 @@ export function OrderImagePreview({ item }: OrderImagePreviewProps) {
           <DialogDescription>A larger view of the product image for {item.name}.</DialogDescription>
         </DialogHeader>
         <div className="relative aspect-square w-full">
-            <Image
+            <img
                 alt={item.name}
                 src={item.imageUrl || `https://picsum.photos/seed/${item.id}/500/500`}
-                fill
-                className="object-contain"
+                className="absolute inset-0 h-full w-full object-contain"
+                loading="lazy"
             />
         </div>
       </DialogContent>

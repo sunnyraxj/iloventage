@@ -1,7 +1,6 @@
 
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingBag, Plus } from 'lucide-react';
 
@@ -64,21 +63,22 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
         <div className="relative overflow-hidden rounded-md">
           {imageUrl ? (
             <>
-              <Image
+              <img
                 src={imageUrl}
                 alt={product.name}
                 width={600}
                 height={800}
                 className="aspect-[3/4] w-full object-cover transition-opacity duration-300"
-                priority={priority}
+                loading={priority ? 'eager' : 'lazy'}
               />
               {hoverImageUrl && (
-                <Image
+                <img
                   src={hoverImageUrl}
                   alt={`${product.name} - hover view`}
                   width={600}
                   height={800}
                   className="hidden md:block absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  loading="lazy"
                 />
               )}
             </>

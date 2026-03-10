@@ -1,6 +1,5 @@
 'use client';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Twitter, Facebook, Instagram } from 'lucide-react';
 import { getCategories, getStoreSettings } from '@/lib/data';
 import type { Category, StoreSettings } from '@/lib/types';
@@ -37,7 +36,7 @@ export function Footer() {
           <div className="flex flex-col items-start">
             <Link href="/" className="mb-4 flex items-center space-x-2">
                 {logoUrl ? (
-                    <Image src={logoUrl} alt={storeName} width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
+                    <img src={logoUrl} alt={storeName} width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
                 ) : (
                    <div className="h-8 w-8 bg-muted rounded-full" />
                 )}

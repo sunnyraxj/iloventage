@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import Image from 'next/image';
 import { format } from 'date-fns';
 import type { Order } from '@/lib/types';
 import { OrderStatusChanger } from '@/app/admin/orders/components/OrderStatusChanger';
@@ -81,11 +80,11 @@ export default function OrderDetailsPage() {
                         {order.items.map((item) => (
                                 <li key={item.id} className="flex items-center py-4">
                                 <div className="relative h-20 w-20 overflow-hidden rounded-md">
-                                    <Image
+                                    <img
                                     src={item.imageUrl}
                                     alt={item.name}
-                                    fill
-                                    className="object-cover"
+                                    className="absolute inset-0 h-full w-full object-cover"
+                                    loading="lazy"
                                     />
                                 </div>
                                 <div className="ml-4 flex-grow">

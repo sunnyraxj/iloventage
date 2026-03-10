@@ -1,7 +1,6 @@
 
 'use client';
 
-import Image from 'next/image';
 import { notFound, useParams } from 'next/navigation';
 import { getProductBySlug } from '@/lib/data';
 import { Header } from '@/components/header';
@@ -147,13 +146,13 @@ export default function ProductPage() {
             {/* Image Gallery */}
             <div className="grid grid-cols-1 gap-4">
                 <div className="aspect-square w-full overflow-hidden rounded-lg">
-                    <Image
+                    <img
                         src={selectedImageUrl || `https://picsum.photos/seed/${product.id}/800/800`}
                         alt={`${product.name} - ${selectedVariant?.color}`}
                         width={800}
                         height={800}
                         className="h-full w-full object-cover"
-                        priority
+                        loading="eager"
                     />
                 </div>
                 <div className="grid grid-cols-4 gap-4">
@@ -169,12 +168,13 @@ export default function ProductPage() {
                                     selectedImageUrl === url ? 'border-primary' : 'border-transparent hover:border-primary'
                                 )}
                             >
-                                <Image
+                                <img
                                     src={url}
                                     alt={`${product.name} - ${selectedVariant?.color} thumbnail ${i+1}`}
                                     width={200}
                                     height={200}
                                     className="h-full w-full object-cover"
+                                    loading="lazy"
                                 />
                             </div>
                         )

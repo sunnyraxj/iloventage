@@ -9,7 +9,6 @@ import { Footer } from '@/components/footer';
 import { ProductCard } from '@/components/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 
 export default function CategoryPage({ params }: { params: { slug: string } }) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -41,12 +40,11 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
         ) : category ? (
           <section className="relative h-48 w-full bg-secondary">
             {category.imageUrl && (
-              <Image 
+              <img 
                 src={category.imageUrl}
                 alt={category.name}
-                fill
-                className="object-cover"
-                priority
+                className="absolute inset-0 h-full w-full object-cover"
+                loading="eager"
               />
             )}
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 p-4 text-center text-white">

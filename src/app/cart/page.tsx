@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
@@ -50,11 +49,11 @@ export default function CartPage() {
                     <Card key={item.id} className="overflow-hidden">
                       <CardContent className="p-4 flex gap-4">
                         <div className="relative h-24 w-24 md:h-32 md:w-32 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
-                          <Image
+                          <img
                             src={item.imageUrl}
                             alt={item.name}
-                            fill
-                            className="object-cover"
+                            className="absolute inset-0 h-full w-full object-cover"
+                            loading="lazy"
                           />
                         </div>
 
