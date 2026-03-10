@@ -42,8 +42,7 @@ export default async function HomePage() {
               {settings?.storeDetails?.name || 'Welcome to our store'}
             </h1>
             <p className="mb-8 max-w-2xl text-lg md:text-xl [text-shadow:1px_1px_2px_rgba(0,0,0,0.5)]">
-              Discover curated collections that blend timeless elegance with
-              modern trends.
+              Where timeless style meets modern edge.
             </p>
             <Button asChild size="lg">
               <Link href="/products">Shop Now</Link>
