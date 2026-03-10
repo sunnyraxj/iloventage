@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -11,7 +10,7 @@ import { Footer } from '@/components/footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, Package, ShoppingBag, Users, Settings } from 'lucide-react';
-import { hasConfirmedOrders as checkHasConfirmedOrders } from '@/lib/data';
+import { getConfirmedOrdersCount } from '@/lib/data';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -29,7 +28,7 @@ export default function AdminLayout({
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [hasConfirmedOrders, setHasConfirmedOrders] = useState(false);
+  const [confirmedOrdersCount, setConfirmedOrdersCount] = useState(0);
 
   useEffect(() => {
     if (!loading) {
@@ -42,17 +41,17 @@ export default function AdminLayout({
   }, [user, loading, router]);
 
   useEffect(() => {
-    const checkOrders = async () => {
+    const fetchOrderCount = async () => {
       if (user?.role === 'admin') {
-        const hasConfirmed = await checkHasConfirmedOrders();
-        setHasConfirmedOrders(hasConfirmed);
+        const count = await getConfirmedOrdersCount();
+        setConfirmedOrdersCount(count);
       }
     };
     
     if (user) {
-      checkOrders();
-      // Optional: Poll for new orders periodically
-      const interval = setInterval(checkOrders, 60000); // every minute
+        fetchOrderCount();
+      // Poll for new orders periodically
+      const interval = setInterval(fetchOrderCount, 60000); // every minute
       return () => clearInterval(interval);
     }
   }, [user]);
@@ -88,8 +87,10 @@ export default function AdminLayout({
                           <Link href={item.href}>
                             <item.icon className="mr-2 h-4 w-4" />
                             {item.label}
-                            {isOrdersLink && hasConfirmedOrders && (
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-red-500" />
+                            {isOrdersLink && confirmedOrdersCount > 0 && (
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
+                                    {confirmedOrdersCount}
+                                </span>
                             )}
                           </Link>
                         </Button>

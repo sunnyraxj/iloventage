@@ -181,10 +181,10 @@ export const getOrderById = async (id: string): Promise<Order | null> => {
     return docToType<Order>(orderSnap);
 };
 
-export const hasConfirmedOrders = async (): Promise<boolean> => {
-    const q = query(collection(db, 'orders'), where('orderStatus', '==', 'confirmed'), limit(1));
+export const getConfirmedOrdersCount = async (): Promise<number> => {
+    const q = query(collection(db, 'orders'), where('orderStatus', '==', 'confirmed'));
     const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty;
+    return querySnapshot.size;
 };
 
 interface OrderPayload {
