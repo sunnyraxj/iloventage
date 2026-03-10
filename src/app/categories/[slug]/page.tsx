@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -44,7 +45,6 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                 src={category.imageUrl}
                 alt={category.name}
                 fill
-                sizes="100vw"
                 className="object-cover"
                 priority
               />
@@ -76,7 +76,6 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                                 <ProductCard 
                                   key={product.id} 
                                   product={product} 
-                                  sizes="(max-width: 1023px) 50vw, 25vw"
                                   priority={index < 4}
                                 />
                             ))

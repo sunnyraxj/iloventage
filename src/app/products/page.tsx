@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -124,7 +125,6 @@ export default function ProductsPage() {
                                     <ProductCard 
                                       key={product.id} 
                                       product={product} 
-                                      sizes="(max-width: 1023px) 50vw, 33vw"
                                       priority={index < 3}
                                     />
                                 ))

@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -33,7 +34,6 @@ export default async function HomePage() {
               fill
               className="object-cover"
               priority
-              sizes="100vw"
               data-ai-hint="hero image"
             />
           ) : (
@@ -67,7 +67,6 @@ export default async function HomePage() {
                       alt={category.name}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      sizes="(max-width: 767px) 28vw, 25vw"
                     />
                   </div>
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-colors group-hover:bg-black/50">
@@ -94,7 +93,6 @@ export default async function HomePage() {
                 <ProductCard 
                   key={product.id} 
                   product={product} 
-                  sizes="(max-width: 1023px) 50vw, 25vw"
                   priority={index < 4}
                 />
               ))}

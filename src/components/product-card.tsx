@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -11,7 +12,6 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ProductCardProps {
   product: Product;
-  sizes?: string;
   priority?: boolean;
 }
 
@@ -21,7 +21,7 @@ const getSafeUrl = (url: any, productId: string): string => {
   return `https://picsum.photos/seed/${productId}/600/800`;
 }
 
-export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", priority = false }: ProductCardProps) {
+export function ProductCard({ product, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
 
@@ -77,7 +77,6 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
                 width={600}
                 height={800}
                 className="aspect-[3/4] w-full object-cover transition-opacity duration-300"
-                sizes={sizes}
                 priority={priority}
               />
               {hoverImageUrl && (
@@ -87,7 +86,6 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
                   width={600}
                   height={800}
                   className="hidden md:block absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  sizes={sizes}
                 />
               )}
             </>

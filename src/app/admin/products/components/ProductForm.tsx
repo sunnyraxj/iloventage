@@ -77,7 +77,7 @@ export function ProductForm({ product, categories, categoryName }: ProductFormPr
         additionalDetails: product.additionalDetails?.map(d => ({ value: d })),
         variants: product.variants.map(v => ({
             ...v,
-            imageUrls: v.imageUrls.map(url => ({ value: url }))
+            imageUrls: v.imageUrls.map(url => ({ value: typeof url === 'string' ? url : (url as any)?.value || '' })).filter(img => img.value)
         })),
     } : {
         name: "",

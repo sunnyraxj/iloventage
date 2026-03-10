@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -159,7 +160,6 @@ export default function ProductPage() {
                         height={800}
                         className="h-full w-full object-cover"
                         priority
-                        sizes="(max-width: 767px) 100vw, 50vw"
                     />
                 </div>
                 <div className="grid grid-cols-4 gap-4">
