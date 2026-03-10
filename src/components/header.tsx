@@ -62,8 +62,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="container grid h-16 grid-cols-3 items-center gap-4">
+        {/* Left Section */}
+        <div className="flex items-center justify-start gap-4">
           {hasMounted && (
             <Sheet>
               <SheetTrigger asChild>
@@ -73,7 +74,7 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="pr-0 sm:max-w-xs">
-                <SheetTitle className='p-4'>Menu</SheetTitle>
+                <SheetTitle className='p-4'>{storeName}</SheetTitle>
                 <nav className="flex flex-col space-y-2 p-4">
                   <Link href="/products" className="px-4 py-2 text-sm font-medium hover:bg-accent rounded-md">All Products</Link>
                   {navLinks.map((link) => (
@@ -89,24 +90,29 @@ export function Header() {
               </SheetContent>
             </Sheet>
           )}
-          <Link href="/" className="flex items-center space-x-2">
-            {logoUrl ? (
-                <img src={logoUrl} alt={storeName} width={120} height={32} className="h-8 w-auto" />
-            ) : (
-                <div className="h-8 w-8 bg-muted rounded-full" />
-            )}
-          </Link>
-        </div>
-
-        <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
+          <nav className="hidden items-center gap-4 text-sm font-medium md:flex">
             <Link href="/products" className="text-muted-foreground transition-colors hover:text-foreground">All Products</Link>
-            {navLinks.slice(0, 4).map(link => (
+            {navLinks.slice(0, 3).map(link => (
                  <Link key={link.href} href={link.href} className="text-muted-foreground transition-colors hover:text-foreground">{link.label}</Link>
             ))}
         </nav>
+        </div>
 
-        <div className="flex flex-1 items-center justify-end gap-4">
-          <form className="hidden sm:flex flex-1 max-w-md">
+        {/* Center Section (Logo) */}
+        <div className="flex justify-center">
+          <Link href="/" className="flex items-center space-x-2">
+            {logoUrl ? (
+                <img src={logoUrl} alt={storeName} width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
+            ) : (
+                <div className="h-10 w-10 bg-muted rounded-full" />
+            )}
+            <span className="font-bold hidden lg:inline-block">{storeName}</span>
+          </Link>
+        </div>
+        
+        {/* Right Section */}
+        <div className="flex items-center justify-end gap-2 md:gap-4">
+          <form className="hidden sm:block sm:flex-1 sm:max-w-xs">
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -116,7 +122,7 @@ export function Header() {
                 />
               </div>
             </form>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 md:space-x-2">
             <Link href="/cart">
               <Button variant="ghost" size="icon" aria-label="Shopping Cart" className="relative">
                 <ShoppingCart className="h-5 w-5" />
