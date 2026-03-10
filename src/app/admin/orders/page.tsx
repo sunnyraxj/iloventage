@@ -169,8 +169,7 @@ export default async function AdminOrdersPage() {
     const confirmedOrders = allOrders.filter(o => o.orderStatus === 'confirmed');
     const shippedOrders = allOrders.filter(o => o.orderStatus === 'shipped');
     const deliveredOrders = allOrders.filter(o => o.orderStatus === 'delivered');
-    const pendingOrders = allOrders.filter(o => o.orderStatus === 'pending');
-    const cancelledOrders = allOrders.filter(o => o.orderStatus === 'cancelled');
+    const otherOrders = allOrders.filter(o => o.orderStatus === 'pending' || o.orderStatus === 'cancelled');
 
   return (
     <Card>
@@ -186,8 +185,7 @@ export default async function AdminOrdersPage() {
                     <TabsTrigger value="confirmed">Confirmed ({confirmedOrders.length})</TabsTrigger>
                     <TabsTrigger value="shipped">Shipped ({shippedOrders.length})</TabsTrigger>
                     <TabsTrigger value="delivered">Delivered ({deliveredOrders.length})</TabsTrigger>
-                    <TabsTrigger value="pending">Pending ({pendingOrders.length})</TabsTrigger>
-                    <TabsTrigger value="cancelled">Cancelled ({cancelledOrders.length})</TabsTrigger>
+                    <TabsTrigger value="other">Other ({otherOrders.length})</TabsTrigger>
                 </TabsList>
             </div>
             <TabsContent value="all">
@@ -202,11 +200,8 @@ export default async function AdminOrdersPage() {
             <TabsContent value="delivered">
                 <OrderList orders={deliveredOrders} />
             </TabsContent>
-            <TabsContent value="pending">
-                <OrderList orders={pendingOrders} />
-            </TabsContent>
-            <TabsContent value="cancelled">
-                <OrderList orders={cancelledOrders} />
+            <TabsContent value="other">
+                <OrderList orders={otherOrders} />
             </TabsContent>
         </Tabs>
       </CardContent>
