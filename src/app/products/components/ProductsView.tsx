@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -17,10 +16,31 @@ interface ProductsViewProps {
     categories: Category[];
 }
 
+// Skeleton component for filters to avoid layout shift
+const FilterSkeleton = () => (
+    <div className="space-y-6">
+        {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i}>
+                <Skeleton className="h-5 w-20 mb-4" />
+                <div className="space-y-2">
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-4/5" />
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
+
 export function ProductsView({ initialProducts, categories }: ProductsViewProps) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
   const [visibleCount, setVisibleCount] = useState(20);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -148,6 +168,28 @@ export function ProductsView({ initialProducts, categories }: ProductsViewProps)
     setPriceRange([0, maxPrice]);
   }
 
+  const filterControls = (
+      <>
+        <ProductFilters
+            categories={categories}
+            genderFilter={genderFilter}
+            onGenderChange={setGenderFilter}
+            categoryFilters={categoryFilters}
+            onCategoryChange={handleCategoryChange}
+            colors={uniqueColors}
+            sizes={uniqueSizes}
+            priceRange={priceRange}
+            maxPrice={maxPrice}
+            colorFilters={colorFilters}
+            sizeFilters={sizeFilters}
+            onPriceChange={setPriceRange}
+            onColorChange={handleColorChange}
+            onSizeChange={handleSizeChange}
+        />
+        <Button variant="ghost" onClick={clearFilters} className="w-full justify-start mt-4">Clear All Filters</Button>
+      </>
+  );
+
   return (
     <main className="flex-1 bg-secondary py-8 md:py-12">
       <div className="container mx-auto px-4">
@@ -156,74 +198,53 @@ export function ProductsView({ initialProducts, categories }: ProductsViewProps)
               {/* Desktop Filters */}
               <aside className="hidden md:block md:col-span-1">
                   <div className="sticky top-24 rounded-lg bg-background p-6 shadow-sm">
-                      <Collapsible defaultOpen={true}>
-                            <div className="flex items-center justify-between">
-                              <h2 className="text-lg font-semibold">Filters</h2>
-                              <CollapsibleTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="w-9 p-0">
-                                      <ChevronsUpDown className="h-4 w-4" />
-                                      <span className="sr-only">Toggle filters</span>
-                                  </Button>
-                              </CollapsibleTrigger>
-                          </div>
-                          <CollapsibleContent className="mt-4 data-[state=closed]:mt-0">
-                              <ProductFilters
-                                  categories={categories}
-                                  genderFilter={genderFilter}
-                                  onGenderChange={setGenderFilter}
-                                  categoryFilters={categoryFilters}
-                                  onCategoryChange={handleCategoryChange}
-                                  colors={uniqueColors}
-                                  sizes={uniqueSizes}
-                                  priceRange={priceRange}
-                                  maxPrice={maxPrice}
-                                  colorFilters={colorFilters}
-                                  sizeFilters={sizeFilters}
-                                  onPriceChange={setPriceRange}
-                                  onColorChange={handleColorChange}
-                                  onSizeChange={handleSizeChange}
-                              />
-                              <Button variant="ghost" onClick={clearFilters} className="w-full justify-start mt-4">Clear All Filters</Button>
-                          </CollapsibleContent>
-                      </Collapsible>
+                      {isClient ? (
+                        <Collapsible defaultOpen={true}>
+                              <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold">Filters</h2>
+                                <CollapsibleTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="w-9 p-0">
+                                        <ChevronsUpDown className="h-4 w-4" />
+                                        <span className="sr-only">Toggle filters</span>
+                                    </Button>
+                                </CollapsibleTrigger>
+                            </div>
+                            <CollapsibleContent className="mt-4 data-[state=closed]:mt-0">
+                                {filterControls}
+                            </CollapsibleContent>
+                        </Collapsible>
+                      ) : (
+                          <FilterSkeleton />
+                      )}
                   </div>
               </aside>
 
               <div className="md:col-span-3">
                   <div className="flex items-center gap-4 mb-4">
                       <div className="md:hidden">
-                          <Sheet>
-                              <SheetTrigger asChild>
-                                  <Button variant="outline">
-                                      <Filter className="mr-2 h-4 w-4" />
-                                      Filters
-                                  </Button>
-                              </SheetTrigger>
-                              <SheetContent side="left" className="w-[300px] overflow-y-auto">
-                                  <SheetHeader>
-                                      <SheetTitle>Filters</SheetTitle>
-                                  </SheetHeader>
-                                  <div className="p-4">
-                                      <ProductFilters
-                                          categories={categories}
-                                          genderFilter={genderFilter}
-                                          onGenderChange={setGenderFilter}
-                                          categoryFilters={categoryFilters}
-                                          onCategoryChange={handleCategoryChange}
-                                          colors={uniqueColors}
-                                          sizes={uniqueSizes}
-                                          priceRange={priceRange}
-                                          maxPrice={maxPrice}
-                                          colorFilters={colorFilters}
-                                          sizeFilters={sizeFilters}
-                                          onPriceChange={setPriceRange}
-                                          onColorChange={handleColorChange}
-                                          onSizeChange={handleSizeChange}
-                                      />
-                                        <Button variant="ghost" onClick={clearFilters} className="w-full justify-start mt-4">Clear All Filters</Button>
-                                  </div>
-                              </SheetContent>
-                          </Sheet>
+                          {isClient ? (
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="outline">
+                                        <Filter className="mr-2 h-4 w-4" />
+                                        Filters
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="left" className="w-[300px] overflow-y-auto">
+                                    <SheetHeader>
+                                        <SheetTitle>Filters</SheetTitle>
+                                    </SheetHeader>
+                                    <div className="p-4">
+                                        {filterControls}
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
+                          ) : (
+                            <Button variant="outline" disabled>
+                                <Filter className="mr-2 h-4 w-4" />
+                                Filters
+                            </Button>
+                          )}
                       </div>
                       <div className="relative w-full">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
