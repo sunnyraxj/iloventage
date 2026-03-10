@@ -44,7 +44,7 @@ export default async function HomePage() {
             <p className="mb-8 max-w-2xl text-lg md:text-xl [text-shadow:1px_1px_2px_rgba(0,0,0,0.5)]">
               Where timeless style meets modern edge.
             </p>
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="rounded-full">
               <Link href="/products">Shop Now</Link>
             </Button>
           </div>
@@ -60,7 +60,7 @@ export default async function HomePage() {
                     Curated Collections
                 </p>
             </div>
-            <div className="grid auto-cols-[28vw] grid-flow-col gap-4 overflow-x-auto pb-4 sm:auto-cols-[20vw] md:auto-cols-auto md:grid-cols-3 md:grid-flow-row lg:grid-cols-4 xl:grid-cols-5 -mx-4 px-4">
+            <div className="grid auto-cols-[28vw] grid-flow-col gap-4 overflow-x-auto pb-4 sm:auto-cols-[20vw] md:auto-cols-auto md:grid-cols-3 md:grid-flow-row lg:grid-cols-5 xl:grid-cols-5 -mx-4 px-4">
               {categories.map((category) => (
                 <Link key={category.id} href={`/categories/${category.slug}`} className="group block">
                   <div className="overflow-hidden rounded-lg">
