@@ -58,7 +58,7 @@ export function DashboardClient({ products, allOrders, users }: DashboardClientP
                 if (product) {
                     if (!sales[product.id]) {
                         sales[product.id] = { 
-                            name: product.name.length > 30 ? `${product.name.substring(0, 30)}...` : product.name, 
+                            name: product.name, 
                             revenue: 0,
                             quantity: 0
                         };

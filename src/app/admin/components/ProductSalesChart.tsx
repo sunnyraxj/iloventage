@@ -3,6 +3,7 @@
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SalesData {
     name: string;
@@ -18,15 +19,26 @@ interface ProductSalesChartProps {
 }
 
 export function ProductSalesChart({ data, months, selectedMonth, onMonthChange }: ProductSalesChartProps) {
+    const isMobile = useIsMobile();
+
+    const truncateText = (text: string) => {
+        if (!text) return "";
+        const limit = isMobile ? 12 : 25;
+        if (text.length > limit) {
+            return `${text.substring(0, limit)}...`;
+        }
+        return text;
+    };
+
     return (
         <Card>
-            <CardHeader className="flex flex-row items-start justify-between">
+            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <CardTitle>Top Selling Products</CardTitle>
                     <CardDescription>Top 10 products by revenue.</CardDescription>
                 </div>
                  <Select value={selectedMonth} onValueChange={onMonthChange}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Select month" />
                     </SelectTrigger>
                     <SelectContent>
@@ -41,7 +53,7 @@ export function ProductSalesChart({ data, months, selectedMonth, onMonthChange }
             <CardContent>
                 {data.length > 0 ? (
                     <ResponsiveContainer width="100%" height={350}>
-                        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 10 }}>
+                        <BarChart data={data} layout="vertical" margin={{ left: 0, right: 10 }}>
                             <XAxis type="number" hide />
                             <YAxis 
                                 dataKey="name" 
@@ -50,21 +62,22 @@ export function ProductSalesChart({ data, months, selectedMonth, onMonthChange }
                                 fontSize={12} 
                                 tickLine={false} 
                                 axisLine={false}
-                                width={150}
+                                width={isMobile ? 90 : 150}
                                 dx={-5}
+                                tickFormatter={truncateText}
                             />
                             <Tooltip
                                 cursor={{ fill: 'hsl(var(--secondary))' }}
                                 content={({ active, payload }) => {
                                     if (active && payload && payload.length) {
                                         return (
-                                            <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                            <div className="rounded-lg border bg-background p-2 shadow-sm min-w-[200px]">
                                                 <div className="grid grid-cols-1 gap-2">
                                                     <div className="flex flex-col">
                                                         <span className="text-[0.70rem] uppercase text-muted-foreground">
                                                             Product
                                                         </span>
-                                                        <span className="font-bold text-muted-foreground">
+                                                        <span className="font-bold text-muted-foreground whitespace-normal">
                                                             {payload[0].payload.name}
                                                         </span>
                                                     </div>
