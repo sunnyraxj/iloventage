@@ -22,7 +22,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllProducts } from '@/lib/data';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import {
     DropdownMenu,
@@ -33,6 +32,18 @@ import {
 } from "@/components/ui/dropdown-menu"
 import type { Product } from '@/lib/types';
 import { DeleteProductButton } from './components/DeleteProductButton';
+import { collection, onSnapshot, query, orderBy, DocumentData } from 'firebase/firestore';
+import { db } from '@/firebase/config';
+
+function docToProduct(doc: DocumentData): Product {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate().toISOString(),
+        slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+    } as Product;
+}
 
 export default function AdminProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -40,14 +51,18 @@ export default function AdminProductsPage() {
     const [filter, setFilter] = useState('all'); // 'all', 'in-stock', 'out-of-stock'
 
     useEffect(() => {
-        async function fetchProducts() {
-            setLoading(true);
-            const allProducts = await getAllProducts();
-            const sortedProducts = allProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-            setProducts(sortedProducts);
+        setLoading(true);
+        const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const allProducts = snapshot.docs.map(docToProduct);
+            setProducts(allProducts);
             setLoading(false);
-        }
-        fetchProducts();
+        }, (error) => {
+            console.error("Failed to subscribe to products:", error);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
     }, []);
     
     const handleProductDelete = (deletedProductId: string) => {

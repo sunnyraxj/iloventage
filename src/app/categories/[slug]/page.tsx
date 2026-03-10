@@ -2,11 +2,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getProductsByCollectionId, getCategoryBySlug } from '@/lib/data';
+import { getCategoryBySlug } from '@/lib/data';
 import type { Product, Category } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { notFound, useParams } from 'next/navigation';
+import { collection, onSnapshot, query, where, DocumentData } from 'firebase/firestore';
+import { db } from '@/firebase/config';
+
+function docToProduct(doc: DocumentData): Product {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate().toISOString(),
+        slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+    } as Product;
+}
+
 
 export default function CategoryPage() {
   const params = useParams();
@@ -16,20 +29,42 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let unsubscribe = () => {};
+
     async function fetchCategoryData() {
       if (!slug) return;
       setLoading(true);
-      const categoryData = await getCategoryBySlug(slug);
-      if (!categoryData) {
+      try {
+        const categoryData = await getCategoryBySlug(slug);
+        if (!categoryData) {
+          notFound();
+          return;
+        }
+        setCategory(categoryData);
+        
+        const q = query(
+            collection(db, 'products'), 
+            where('collectionId', '==', categoryData.id),
+            where('isVisible', '==', true)
+        );
+
+        unsubscribe = onSnapshot(q, (snapshot) => {
+          const categoryProducts = snapshot.docs.map(docToProduct);
+          setProducts(categoryProducts);
+          setLoading(false);
+        }, (error) => {
+          console.error("Error fetching category products:", error);
+          setLoading(false);
+        });
+      } catch (error) {
+        console.error("Error setting up category page:", error);
+        setLoading(false);
         notFound();
-        return;
       }
-      setCategory(categoryData);
-      const categoryProducts = await getProductsByCollectionId(categoryData.id);
-      setProducts(categoryProducts);
-      setLoading(false);
     }
+
     fetchCategoryData();
+    return () => unsubscribe();
   }, [slug]);
 
   return (

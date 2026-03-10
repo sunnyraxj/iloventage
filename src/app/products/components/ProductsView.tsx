@@ -11,10 +11,21 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ProductFilters } from './ProductFilters';
+import { collection, onSnapshot, query, where, DocumentData } from 'firebase/firestore';
+import { db } from '@/firebase/config';
 
 interface ProductsViewProps {
-    initialProducts: Product[];
     categories: Category[];
+}
+
+function docToProduct(doc: DocumentData): Product {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate().toISOString(),
+        slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+    } as Product;
 }
 
 // Skeleton component for filters to avoid layout shift
@@ -33,14 +44,28 @@ const FilterSkeleton = () => (
 );
 
 
-export function ProductsView({ initialProducts, categories }: ProductsViewProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
+export function ProductsView({ categories }: ProductsViewProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [visibleCount, setVisibleCount] = useState(20);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
+    setLoading(true);
+
+    const q = query(collection(db, 'products'), where('isVisible', '==', true));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const productsData = snapshot.docs.map(docToProduct);
+        setProducts(productsData);
+        setLoading(false);
+    }, (error) => {
+        console.error("Error fetching products:", error);
+        setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // Filter states
@@ -170,7 +195,7 @@ export function ProductsView({ initialProducts, categories }: ProductsViewProps)
   }
 
   const filterControls = (
-      <>
+      <div className='max-h-[calc(100vh-14rem)] overflow-y-auto -mr-6 pr-6'>
         <ProductFilters
             categories={categories}
             genderFilter={genderFilter}
@@ -188,7 +213,7 @@ export function ProductsView({ initialProducts, categories }: ProductsViewProps)
             onSizeChange={handleSizeChange}
         />
         <Button variant="ghost" onClick={clearFilters} className="w-full justify-start mt-4">Clear All Filters</Button>
-      </>
+      </div>
   );
 
   return (
@@ -198,7 +223,7 @@ export function ProductsView({ initialProducts, categories }: ProductsViewProps)
           <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
               {/* Desktop Filters */}
               <aside className="hidden md:block md:col-span-1">
-                  <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto rounded-lg bg-background p-6 shadow-sm">
+                  <div className="sticky top-24 rounded-lg bg-background p-6 shadow-sm">
                       {isClient ? (
                         <Collapsible defaultOpen={true}>
                               <div className="flex items-center justify-between">
@@ -259,26 +284,42 @@ export function ProductsView({ initialProducts, categories }: ProductsViewProps)
                       </div>
                   </div>
                   
-                  <p className="text-sm text-muted-foreground mb-4">{filteredProducts.length} products found.</p>
-                  <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-                      {filteredProducts.length > 0 ? (
-                          filteredProducts.slice(0, visibleCount).map((product, index) => (
-                              <ProductCard 
-                                key={product.id} 
-                                product={product} 
-                                priority={index < 3}
-                              />
-                          ))
-                      ) : (
-                          <p className="col-span-full text-center py-10 text-muted-foreground">No products found for the selected filters.</p>
-                      )}
-                  </div>
-                  {filteredProducts.length > visibleCount && (
-                      <div className="mt-8 text-center">
-                          <Button onClick={loadMoreProducts} variant="outline">
-                              Load More
-                          </Button>
-                      </div>
+                  <p className="text-sm text-muted-foreground mb-4">{loading ? <Skeleton className="h-4 w-24 inline-block" /> : `${filteredProducts.length} products found.`}</p>
+                  
+                  {loading ? (
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+                        {Array.from({ length: 12 }).map((_, i) => (
+                           <div key={i} className="space-y-2">
+                                <Skeleton className="aspect-[3/4] w-full" />
+                                <Skeleton className="h-4 w-1/4" />
+                                <Skeleton className="h-5 w-3/4" />
+                                <Skeleton className="h-5 w-1/2" />
+                            </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <>
+                        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+                            {filteredProducts.length > 0 ? (
+                                filteredProducts.slice(0, visibleCount).map((product, index) => (
+                                    <ProductCard 
+                                    key={product.id} 
+                                    product={product} 
+                                    priority={index < 3}
+                                    />
+                                ))
+                            ) : (
+                                <p className="col-span-full text-center py-10 text-muted-foreground">No products found for the selected filters.</p>
+                            )}
+                        </div>
+                        {filteredProducts.length > visibleCount && (
+                            <div className="mt-8 text-center">
+                                <Button onClick={loadMoreProducts} variant="outline">
+                                    Load More
+                                </Button>
+                            </div>
+                        )}
+                    </>
                   )}
               </div>
           </div>
