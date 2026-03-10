@@ -15,10 +15,10 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
-const getSafeUrl = (url: any): string => {
+const getSafeUrl = (url: any, productId: string): string => {
   if (typeof url === 'string' && url) return url;
   if (typeof url === 'object' && url !== null && typeof url.value === 'string' && url.value) return url.value;
-  return `https://picsum.photos/seed/${Math.random()}/600/800`;
+  return `https://picsum.photos/seed/${productId}/600/800`;
 }
 
 export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", priority = false }: ProductCardProps) {
@@ -28,8 +28,8 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
   const firstVariant = product.variants?.[0];
   const firstSize = firstVariant?.sizes?.[0];
 
-  const imageUrl = getSafeUrl(firstVariant?.imageUrls?.[0]);
-  const hoverImageUrl = firstVariant?.imageUrls?.[1] ? getSafeUrl(firstVariant.imageUrls[1]) : null;
+  const imageUrl = getSafeUrl(firstVariant?.imageUrls?.[0], product.id);
+  const hoverImageUrl = firstVariant?.imageUrls?.[1] ? getSafeUrl(firstVariant.imageUrls[1], product.id) : null;
 
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -130,7 +130,7 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
         </div>
         <div className="pt-2 text-left">
           <p className="text-xs text-muted-foreground">{product.brand}</p>
-          <h3 className="text-xs font-semibold h-8 line-clamp-2">{product.name}</h3>
+          <h3 className="text-sm font-semibold h-8 line-clamp-2">{product.name}</h3>
           <div className="flex items-baseline justify-start gap-1">
             <p className="text-sm font-semibold text-foreground">₹{product.price.toFixed(2)}</p>
             {product.mrp && product.mrp > product.price && (
