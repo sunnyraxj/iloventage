@@ -10,8 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
 import { createOrderAndInitiatePayment, verifyPaymentAndUpdateOrder } from '@/app/actions/payment';
 import type { UserAddress, OrderAddress } from '@/lib/types';
 import { getStoreSettings } from '@/lib/data';
@@ -201,23 +199,19 @@ export default function CheckoutPage() {
                 id="razorpay-checkout-js"
                 src="https://checkout.razorpay.com/v1/checkout.js"
             />
-            <div className="flex min-h-screen flex-col">
-                <Header />
-                <main className="flex-1 bg-secondary py-8 md:py-12">
-                    <div className="container mx-auto px-4">
-                        <Skeleton className="h-10 w-1/3 mb-8" />
-                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                            <div className="lg:col-span-2">
-                                <Skeleton className="h-96 w-full" />
-                            </div>
-                            <div>
-                                <Skeleton className="h-64 w-full" />
-                            </div>
+            <main className="flex-1 bg-secondary py-8 md:py-12">
+                <div className="container mx-auto px-4">
+                    <Skeleton className="h-10 w-1/3 mb-8" />
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                        <div className="lg:col-span-2">
+                            <Skeleton className="h-96 w-full" />
+                        </div>
+                        <div>
+                            <Skeleton className="h-64 w-full" />
                         </div>
                     </div>
-                </main>
-                <Footer />
-            </div>
+                </div>
+            </main>
         </>
     )
   }
@@ -233,114 +227,110 @@ export default function CheckoutPage() {
         id="razorpay-checkout-js"
         src="https://checkout.razorpay.com/v1/checkout.js"
       />
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <main className="flex-1 bg-secondary py-8 md:py-12">
-          <div className="container mx-auto px-4">
-            <h1 className="mb-8 font-headline text-3xl font-bold md:text-4xl">Checkout</h1>
-            <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Shipping Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {user && user.addresses && user.addresses.length > 0 && (
-                        <div>
-                            <Label>Select a saved address</Label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                                {user.addresses.map(addr => (
-                                    <div key={addr.id} onClick={() => handleSelectAddress(addr)} className={`p-4 border rounded-lg cursor-pointer ${selectedAddressId === addr.id ? 'border-primary ring-2 ring-primary' : ''}`}>
-                                        <p className="font-semibold">{addr.name}</p>
-                                        <p className="text-sm text-muted-foreground">{addr.address}</p>
-                                        <p className="text-sm text-muted-foreground">{addr.city}, {addr.state} - {addr.pincode}</p>
-                                        <p className="text-sm text-muted-foreground">Mobile: {addr.mobile}</p>
-                                    </div>
-                                ))}
-                            </div>
-                            <p className="text-center my-4 text-muted-foreground">OR</p>
-                        </div>
-                    )}
-
-                    {!user && (
-                         <div className="md:col-span-2">
-                            <Label htmlFor="guestEmail">Email Address</Label>
-                            <Input id="guestEmail" type="email" placeholder="you@example.com" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} required />
-                        </div>
-                    )}
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div className="md:col-span-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input id="name" placeholder="John Doe" value={shippingInfo.name} onChange={handleInputChange} required />
-                        </div>
-                         <div className="md:col-span-2">
-                        <Label htmlFor="mobile">Mobile Number</Label>
-                        <Input id="mobile" placeholder="10-digit number" value={shippingInfo.mobile} onChange={handleInputChange} required />
-                        </div>
-                        <div className="md:col-span-2">
-                        <Label htmlFor="address">Address</Label>
-                        <Input id="address" placeholder="123 Main St, Apt 4B" value={shippingInfo.address} onChange={handleInputChange} required />
-                        </div>
-                        <div>
-                        <Label htmlFor="city">City</Label>
-                        <Input id="city" placeholder="Mumbai" value={shippingInfo.city} onChange={handleInputChange} required />
-                        </div>
-                         <div>
-                        <Label htmlFor="state">State</Label>
-                        <Input id="state" placeholder="Maharashtra" value={shippingInfo.state} onChange={handleInputChange} required />
-                        </div>
-                        <div>
-                        <Label htmlFor="pincode">Pincode</Label>
-                        <Input id="pincode" placeholder="400001" value={shippingInfo.pincode} onChange={handleInputChange} required />
-                        </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              <div>
-                <Card className="sticky top-24">
-                  <CardHeader>
-                    <CardTitle>Your Order</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-4">
-                      {items.map((item) => (
-                        <li key={item.id} className="flex justify-between text-sm">
-                          <div>
-                            <p>{item.name} x {item.quantity}</p>
-                            <p className="text-muted-foreground text-xs">{item.color}, {item.size}</p>
+      <main className="flex-1 bg-secondary py-8 md:py-12">
+        <div className="container mx-auto px-4">
+          <h1 className="mb-8 font-headline text-3xl font-bold md:text-4xl">Checkout</h1>
+          <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Shipping Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {user && user.addresses && user.addresses.length > 0 && (
+                      <div>
+                          <Label>Select a saved address</Label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                              {user.addresses.map(addr => (
+                                  <div key={addr.id} onClick={() => handleSelectAddress(addr)} className={`p-4 border rounded-lg cursor-pointer ${selectedAddressId === addr.id ? 'border-primary ring-2 ring-primary' : ''}`}>
+                                      <p className="font-semibold">{addr.name}</p>
+                                      <p className="text-sm text-muted-foreground">{addr.address}</p>
+                                      <p className="text-sm text-muted-foreground">{addr.city}, {addr.state} - {addr.pincode}</p>
+                                      <p className="text-sm text-muted-foreground">Mobile: {addr.mobile}</p>
+                                  </div>
+                              ))}
                           </div>
-                          <span>₹{(item.price * item.quantity).toFixed(2)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="mt-4 border-t pt-4 space-y-2">
-                         <div className="flex justify-between text-sm">
-                            <span>Subtotal</span>
-                            <span>₹{totalPrice.toFixed(2)}</span>
-                         </div>
-                         <div className="flex justify-between text-sm">
-                            <span>Shipping</span>
-                            <span>{shippingCost > 0 ? `₹${shippingCost.toFixed(2)}` : 'Free'}</span>
-                         </div>
-                         <div className="flex justify-between font-bold">
-                            <span>Total</span>
-                            <span>₹{finalTotal.toFixed(2)}</span>
+                          <p className="text-center my-4 text-muted-foreground">OR</p>
+                      </div>
+                  )}
+
+                  {!user && (
+                        <div className="md:col-span-2">
+                          <Label htmlFor="guestEmail">Email Address</Label>
+                          <Input id="guestEmail" type="email" placeholder="you@example.com" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} required />
+                      </div>
+                  )}
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="md:col-span-2">
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input id="name" placeholder="John Doe" value={shippingInfo.name} onChange={handleInputChange} required />
+                      </div>
+                        <div className="md:col-span-2">
+                      <Label htmlFor="mobile">Mobile Number</Label>
+                      <Input id="mobile" placeholder="10-digit number" value={shippingInfo.mobile} onChange={handleInputChange} required />
+                      </div>
+                      <div className="md:col-span-2">
+                      <Label htmlFor="address">Address</Label>
+                      <Input id="address" placeholder="123 Main St, Apt 4B" value={shippingInfo.address} onChange={handleInputChange} required />
+                      </div>
+                      <div>
+                      <Label htmlFor="city">City</Label>
+                      <Input id="city" placeholder="Mumbai" value={shippingInfo.city} onChange={handleInputChange} required />
+                      </div>
+                        <div>
+                      <Label htmlFor="state">State</Label>
+                      <Input id="state" placeholder="Maharashtra" value={shippingInfo.state} onChange={handleInputChange} required />
+                      </div>
+                      <div>
+                      <Label htmlFor="pincode">Pincode</Label>
+                      <Input id="pincode" placeholder="400001" value={shippingInfo.pincode} onChange={handleInputChange} required />
+                      </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <div>
+              <Card className="sticky top-24">
+                <CardHeader>
+                  <CardTitle>Your Order</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-4">
+                    {items.map((item) => (
+                      <li key={item.id} className="flex justify-between text-sm">
+                        <div>
+                          <p>{item.name} x {item.quantity}</p>
+                          <p className="text-muted-foreground text-xs">{item.color}, {item.size}</p>
                         </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
-                      {isLoading ? 'Processing...' : `Pay ₹${finalTotal.toFixed(2)}`}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </div>
-            </form>
-          </div>
-        </main>
-        <Footer />
-      </div>
+                        <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-4 border-t pt-4 space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Subtotal</span>
+                          <span>₹{totalPrice.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Shipping</span>
+                          <span>{shippingCost > 0 ? `₹${shippingCost.toFixed(2)}` : 'Free'}</span>
+                        </div>
+                        <div className="flex justify-between font-bold">
+                          <span>Total</span>
+                          <span>₹{finalTotal.toFixed(2)}</span>
+                      </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Processing...' : `Pay ₹${finalTotal.toFixed(2)}`}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </form>
+        </div>
+      </main>
     </>
   );
 }

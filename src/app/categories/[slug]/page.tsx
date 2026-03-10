@@ -4,8 +4,6 @@
 import { useState, useEffect } from 'react';
 import { getProductsByCollectionId, getCategoryBySlug } from '@/lib/data';
 import type { Product, Category } from '@/lib/types';
-import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
 import { ProductCard } from '@/components/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { notFound } from 'next/navigation';
@@ -32,8 +30,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
   }, [params.slug]);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
+    <>
       <main className="flex-1">
         {loading ? (
           <Skeleton className="h-48 w-full" />
@@ -85,7 +82,6 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
             </div>
         </div>
       </main>
-      <Footer />
-    </div>
+    </>
   );
 }
