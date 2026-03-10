@@ -1,8 +1,6 @@
-
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect, useMemo } from 'react';
 import type { Product, Category } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,6 +15,7 @@ import { db } from '@/firebase/config';
 
 interface ProductsViewProps {
     categories: Category[];
+    initialProducts: Product[];
     searchParams?: { [key: string]: string | string[] | undefined };
 }
 
@@ -46,17 +45,15 @@ const FilterSkeleton = () => (
 );
 
 
-export function ProductsView({ categories, searchParams: serverSearchParams }: ProductsViewProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+export function ProductsView({ categories, initialProducts, searchParams: serverSearchParams }: ProductsViewProps) {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [loading, setLoading] = useState(initialProducts.length === 0);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
   const [visibleCount, setVisibleCount] = useState(20);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    setLoading(true);
-
     const q = query(collection(db, 'products'), where('isVisible', '==', true));
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const productsData = snapshot.docs.map(docToProduct);
@@ -197,7 +194,7 @@ export function ProductsView({ categories, searchParams: serverSearchParams }: P
   }
 
   const filterControls = (
-      <div className='h-full overflow-y-auto'>
+      <div className="h-full overflow-y-auto pr-4 -mr-4">
         <ProductFilters
             categories={categories}
             genderFilter={genderFilter}
@@ -226,7 +223,7 @@ export function ProductsView({ categories, searchParams: serverSearchParams }: P
               {/* Desktop Filters */}
               <aside className="hidden md:block md:col-span-1">
                   <div className="sticky top-24 rounded-lg bg-background p-6 shadow-sm h-[calc(100vh-7rem)] flex flex-col">
-                      {isClient && maxPrice > 0 ? (
+                      {isClient ? (
                         <Collapsible defaultOpen={true} className='flex-1 flex flex-col min-h-0'>
                               <div className="flex items-center justify-between">
                                 <h2 className="text-lg font-semibold">Filters</h2>
@@ -286,7 +283,7 @@ export function ProductsView({ categories, searchParams: serverSearchParams }: P
                       </div>
                   </div>
                   
-                  <p className="text-sm text-muted-foreground mb-4">{loading ? <Skeleton className="h-4 w-24 inline-block" /> : `${filteredProducts.length} products found.`}</p>
+                  <div className="text-sm text-muted-foreground mb-4">{loading ? <Skeleton className="h-4 w-24 inline-block" /> : `${filteredProducts.length} products found.`}</div>
                   
                   {loading ? (
                     <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
