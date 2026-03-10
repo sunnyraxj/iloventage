@@ -5,13 +5,22 @@ import { cn } from '@/lib/utils';
 import { AuthProvider } from '@/providers/auth-provider';
 import { CartProvider } from '@/providers/cart-provider';
 import { Toaster } from '@/components/ui/toaster';
+import { getStoreSettings } from '@/lib/data';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
-export const metadata: Metadata = {
-  title: 'My E-Commerce Store',
-  description: 'A modern e-commerce website built with Next.js',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getStoreSettings();
+  const storeName = settings?.storeDetails?.name || 'My E-Commerce Store';
+  
+  return {
+    title: {
+      default: storeName,
+      template: `%s | ${storeName}`,
+    },
+    description: `The official store for ${storeName}.`,
+  };
+}
 
 export default function RootLayout({
   children,
