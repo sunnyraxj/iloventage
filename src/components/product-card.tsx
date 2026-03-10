@@ -121,7 +121,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
         </div>
         <div className="pt-2 text-left">
           <p className="text-xs text-muted-foreground">{product.brand}</p>
-          <h3 className="text-sm font-semibold h-8 line-clamp-2">{product.name}</h3>
+          <h3 className="text-sm font-semibold h-10 line-clamp-2">{product.name}</h3>
           <div className="flex items-baseline justify-start gap-1">
             <p className="text-sm font-semibold text-foreground">₹{product.price.toFixed(2)}</p>
             {product.mrp && product.mrp > product.price && (
