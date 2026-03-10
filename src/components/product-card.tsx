@@ -54,7 +54,7 @@ export function ProductCard({ product, sizes = "(max-width: 768px) 50vw, 33vw", 
         stock: firstSize.stock,
         quantity: 1,
         moq: product.moq,
-        imageUrl: imageUrl || `https://picsum.photos/seed/${product.id}/200/200`
+        imageUrl: imageUrl
     });
 
     toast({
