@@ -24,6 +24,7 @@ export default function ProductsPage() {
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [visibleCount, setVisibleCount] = useState(20);
 
   useEffect(() => {
     async function fetchProductsAndCategories() {
@@ -59,6 +60,7 @@ export default function ProductsPage() {
     }
     
     setFilteredProducts(tempProducts);
+    setVisibleCount(20); // Reset visible count on filter change
   }, [genderFilter, categoryFilters, products, searchTerm]);
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
@@ -68,6 +70,10 @@ export default function ProductsPage() {
       setCategoryFilters(prev => prev.filter(id => id !== categoryId));
     }
   }
+
+  const loadMoreProducts = () => {
+    setVisibleCount(prevCount => prevCount + 20);
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -155,7 +161,7 @@ export default function ProductsPage() {
                          <p className="text-sm text-muted-foreground mb-4">{filteredProducts.length} products found.</p>
                         <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
                             {filteredProducts.length > 0 ? (
-                                filteredProducts.map((product, index) => (
+                                filteredProducts.slice(0, visibleCount).map((product, index) => (
                                     <ProductCard 
                                       key={product.id} 
                                       product={product} 
@@ -166,6 +172,13 @@ export default function ProductsPage() {
                                 <p className="col-span-full text-center py-10 text-muted-foreground">No products found for the selected filters.</p>
                             )}
                         </div>
+                        {filteredProducts.length > visibleCount && (
+                            <div className="mt-8 text-center">
+                                <Button onClick={loadMoreProducts} variant="outline">
+                                    Load More
+                                </Button>
+                            </div>
+                        )}
                         </>
                     )}
                 </div>
