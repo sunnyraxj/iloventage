@@ -75,9 +75,10 @@ export function ProductForm({ product, categories, categoryName }: ProductFormPr
         categoryName: categoryName || "",
         mrp: product.mrp || 0,
         additionalDetails: product.additionalDetails?.map(d => ({ value: d })),
+        // Map the string[] from DB back to { value: string }[] for the form
         variants: product.variants.map(v => ({
             ...v,
-            imageUrls: v.imageUrls.map(url => ({ value: typeof url === 'string' ? url : (url as any)?.value || '' })).filter(img => img.value)
+            imageUrls: v.imageUrls.map(url => ({ value: url }))
         })),
     } : {
         name: "",

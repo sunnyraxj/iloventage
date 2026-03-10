@@ -41,6 +41,7 @@ export async function upsertProduct(data: ProductFormValues, productId?: string)
             additionalDetails: data.additionalDetails?.map(d => d.value) || [],
             variants: data.variants.map(variant => ({
                 ...variant,
+                // Ensure imageUrls are stored as a clean array of strings
                 imageUrls: variant.imageUrls.map(image => image.value)
             }))
         };

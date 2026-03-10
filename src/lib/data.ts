@@ -23,7 +23,7 @@ function docToType<T>(doc: DocumentData): T {
     const data = doc.data();
     const id = doc.id;
 
-    // Create a new object to avoid mutating the original data from getDoc
+    // Create a new object to avoid mutating the original data
     const processedData: { [key: string]: any } = { id };
 
     for (const key in data) {
@@ -37,35 +37,6 @@ function docToType<T>(doc: DocumentData): T {
         }
     }
     
-    // Specifically process product variants to ensure imageUrls are always clean strings
-    if (doc.ref.parent.id === 'products' && processedData.variants && Array.isArray(processedData.variants)) {
-        processedData.variants = processedData.variants.map((variant: any) => {
-            if (typeof variant !== 'object' || variant === null) {
-                return variant; // Return as-is if it's not a processable object
-            }
-
-            let newImageUrls: string[] = [];
-            if (Array.isArray(variant.imageUrls)) {
-                newImageUrls = variant.imageUrls
-                    .map((url: any) => {
-                        // Case 1: URL is already a valid string
-                        if (typeof url === 'string' && url.startsWith('http')) {
-                            return url;
-                        }
-                        // Case 2: URL is an object like { value: '...' }
-                        if (typeof url === 'object' && url !== null && typeof url.value === 'string' && url.value.startsWith('http')) {
-                            return url.value;
-                        }
-                        // It's an invalid format, so it will be filtered out
-                        return null;
-                    })
-                    .filter((url: string | null): url is string => url !== null); // Filter out any nulls
-            }
-            
-            return { ...variant, imageUrls: newImageUrls };
-        });
-    }
-
     // Add slug for products and categories if name exists
     if (processedData.name && (doc.ref.parent.id === 'products' || doc.ref.parent.id === 'collections')) {
       processedData.slug = createSlug(processedData.name);
