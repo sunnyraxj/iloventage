@@ -32,6 +32,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { Product } from '@/lib/types';
+import { DeleteProductButton } from './components/DeleteProductButton';
 
 export default function AdminProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -48,6 +49,10 @@ export default function AdminProductsPage() {
         }
         fetchProducts();
     }, []);
+    
+    const handleProductDelete = (deletedProductId: string) => {
+        setProducts(prevProducts => prevProducts.filter(p => p.id !== deletedProductId));
+    };
     
     const calculateTotalStock = (product: Product) => {
         if (!product.variants) return 0;
@@ -171,7 +176,11 @@ export default function AdminProductsPage() {
                                     <DropdownMenuItem asChild>
                                         <Link href={`/admin/products/edit/${product.id}`}>Edit</Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem>Delete</DropdownMenuItem>
+                                    <DeleteProductButton 
+                                        productId={product.id}
+                                        productName={product.name}
+                                        onDelete={() => handleProductDelete(product.id)}
+                                    />
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
