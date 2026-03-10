@@ -11,6 +11,7 @@ import { DollarSign, Package, ShoppingBag, Users } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, subMonths } from 'date-fns';
 import type { Product, Order, User } from '@/lib/types';
+import { ProductSalesChart } from './ProductSalesChart';
 
 interface DashboardClientProps {
     products: Product[];
@@ -34,18 +35,38 @@ export function DashboardClient({ products, allOrders, users }: DashboardClientP
     
     const [selectedMonth, setSelectedMonth] = useState<string>(months[0].value);
 
-    const totalRevenue = useMemo(() => {
-        return allOrders
-            .filter(order => {
-                const orderMonth = format(new Date(order.createdAt), 'yyyy-MM');
-                return ['confirmed', 'shipped', 'delivered'].includes(order.orderStatus) && orderMonth === selectedMonth;
-            })
-            .reduce((acc, order) => acc + order.total, 0);
+    const filteredOrders = useMemo(() => {
+        return allOrders.filter(order => {
+            const orderMonth = format(new Date(order.createdAt), 'yyyy-MM');
+            return ['confirmed', 'shipped', 'delivered'].includes(order.orderStatus) && orderMonth === selectedMonth;
+        });
     }, [allOrders, selectedMonth]);
+
+    const totalRevenue = useMemo(() => {
+        return filteredOrders.reduce((acc, order) => acc + order.total, 0);
+    }, [filteredOrders]);
 
     const totalConfirmedOrders = allOrders.filter(order => order.orderStatus === 'confirmed').length;
     const totalProducts = products.length;
     const totalCustomers = users.filter(u => u.role === 'customer').length;
+    
+    const productSalesData = useMemo(() => {
+        const sales: { [key: string]: { name: string, revenue: number } } = {};
+
+        filteredOrders.forEach(order => {
+            order.items.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                if (product) {
+                    if (!sales[product.id]) {
+                        sales[product.id] = { name: product.name.length > 30 ? `${product.name.substring(0, 30)}...` : product.name, revenue: 0 };
+                    }
+                    sales[product.id].revenue += item.price * item.quantity;
+                }
+            });
+        });
+
+        return Object.values(sales).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+    }, [filteredOrders, products]);
 
     return (
         <div className="space-y-4">
@@ -98,6 +119,9 @@ export function DashboardClient({ products, allOrders, users }: DashboardClientP
                         <div className="text-2xl font-bold">+{totalCustomers}</div>
                     </CardContent>
                 </Card>
+            </div>
+            <div className="grid gap-4 grid-cols-1">
+                <ProductSalesChart data={productSalesData} />
             </div>
         </div>
     );
