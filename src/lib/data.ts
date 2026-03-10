@@ -119,14 +119,15 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
     const productsQuery = query(
         collection(db, 'products'),
         where('collectionId', '==', category.id),
-        where('isVisible', '==', true),
-        orderBy('createdAt', 'desc'),
-        limit(1)
+        where('isVisible', '==', true)
     );
     const productsSnapshot = await getDocs(productsQuery);
 
     if (!productsSnapshot.empty) {
-        const latestProduct = docToType<Product>(productsSnapshot.docs[0]);
+        const products = productsSnapshot.docs.map(doc => docToType<Product>(doc));
+        // Sort in-memory to avoid composite index
+        products.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const latestProduct = products[0];
         category.imageUrl = latestProduct.variants?.[0]?.imageUrls?.[0] || '';
     } else {
         category.imageUrl = '';
