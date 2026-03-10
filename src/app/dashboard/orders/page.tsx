@@ -40,41 +40,42 @@ const OrderList = ({ orders }: { orders: Order[] }) => {
                 {orders.map(order => {
                     const firstItem = order.items && order.items.length > 0 ? order.items[0] : null;
                     return (
-                        <Card key={order.id} className="w-full">
-                           <CardHeader className="flex flex-row items-start justify-between p-4">
-                                <div>
-                                    <h3 className="font-semibold">Order #{order.orderNumber}</h3>
-                                    <p className="text-sm text-muted-foreground">{format(new Date(order.createdAt), 'PP')}</p>
+                        <Card key={order.id} className="w-full overflow-hidden">
+                            <CardHeader className="flex flex-row items-center justify-between bg-muted/50 p-3">
+                                <div className="grid gap-0.5">
+                                    <h3 className="font-semibold text-sm">Order #{order.orderNumber}</h3>
+                                    <p className="text-xs text-muted-foreground">{format(new Date(order.createdAt), 'PP')}</p>
                                 </div>
                                 <OrderStatusChanger orderId={order.id} currentStatus={order.orderStatus} isEditable={false} />
                             </CardHeader>
-                            <CardContent className="grid gap-4 p-4 pt-0">
-                                {firstItem ? (
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-20 flex-shrink-0">
+                            <CardContent className="p-3 text-sm">
+                                <div className="flex items-start gap-3">
+                                    {firstItem && 
+                                        <div className="w-16 flex-shrink-0">
                                             <OrderImagePreview item={firstItem} />
                                         </div>
-                                        <div className="grid flex-1 gap-0.5">
-                                            <p className="font-medium line-clamp-2">{firstItem.name}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                Size: {firstItem.size} &middot; Qty: {firstItem.quantity}
-                                            </p>
-                                            {order.items.length > 1 && (
-                                                <p className="text-xs text-muted-foreground">
-                                                    + {order.items.length - 1} more item(s)
-                                                </p>
-                                            )}
-                                        </div>
+                                    }
+                                    <div className="flex-grow space-y-1">
+                                        {firstItem ? (
+                                            <>
+                                                <p className="font-medium line-clamp-2 leading-tight">{firstItem.name}</p>
+                                                {order.items.length > 1 && (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        + {order.items.length - 1} more item(s)
+                                                    </p>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <span className="text-muted-foreground">No items</span>
+                                        )}
                                     </div>
-                                ) : (
-                                    <span className="text-sm text-muted-foreground">No items in this order.</span>
-                                )}
-                                <div className="flex items-baseline justify-between pt-2 border-t">
-                                  <span className="text-sm text-muted-foreground">Total</span>
-                                  <span className="font-semibold">₹{order.total.toFixed(2)}</span>
+                                    <div className="text-right">
+                                        <p className="font-semibold">₹{order.total.toFixed(2)}</p>
+                                        <p className="text-xs text-muted-foreground">Total</p>
+                                    </div>
                                 </div>
                             </CardContent>
-                            <CardFooter className="border-t p-4">
+                            <CardFooter className="bg-muted/50 p-2">
                                 <Button asChild variant="outline" size="sm" className="w-full">
                                     <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                                 </Button>
@@ -99,13 +100,13 @@ const OrderList = ({ orders }: { orders: Order[] }) => {
                     <TableBody>
                         {orders.map(order => (
                             <TableRow key={order.id}>
-                                <TableCell className="font-medium">#{order.orderNumber}</TableCell>
-                                <TableCell>{format(new Date(order.createdAt), 'PP')}</TableCell>
-                                <TableCell>
+                                <TableCell className="font-medium py-3">#{order.orderNumber}</TableCell>
+                                <TableCell className="py-3">{format(new Date(order.createdAt), 'PP')}</TableCell>
+                                <TableCell className="py-3">
                                     <OrderStatusChanger orderId={order.id} currentStatus={order.orderStatus} isEditable={false} />
                                 </TableCell>
-                                <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className="text-right py-3">₹{order.total.toFixed(2)}</TableCell>
+                                <TableCell className="text-right py-3">
                                     <Button asChild variant="outline" size="sm">
                                         <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                                     </Button>
@@ -154,8 +155,8 @@ export default function DashboardOrdersPage() {
                     <Skeleton className="h-12 w-full rounded-md" />
                 </div>
                 <div className="grid gap-4 md:hidden">
-                    <Skeleton className="h-56 w-full rounded-lg" />
-                    <Skeleton className="h-56 w-full rounded-lg" />
+                    <Skeleton className="h-40 w-full rounded-lg" />
+                    <Skeleton className="h-40 w-full rounded-lg" />
                 </div>
             </div>
         ) : (

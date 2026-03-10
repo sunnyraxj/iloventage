@@ -10,7 +10,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, MoreVertical } from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function AddressesPage() {
     const { user } = useAuth();
@@ -33,20 +39,34 @@ export default function AddressesPage() {
         {user.addresses && user.addresses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {user.addresses.map((address) => (
-                    <div key={address.id} className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
-                        <p className="font-semibold">{address.name}</p>
-                        <p className="text-sm text-muted-foreground">{address.address}</p>
-                        <p className="text-sm text-muted-foreground">{address.city}, {address.state} - {address.pincode}</p>
-                        <p className="text-sm text-muted-foreground">Mobile: {address.mobile}</p>
-                        <div className="mt-4 flex gap-2">
-                            <Button variant="outline" size="sm">Edit</Button>
-                            <Button variant="destructive" size="sm">Delete</Button>
-                        </div>
-                    </div>
+                    <Card key={address.id}>
+                        <CardContent className="p-4 flex items-start justify-between">
+                            <div className="text-sm space-y-1">
+                                <p className="font-semibold">{address.name}</p>
+                                <p className="text-muted-foreground">{address.address}</p>
+                                <p className="text-muted-foreground">{address.city}, {address.state} - {address.pincode}</p>
+                                <p className="text-muted-foreground">Mobile: {address.mobile}</p>
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mt-1 -mr-1">
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">Delete</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </CardContent>
+                    </Card>
                 ))}
             </div>
         ) : (
-            <p className="text-center text-muted-foreground py-8">You have no saved addresses.</p>
+            <div className="text-center text-muted-foreground py-8 border-2 border-dashed rounded-lg">
+                <p>You have no saved addresses.</p>
+                <Button variant="outline" size="sm" className="mt-4">Add your first address</Button>
+            </div>
         )}
       </CardContent>
     </Card>
