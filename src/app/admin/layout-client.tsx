@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
@@ -75,19 +74,17 @@ export function AdminLayoutClient({
                   return (
                     <Button
                       key={item.label}
-                      asChild
                       variant={isActive ? 'secondary' : 'ghost'}
                       className="justify-start relative"
+                      onClick={() => router.push(item.href)}
                     >
-                      <Link href={item.href}>
-                        <item.icon className="mr-2 h-4 w-4" />
-                        {item.label}
-                        {isOrdersLink && confirmedOrdersCount > 0 && (
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
-                                {confirmedOrdersCount}
-                            </span>
-                        )}
-                      </Link>
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {item.label}
+                      {isOrdersLink && confirmedOrdersCount > 0 && (
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
+                              {confirmedOrdersCount}
+                          </span>
+                      )}
                     </Button>
                   )
                 })}

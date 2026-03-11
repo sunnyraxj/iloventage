@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,14 +47,12 @@ export function DashboardLayoutClient({
                 {navItems.map((item) => (
                   <Button
                     key={item.label}
-                    asChild
                     variant={pathname === item.href ? 'secondary' : 'ghost'}
                     className="justify-start"
+                    onClick={() => router.push(item.href)}
                   >
-                    <Link href={item.href}>
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {item.label}
-                    </Link>
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.label}
                   </Button>
                 ))}
               </nav>
