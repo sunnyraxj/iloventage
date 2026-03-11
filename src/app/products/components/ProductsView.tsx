@@ -11,23 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ProductFilters } from './ProductFilters';
-import { collection, onSnapshot, query, where, DocumentData } from 'firebase/firestore';
-import { db } from '@/firebase/config';
 
 interface ProductsViewProps {
     categories: Category[];
-    initialProducts?: Product[];
+    initialProducts: Product[];
     searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-function docToProduct(doc: DocumentData): Product {
-    const data = doc.data();
-    return {
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt?.toDate().toISOString(),
-        slug: data.slug || data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
-    } as Product;
 }
 
 // Skeleton component for filters to avoid layout shift
@@ -46,26 +34,14 @@ const FilterSkeleton = () => (
 );
 
 
-export function ProductsView({ categories, initialProducts = [], searchParams: serverSearchParams }: ProductsViewProps) {
+export function ProductsView({ categories, initialProducts, searchParams: serverSearchParams }: ProductsViewProps) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [loading, setLoading] = useState(initialProducts.length === 0);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
   const [visibleCount, setVisibleCount] = useState(20);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    const q = query(collection(db, 'products'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        const productsData = snapshot.docs.map(docToProduct);
-        setProducts(productsData);
-        setLoading(false);
-    }, (error) => {
-        console.error("Error fetching products:", error);
-        setLoading(false);
-    });
-
-    return () => unsubscribe();
   }, []);
 
   // Filter states
@@ -134,7 +110,7 @@ export function ProductsView({ categories, initialProducts = [], searchParams: s
     if (searchTerm) {
         tempProducts = tempProducts.filter(p =>
             p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.brand.toLowerCase().includes(searchTerm.toLowerCase())
+            (p.brand && p.brand.toLowerCase().includes(searchTerm.toLowerCase()))
         );
     }
 
@@ -284,9 +260,9 @@ export function ProductsView({ categories, initialProducts = [], searchParams: s
                       </div>
                   </div>
                   
-                  <div className="text-sm text-muted-foreground mb-4">{loading ? <Skeleton className="h-4 w-24 inline-block" /> : `${filteredProducts.length} products found.`}</div>
+                  <div className="text-sm text-muted-foreground mb-4">{`${filteredProducts.length} products found.`}</div>
                   
-                  {loading ? (
+                  {products.length === 0 && !isClient ? (
                     <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
                         {Array.from({ length: 12 }).map((_, i) => (
                            <div key={i} className="space-y-2">

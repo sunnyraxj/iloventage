@@ -1,5 +1,5 @@
 
-import { getCategories } from '@/lib/data';
+import { getCategories, getProducts } from '@/lib/data';
 import { ProductsView } from './components/ProductsView';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -35,10 +35,14 @@ const ProductsViewSkeleton = () => (
 );
 
 export default async function ProductsPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
-    const categories = await getCategories();
+    const [categories, initialProducts] = await Promise.all([
+        getCategories(),
+        getProducts()
+    ]);
+    
     return (
         <Suspense fallback={<ProductsViewSkeleton />}>
-            <ProductsView categories={categories} searchParams={searchParams} />
+            <ProductsView categories={categories} initialProducts={initialProducts} searchParams={searchParams} />
         </Suspense>
     );
 }

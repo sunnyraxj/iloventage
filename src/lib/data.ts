@@ -48,10 +48,16 @@ function docToType<T>(doc: DocumentData): T {
 // --- Product Functions ---
 export const getProducts = async (): Promise<Product[]> => {
     const productsCol = collection(db, 'products');
-    const productsSnapshot = await getDocs(productsCol);
-    const allProducts = productsSnapshot.docs.map(doc => docToType<Product>(doc));
-    // Sort by creation date descending
-    return allProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const q = query(productsCol, where('isVisible', '==', true));
+    const productsSnapshot = await getDocs(q);
+    const products = productsSnapshot.docs.map(doc => docToType<Product>(doc));
+    
+    // Sort in-memory to avoid needing a composite index
+    return products.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+    });
 };
   
 export const getProductBySlug = async (slug: string): Promise<Product | null> => {
@@ -73,9 +79,19 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 };
 
 export const getProductsByCollectionId = async (collectionId: string): Promise<Product[]> => {
-    const q = query(collection(db, 'products'), where('collectionId', '==', collectionId));
+    const q = query(collection(db, 'products'), 
+        where('isVisible', '==', true),
+        where('collectionId', '==', collectionId)
+    );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => docToType<Product>(doc));
+    const products = querySnapshot.docs.map(doc => docToType<Product>(doc));
+
+    // Sort in-memory to avoid needing a composite index
+    return products.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+    });
 };
 
 // --- Category Functions ---
