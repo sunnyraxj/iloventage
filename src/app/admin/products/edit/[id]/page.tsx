@@ -20,8 +20,6 @@ export default async function EditProductPage({ params }: { params: { id: string
     return notFound();
   }
 
-  const categoryName = categories.find(c => c.id === product.collectionId)?.name;
-
   return (
     <Card>
       <CardHeader>
@@ -29,7 +27,7 @@ export default async function EditProductPage({ params }: { params: { id: string
         <CardDescription>Editing: {product.name}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ProductForm product={product} categories={categories} categoryName={categoryName} />
+        <ProductForm product={product} categories={categories} />
       </CardContent>
     </Card>
   );

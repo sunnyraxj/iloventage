@@ -12,36 +12,14 @@ const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').rep
 
 export async function upsertProduct(data: ProductFormValues, productId?: string) {
     try {
-        // Find or create category
-        let collectionId: string;
-        const categoriesRef = collection(db, 'collections');
-        const categoryQuery = query(categoriesRef, where('name', '==', data.categoryName));
-        const querySnapshot = await getDocs(categoryQuery);
-
-        if (!querySnapshot.empty) {
-            collectionId = querySnapshot.docs[0].id;
-        } else {
-            const newCategoryData = {
-                name: data.categoryName,
-                description: "",
-                createdAt: serverTimestamp(),
-            };
-            const newCategoryRef = await addDoc(collection(db, 'collections'), newCategoryData);
-            collectionId = newCategoryRef.id;
-        }
-
-        const { categoryName, ...productDataInput } = data;
-
         const productData = {
-            ...productDataInput,
-            collectionId, // Use the resolved collectionId
+            ...data,
             price: Number(data.price),
             mrp: Number(data.mrp),
             moq: Number(data.moq),
             additionalDetails: data.additionalDetails?.map(d => d.value) || [],
             variants: data.variants.map(variant => ({
                 ...variant,
-                // Ensure imageUrls are stored as a clean array of strings
                 imageUrls: variant.imageUrls.map(image => image.value)
             }))
         };
@@ -66,10 +44,13 @@ export async function upsertProduct(data: ProductFormValues, productId?: string)
         revalidatePath(`/products/${slug}`);
         
         // Revalidate category paths
-        const newCategorySlug = createSlug(data.categoryName);
-        revalidatePath(`/categories/${newCategorySlug}`);
+        const category = await getDoc(doc(db, 'collections', data.collectionId));
+        if(category.exists()) {
+            const categorySlug = createSlug(category.data().name);
+            revalidatePath(`/categories/${categorySlug}`);
+        }
         revalidatePath('/categories');
-        revalidatePath('/'); // Homepage uses categories
+        revalidatePath('/');
 
 
         return { success: true };

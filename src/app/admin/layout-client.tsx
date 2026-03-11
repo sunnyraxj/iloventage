@@ -6,12 +6,13 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Package, ShoppingBag, Users, Settings } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LayoutGrid } from 'lucide-react';
 import { getConfirmedOrdersCount } from '@/lib/data';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/products', label: 'Products', icon: Package },
+  { href: '/admin/categories', label: 'Categories', icon: LayoutGrid },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/users', label: 'Customers', icon: Users },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
