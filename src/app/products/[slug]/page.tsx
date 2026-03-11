@@ -1,3 +1,4 @@
+
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
@@ -75,7 +76,7 @@ export default function ProductPage() {
       if (!slug) return;
       setLoading(true);
   
-      const q = query(collection(db, 'products'), where('slug', '==', slug), where('isVisible', '==', true), limit(1));
+      const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1));
       
       const unsubscribe = onSnapshot(q, (snapshot) => {
           if (snapshot.empty) {
@@ -85,7 +86,14 @@ export default function ProductPage() {
           }
   
           const fetchedProduct = docToType<Product>(snapshot.docs[0]);
-          setProduct(fetchedProduct);
+          
+          // Client-side visibility check
+          if (fetchedProduct.isVisible) {
+            setProduct(fetchedProduct);
+          } else {
+            setProduct(null);
+          }
+
           setLoading(false);
       }, (error) => {
           console.error("Error fetching product:", error);
