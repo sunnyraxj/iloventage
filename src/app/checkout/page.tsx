@@ -140,11 +140,11 @@ export default function CheckoutPage() {
 
                 if (result.success && result.orderId) {
                     toast({
-                        title: "Order Placed!",
-                        description: "Your payment was successful.",
+                        title: "Payment Successful!",
+                        description: "Redirecting to confirmation page...",
                     });
                     clearCart();
-                    router.push(`/dashboard/orders/${result.orderId}`);
+                    router.push(`/order-placed?orderId=${result.orderId}`);
                 } else {
                     toast({
                         variant: "destructive",
