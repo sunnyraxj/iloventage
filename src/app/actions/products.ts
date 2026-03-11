@@ -20,6 +20,7 @@ export async function upsertProduct(data: ProductFormValues, productId?: string)
             price: Number(data.price),
             mrp: Number(data.mrp),
             moq: Number(data.moq),
+            isVisible: true,
             additionalDetails: data.additionalDetails?.map(d => d.value) || [],
             variants: data.variants.map(variant => ({
                 ...variant,

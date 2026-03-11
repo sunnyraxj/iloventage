@@ -41,7 +41,6 @@ const formSchema = z.object({
   price: z.coerce.number().min(0, "Price must be a positive number."),
   mrp: z.coerce.number().min(0, "MRP must be a positive number.").optional(),
   moq: z.coerce.number().int().min(1, "MOQ must be at least 1."),
-  isVisible: z.boolean(),
   additionalDetails: z.array(z.object({ value: z.string() })).optional(),
   variants: z.array(z.object({
     color: z.string().min(1, "Color is required."),
@@ -87,7 +86,6 @@ export function ProductForm({ product, categories }: ProductFormProps) {
         price: 0,
         mrp: 0,
         moq: 1,
-        isVisible: true,
         additionalDetails: [],
         variants: [{ color: "", imageUrls: [], sizes: [{ size: "", stock: 0 }] }],
     }
@@ -209,12 +207,6 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                                 <FormField control={form.control} name="price" render={({ field }) => (<FormItem><FormLabel>Price (₹)</FormLabel><FormControl><Input type="number" placeholder="999" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={form.control} name="mrp" render={({ field }) => (<FormItem><FormLabel>MRP (₹)</FormLabel><FormControl><Input type="number" placeholder="1999" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={form.control} name="moq" render={({ field }) => (<FormItem><FormLabel>Minimum Order Qty</FormLabel><FormControl><Input type="number" placeholder="1" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader><CardTitle>Visibility</CardTitle></CardHeader>
-                            <CardContent>
-                                <FormField control={form.control} name="isVisible" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4"><div className="space-y-0.5"><FormLabel className="text-base">Visible to Customers</FormLabel><FormDescription>Toggle whether this product appears on your store.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>)} />
                             </CardContent>
                         </Card>
                     </div>

@@ -48,15 +48,14 @@ function docToType<T>(doc: DocumentData): T {
 // --- Product Functions ---
 export const getProducts = async (): Promise<Product[]> => {
     const productsCol = collection(db, 'products');
-    const q = query(productsCol, where('isVisible', '==', true));
-    const productsSnapshot = await getDocs(q);
+    const productsSnapshot = await getDocs(productsCol);
     const allProducts = productsSnapshot.docs.map(doc => docToType<Product>(doc));
     // Sort by creation date descending
     return allProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
   
 export const getProductBySlug = async (slug: string): Promise<Product | null> => {
-    const q = query(collection(db, 'products'), where('slug', '==', slug), where('isVisible', '==', true), limit(1));
+    const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1));
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
         return null;
@@ -74,7 +73,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 };
 
 export const getProductsByCollectionId = async (collectionId: string): Promise<Product[]> => {
-    const q = query(collection(db, 'products'), where('collectionId', '==', collectionId), where('isVisible', '==', true));
+    const q = query(collection(db, 'products'), where('collectionId', '==', collectionId));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => docToType<Product>(doc));
 };

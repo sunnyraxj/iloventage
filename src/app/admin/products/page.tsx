@@ -138,7 +138,6 @@ export default function AdminProductsPage() {
                             <span className="sr-only">Image</span>
                         </TableHead>
                         <TableHead>Name</TableHead>
-                        <TableHead>Visibility</TableHead>
                         <TableHead>Stock Status</TableHead>
                         <TableHead>Price</TableHead>
                         <TableHead className="hidden md:table-cell">Total Stock</TableHead>
@@ -164,11 +163,6 @@ export default function AdminProductsPage() {
                                 />
                             </TableCell>
                             <TableCell className="font-medium">{product.name}</TableCell>
-                            <TableCell>
-                                <Badge variant={product.isVisible ? 'default' : 'outline'}>
-                                    {product.isVisible ? 'Visible' : 'Hidden'}
-                                </Badge>
-                            </TableCell>
                             <TableCell>
                                 <Badge variant={stockStatus.variant}>{stockStatus.text}</Badge>
                             </TableCell>

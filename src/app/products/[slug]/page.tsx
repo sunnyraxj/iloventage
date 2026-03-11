@@ -87,12 +87,7 @@ export default function ProductPage() {
               setProduct(null);
           } else {
               const foundProduct = docToType<Product>(snapshot.docs[0]);
-              // Also check visibility client-side as an extra guard
-              if (foundProduct.isVisible) {
-                  setProduct(foundProduct);
-              } else {
-                  setProduct(null);
-              }
+              setProduct(foundProduct);
           }
           setLoading(false);
       }, (error) => {

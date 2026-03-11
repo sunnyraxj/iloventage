@@ -55,7 +55,7 @@ export function ProductsView({ categories, initialProducts = [], searchParams: s
 
   useEffect(() => {
     setIsClient(true);
-    const q = query(collection(db, 'products'), where('isVisible', '==', true));
+    const q = query(collection(db, 'products'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const productsData = snapshot.docs.map(docToProduct);
         setProducts(productsData);
