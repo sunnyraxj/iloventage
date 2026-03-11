@@ -7,6 +7,7 @@ import { ProductCard } from '@/components/product-card';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 export default async function HomePage() {
   const [products, categories, settings] = await Promise.all([
@@ -60,9 +61,16 @@ export default async function HomePage() {
                     Curated Collections
                 </p>
             </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {categories.map((category) => (
-                <Link key={category.id} href={`/categories/${category.slug}`} className="group block">
+            <div className="grid grid-cols-4 gap-4 lg:grid-cols-6">
+              {categories.slice(0, 6).map((category, index) => (
+                <Link
+                  key={category.id}
+                  href={`/categories/${category.slug}`}
+                  className={cn(
+                    'group block',
+                    index >= 4 && 'hidden lg:block'
+                  )}
+                >
                   <div className="overflow-hidden rounded-lg">
                     <img
                       src={category.imageUrl || `https://picsum.photos/seed/${category.id}/400/400`}
