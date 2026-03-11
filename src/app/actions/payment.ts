@@ -28,8 +28,13 @@ export async function createOrderAndInitiatePayment(orderData: OrderCreationData
     const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-    if (!keyId || !keySecret) {
-        const errorMessage = "Razorpay API keys are not configured on the server. Please contact support.";
+    if (!keyId) {
+        const errorMessage = "Razorpay Key ID (NEXT_PUBLIC_RAZORPAY_KEY_ID) is not configured on the server. Please check your environment variables.";
+        console.error(errorMessage);
+        return { success: false, message: errorMessage };
+    }
+    if (!keySecret) {
+        const errorMessage = "Razorpay Key Secret (RAZORPAY_KEY_SECRET) is not configured on the server. Please check your environment variables.";
         console.error(errorMessage);
         return { success: false, message: errorMessage };
     }
@@ -128,8 +133,8 @@ export async function verifyPaymentAndUpdateOrder(
 
         const orderDoc = querySnapshot.docs[0];
         
-        // Update payment status on client-side for immediate user feedback.
-        // The webhook will be the source of truth for confirming the order.
+        // This client-side update is just for immediate feedback.
+        // The webhook is the source of truth for changing orderStatus to 'confirmed'.
         await updateDoc(orderDoc.ref, {
             paymentStatus: 'paid',
             'razorpay.paymentId': razorpay_payment_id,
