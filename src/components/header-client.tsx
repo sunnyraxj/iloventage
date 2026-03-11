@@ -197,35 +197,35 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                        {user.role === 'admin' ? (
+                        
+                        {user.role === 'admin' && (
                             <DropdownMenuItem asChild>
                                 <Link href="/admin">
                                 <LayoutDashboard className="mr-2 h-4 w-4" />
-                                <span>Dashboard</span>
+                                <span>Admin Dashboard</span>
                                 </Link>
                             </DropdownMenuItem>
-                        ) : (
-                            <>
-                            <DropdownMenuItem asChild>
-                                <Link href="/dashboard">
-                                <User className="mr-2 h-4 w-4" />
-                                <span>My Account</span>
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                                <Link href="/dashboard/addresses">
-                                <MapPin className="mr-2 h-4 w-4" />
-                                <span>Addresses</span>
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                                <Link href="/dashboard/orders">
-                                <ShoppingBag className="mr-2 h-4 w-4" />
-                                <span>My Orders</span>
-                                </Link>
-                            </DropdownMenuItem>
-                            </>
                         )}
+                        
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard">
+                            <User className="mr-2 h-4 w-4" />
+                            <span>My Account</span>
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard/addresses">
+                            <MapPin className="mr-2 h-4 w-4" />
+                            <span>My Addresses</span>
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard/orders">
+                            <ShoppingBag className="mr-2 h-4 w-4" />
+                            <span>My Orders</span>
+                            </Link>
+                        </DropdownMenuItem>
+                        
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={logout}>
                         <LogOut className="mr-2 h-4 w-4" />
