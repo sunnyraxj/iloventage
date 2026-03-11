@@ -16,7 +16,6 @@ import {
   } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import type { Product, Category, User, Order, UserAddress, OrderItem, OrderAddress, StoreSettings } from './types';
-import { unstable_cache as cache } from 'next/cache';
   
 const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
@@ -47,14 +46,14 @@ function docToType<T>(doc: DocumentData): T {
 }
   
 // --- Product Functions ---
-export const getProducts = cache(async (): Promise<Product[]> => {
+export const getProducts = async (): Promise<Product[]> => {
     const productsCol = collection(db, 'products');
     const q = query(productsCol, where('isVisible', '==', true));
     const productsSnapshot = await getDocs(q);
     const allProducts = productsSnapshot.docs.map(doc => docToType<Product>(doc));
     // Sort by creation date descending
     return allProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}, ['products'], { revalidate: 60 });
+};
   
 export const getProductBySlug = async (slug: string): Promise<Product | null> => {
     const q = query(collection(db, 'products'), where('slug', '==', slug), where('isVisible', '==', true), limit(1));
@@ -81,7 +80,7 @@ export const getProductsByCollectionId = async (collectionId: string): Promise<P
 };
 
 // --- Category Functions ---
-export const getCategories = cache(async (): Promise<Category[]> => {
+export const getCategories = async (): Promise<Category[]> => {
     const categoriesCol = collection(db, 'collections');
     const categoriesSnapshot = await getDocs(categoriesCol);
     const categories = categoriesSnapshot.docs.map(doc => docToType<Category>(doc));
@@ -104,7 +103,7 @@ export const getCategories = cache(async (): Promise<Category[]> => {
         ...category,
         imageUrl: category.imageUrl || categoryImageMap.get(category.id) || `https://picsum.photos/seed/${category.id}/400/400`,
     }));
-}, ['categories'], { revalidate: 60 });
+};
   
 export const getCategoryBySlug = async (slug: string): Promise<Category | null> => {
     const q = query(collection(db, 'collections'), where('slug', '==', slug), limit(1));
@@ -229,7 +228,7 @@ export const createOrder = async (orderPayload: OrderPayload): Promise<Order> =>
 };
 
 // --- Settings Functions ---
-export const getStoreSettings = cache(async (): Promise<StoreSettings | null> => {
+export const getStoreSettings = async (): Promise<StoreSettings | null> => {
     const settingsRef = doc(db, 'settings', 'details');
     const settingsSnap = await getDoc(settingsRef);
     if (!settingsSnap.exists()) {
@@ -254,7 +253,7 @@ export const getStoreSettings = cache(async (): Promise<StoreSettings | null> =>
         };
     }
     return docToType<StoreSettings>(settingsSnap);
-}, ['settings'], { revalidate: 60 });
+};
 
 
 // --- Admin Functions ---
