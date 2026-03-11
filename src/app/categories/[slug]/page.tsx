@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -66,8 +65,7 @@ export default function CategoryPage() {
 
             const productsQuery = query(
                 collection(db, 'products'),
-                where('collectionId', '==', foundCategory.id),
-                where('isVisible', '==', true)
+                where('collectionId', '==', foundCategory.id)
             );
 
             productsUnsubscribe = onSnapshot(productsQuery, (productsSnapshot) => {
