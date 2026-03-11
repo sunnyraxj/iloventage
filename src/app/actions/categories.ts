@@ -14,11 +14,14 @@ interface CategoryFormData {
     imageUrl?: string;
 }
 
+const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+
 export async function upsertCategory(data: CategoryFormData, categoryId?: string) {
     try {
         const categoriesRef = collection(db, 'collections');
+        const slug = createSlug(data.name);
 
-        const q = query(categoriesRef, where('name', '==', data.name));
+        const q = query(categoriesRef, where('slug', '==', slug));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
             const isSameCategory = categoryId && querySnapshot.docs[0].id === categoryId;
@@ -27,17 +30,21 @@ export async function upsertCategory(data: CategoryFormData, categoryId?: string
             }
         }
 
+        const categoryData = {
+            ...data,
+            slug: slug,
+        };
+
         if (categoryId) {
             const categoryRef = doc(db, 'collections', categoryId);
-            await updateDoc(categoryRef, data);
+            await updateDoc(categoryRef, categoryData);
         } else {
             await addDoc(collection(db, 'collections'), {
-                ...data,
+                ...categoryData,
                 createdAt: serverTimestamp(),
             });
         }
 
-        revalidatePath('/admin/categories');
         revalidatePath('/admin/products/new');
         revalidatePath('/admin/products/edit', 'page');
         revalidatePath('/', 'layout');
@@ -76,7 +83,6 @@ export async function deleteCategory(categoryId: string) {
 
         await deleteDoc(categoryRef);
         
-        revalidatePath('/admin/categories');
         revalidatePath('/admin/products', 'layout');
         revalidatePath('/', 'layout');
 

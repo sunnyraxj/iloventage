@@ -2,7 +2,6 @@
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
-import { getProductBySlug } from '@/lib/data';
 import { useEffect, useState } from 'react';
 import type { Product, ProductVariant, ProductSize } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,6 +18,33 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel"
+import { db } from '@/firebase/config';
+import { collection, query, where, limit, onSnapshot, DocumentData, Timestamp } from 'firebase/firestore';
+
+
+function docToType<T>(doc: DocumentData): T {
+    const data = doc.data();
+    const id = doc.id;
+    const processedData: { [key: string]: any } = { id };
+
+    for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+            const value = data[key];
+            if (value instanceof Timestamp) {
+                processedData[key] = value.toDate().toISOString();
+            } else {
+                processedData[key] = value;
+            }
+        }
+    }
+    
+    if (!processedData.slug && processedData.name) {
+      processedData.slug = processedData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+    }
+    
+    return processedData as T;
+}
+
 
 export default function ProductPage() {
   const params = useParams();
@@ -35,47 +61,58 @@ export default function ProductPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
-    if (!api) {
-      return
-    }
-
-    const onSelect = () => {
-      if(api) {
-        setCurrentSlide(api.selectedScrollSnap())
-      }
-    }
-
-    api.on("select", onSelect)
+    if (!api) return;
+    const onSelect = () => api && setCurrentSlide(api.selectedScrollSnap());
+    api.on("select", onSelect);
     onSelect();
-
-    return () => {
-      if (api) {
-        api.off("select", onSelect);
-      }
-    };
-  }, [api])
+    return () => { api && api.off("select", onSelect) };
+  }, [api]);
 
   useEffect(() => {
     if (!slug) return;
-    const fetchProduct = async () => {
-      setLoading(true);
-      const fetchedProduct = await getProductBySlug(slug);
-      if (!fetchedProduct) {
-        notFound();
-        return;
-      }
-      setProduct(fetchedProduct);
-      if (fetchedProduct.variants && fetchedProduct.variants.length > 0) {
-        const firstVariant = fetchedProduct.variants[0];
-        setSelectedVariant(firstVariant);
-        
-        const firstAvailableSize = firstVariant.sizes.find(s => s.stock > 0);
-        setSelectedSize(firstAvailableSize || null);
-      }
-      setLoading(false);
-    };
-    fetchProduct();
-  }, [slug]);
+    setLoading(true);
+
+    const q = query(collection(db, 'products'), where('slug', '==', slug), where('isVisible', '==', true), limit(1));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (snapshot.empty) {
+            setProduct(null);
+            setLoading(false);
+            notFound();
+            return;
+        }
+
+        const fetchedProduct = docToType<Product>(snapshot.docs[0]);
+        setProduct(fetchedProduct);
+
+        setSelectedVariant(currentVariant => {
+            const newVariantStillExists = fetchedProduct.variants.find(v => v.color === currentVariant?.color);
+            const variantToSet = newVariantStillExists || fetchedProduct.variants[0];
+
+            setSelectedSize(currentSize => {
+                 const newSizeStillExists = variantToSet.sizes.find(s => s.size === currentSize?.size);
+                 const sizeToSet = (newSizeStillExists && newSizeStillExists.stock > 0) 
+                                ? newSizeStillExists
+                                : (variantToSet.sizes.find(s => s.stock > 0) || null);
+                 return sizeToSet;
+            });
+            
+            if (variantToSet.color !== currentVariant?.color) {
+                api?.scrollTo(0, true);
+            }
+
+            return variantToSet;
+        });
+
+        setLoading(false);
+    }, (error) => {
+        console.error("Error fetching product:", error);
+        setLoading(false);
+    });
+
+    return () => unsubscribe();
+}, [slug, api]);
+
 
   const handleSelectVariant = (variant: ProductVariant) => {
     setSelectedVariant(variant);

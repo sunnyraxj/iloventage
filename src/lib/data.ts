@@ -38,8 +38,8 @@ function docToType<T>(doc: DocumentData): T {
         }
     }
     
-    // Add slug for products and categories if name exists
-    if (processedData.name && (doc.ref.parent.id === 'products' || doc.ref.parent.id === 'collections')) {
+    // Add slug for products and categories if name exists and it's not already there
+    if (processedData.name && !processedData.slug && (doc.ref.parent.id === 'products' || doc.ref.parent.id === 'collections')) {
       processedData.slug = createSlug(processedData.name);
     }
     
@@ -49,18 +49,20 @@ function docToType<T>(doc: DocumentData): T {
 // --- Product Functions ---
 export const getProducts = cache(async (): Promise<Product[]> => {
     const productsCol = collection(db, 'products');
-    const productsSnapshot = await getDocs(productsCol);
+    const q = query(productsCol, where('isVisible', '==', true));
+    const productsSnapshot = await getDocs(q);
     const allProducts = productsSnapshot.docs.map(doc => docToType<Product>(doc));
-    const sortedProducts = allProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    return sortedProducts.filter(p => p.isVisible);
+    // Sort by creation date descending
+    return allProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }, ['products'], { revalidate: 60 });
   
 export const getProductBySlug = async (slug: string): Promise<Product | null> => {
-    const productsCol = collection(db, 'products');
-    const productsSnapshot = await getDocs(productsCol);
-    const products = productsSnapshot.docs.map(doc => docToType<Product>(doc));
-    const product = products.find(p => p.slug === slug);
-    return product || null;
+    const q = query(collection(db, 'products'), where('slug', '==', slug), where('isVisible', '==', true), limit(1));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        return null;
+    }
+    return docToType<Product>(snapshot.docs[0]);
 };
 
 export const getProductById = async (id: string): Promise<Product | null> => {
@@ -105,35 +107,30 @@ export const getCategories = cache(async (): Promise<Category[]> => {
 }, ['categories'], { revalidate: 60 });
   
 export const getCategoryBySlug = async (slug: string): Promise<Category | null> => {
-    const categoriesSnapshot = await getDocs(collection(db, 'collections'));
-    const categories = categoriesSnapshot.docs.map(doc => docToType<Category>(doc));
-    const category = categories.find(c => c.slug === slug);
-
-    if (!category) {
+    const q = query(collection(db, 'collections'), where('slug', '==', slug), limit(1));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
         return null;
     }
-    
-    // If the category from DB already has a specific image, use it.
+    const category = docToType<Category>(snapshot.docs[0]);
+
     if (category.imageUrl) {
         return category;
     }
 
-    // Otherwise, try to find one from its products.
     const productsQuery = query(
         collection(db, 'products'),
         where('collectionId', '==', category.id),
-        where('isVisible', '==', true)
+        where('isVisible', '==', true),
+        orderBy('createdAt', 'desc'),
+        limit(1)
     );
     const productsSnapshot = await getDocs(productsQuery);
 
     if (!productsSnapshot.empty) {
-        const products = productsSnapshot.docs.map(doc => docToType<Product>(doc));
-        // Sort in-memory to avoid composite index
-        products.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        const latestProduct = products[0];
+        const latestProduct = docToType<Product>(productsSnapshot.docs[0]);
         category.imageUrl = latestProduct.variants?.[0]?.imageUrls?.[0] || `https://picsum.photos/seed/${category.id}/400/400`;
     } else {
-        // If no products, use a fallback.
         category.imageUrl = `https://picsum.photos/seed/${category.id}/400/400`;
     }
 

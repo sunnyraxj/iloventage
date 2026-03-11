@@ -12,8 +12,10 @@ const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').rep
 
 export async function upsertProduct(data: ProductFormValues, productId?: string) {
     try {
+        const slug = createSlug(data.name);
         const productData = {
             ...data,
+            slug: slug,
             price: Number(data.price),
             mrp: Number(data.mrp),
             moq: Number(data.moq),
@@ -38,16 +40,16 @@ export async function upsertProduct(data: ProductFormValues, productId?: string)
         }
 
         // Revalidate paths
-        revalidatePath('/admin/products');
         revalidatePath('/products');
-        const slug = createSlug(data.name);
         revalidatePath(`/products/${slug}`);
         
         // Revalidate category paths
         const category = await getDoc(doc(db, 'collections', data.collectionId));
         if(category.exists()) {
-            const categorySlug = createSlug(category.data().name);
-            revalidatePath(`/categories/${categorySlug}`);
+            const categoryData = category.data();
+            if (categoryData.slug) {
+                revalidatePath(`/categories/${categoryData.slug}`);
+            }
         }
         revalidatePath('/categories');
         revalidatePath('/');
@@ -99,7 +101,6 @@ export async function deleteProduct(productId: string) {
         // Delete product document from Firestore
         await deleteDoc(productRef);
         
-        revalidatePath('/admin/products');
         revalidatePath('/products');
         revalidatePath('/');
         revalidatePath('/categories', 'layout');

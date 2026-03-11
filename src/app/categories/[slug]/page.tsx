@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCategoryBySlug } from '@/lib/data';
 import type { Product, Category } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { notFound, useParams } from 'next/navigation';
-import { collection, onSnapshot, query, where, DocumentData } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, DocumentData, limit } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 function docToProduct(doc: DocumentData): Product {
@@ -15,8 +14,19 @@ function docToProduct(doc: DocumentData): Product {
         id: doc.id,
         ...data,
         createdAt: data.createdAt?.toDate().toISOString(),
-        slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+        slug: data.slug || data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
     } as Product;
+}
+
+function docToCategory(doc: DocumentData): Category {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        name: data.name,
+        description: data.description,
+        imageUrl: data.imageUrl,
+        slug: data.slug || data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+    } as Category;
 }
 
 
@@ -28,43 +38,50 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let unsubscribe = () => {};
+    let categoryUnsubscribe = () => {};
+    let productsUnsubscribe = () => {};
 
-    async function fetchCategoryData() {
-      if (!slug) return;
-      setLoading(true);
-      try {
-        const categoryData = await getCategoryBySlug(slug);
-        if (!categoryData) {
-          notFound();
-          return;
+    if (!slug) return;
+    setLoading(true);
+
+    const categoryQuery = query(collection(db, 'collections'), where('slug', '==', slug), limit(1));
+
+    categoryUnsubscribe = onSnapshot(categoryQuery, (categorySnapshot) => {
+        if (categorySnapshot.empty) {
+            setLoading(false);
+            notFound();
+            return;
         }
+
+        const categoryData = docToCategory(categorySnapshot.docs[0]);
         setCategory(categoryData);
         
-        const q = query(
+        const productsQuery = query(
             collection(db, 'products'), 
             where('collectionId', '==', categoryData.id),
             where('isVisible', '==', true)
         );
 
-        unsubscribe = onSnapshot(q, (snapshot) => {
-          const categoryProducts = snapshot.docs.map(docToProduct);
+        productsUnsubscribe = onSnapshot(productsQuery, (productsSnapshot) => {
+          const categoryProducts = productsSnapshot.docs.map(docToProduct);
           setProducts(categoryProducts);
           setLoading(false);
         }, (error) => {
           console.error("Error fetching category products:", error);
           setLoading(false);
         });
-      } catch (error) {
-        console.error("Error setting up category page:", error);
+
+    }, (error) => {
+        console.error("Error fetching category data:", error);
         setLoading(false);
         notFound();
-      }
-    }
+    });
 
-    fetchCategoryData();
-    return () => unsubscribe();
-  }, [slug]);
+    return () => {
+        categoryUnsubscribe();
+        productsUnsubscribe();
+    };
+}, [slug]);
 
   return (
     <>
