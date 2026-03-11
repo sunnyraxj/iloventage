@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -22,7 +21,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -49,6 +49,7 @@ export default function AdminProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // 'all', 'in-stock', 'out-of-stock'
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         setLoading(true);
@@ -78,20 +79,23 @@ export default function AdminProductsPage() {
     }
     
     const filteredProducts = useMemo(() => {
-        if (filter === 'all') {
-            return products;
+        let tempProducts = products;
+
+        if (searchTerm) {
+            tempProducts = tempProducts.filter(p =>
+                p.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
         }
-        return products.filter(product => {
-            const stock = calculateTotalStock(product);
-            if (filter === 'in-stock') {
-                return stock > 0;
-            }
-            if (filter === 'out-of-stock') {
-                return stock === 0;
-            }
-            return true;
-        });
-    }, [products, filter]);
+        
+        if (filter === 'in-stock') {
+            return tempProducts.filter(p => calculateTotalStock(p) > 0);
+        }
+        if (filter === 'out-of-stock') {
+            return tempProducts.filter(p => calculateTotalStock(p) === 0);
+        }
+        
+        return tempProducts;
+    }, [products, filter, searchTerm]);
 
     const getStockStatus = (product: Product) => {
         const stock = calculateTotalStock(product);
@@ -115,6 +119,19 @@ export default function AdminProductsPage() {
         </Button>
       </CardHeader>
       <CardContent>
+        <div className="flex items-center gap-4 mb-4">
+            <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Search products by name..."
+                    className="w-full bg-background pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+        </div>
+
         <Tabs defaultValue="all" onValueChange={setFilter} className="mb-4">
             <TabsList>
                 <TabsTrigger value="all">All ({products.length})</TabsTrigger>
@@ -200,7 +217,7 @@ export default function AdminProductsPage() {
         )}
         {!loading && filteredProducts.length === 0 && (
             <div className="text-center text-muted-foreground py-8 border-2 border-dashed rounded-lg">
-                <p>No products found for this filter.</p>
+                <p>No products found.</p>
             </div>
         )}
       </CardContent>
