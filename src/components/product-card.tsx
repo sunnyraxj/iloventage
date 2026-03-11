@@ -61,7 +61,7 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
 
   return (
     <div className="group relative">
-      <Link href={`/products/${product.slug}`} className="block">
+      <Link href={`/products/${product.id}`} className="block">
         <div className="relative overflow-hidden rounded-md">
           {imageUrl ? (
             <>

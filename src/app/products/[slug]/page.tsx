@@ -1,3 +1,4 @@
+
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
@@ -21,7 +22,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel"
 import { db } from '@/firebase/config';
-import { collection, query, onSnapshot, DocumentData, Timestamp, where, limit } from 'firebase/firestore';
+import { doc, onSnapshot, DocumentData, Timestamp } from 'firebase/firestore';
 
 
 function docToType<T>(doc: DocumentData): T {
@@ -50,7 +51,7 @@ function docToType<T>(doc: DocumentData): T {
 
 export default function ProductPage() {
   const params = useParams();
-  const slug = params.slug as string;
+  const productId = params.slug as string;
   const [product, setProduct] = useState<Product | null | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -72,20 +73,20 @@ export default function ProductPage() {
 
   // Effect for fetching product data
   useEffect(() => {
-      if (!slug) {
+      if (!productId) {
         setLoading(false);
         setProduct(null);
         return;
       };
       setLoading(true);
   
-      const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1));
+      const docRef = doc(db, 'products', productId);
       
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-          if (snapshot.empty) {
+      const unsubscribe = onSnapshot(docRef, (docSnap) => {
+          if (!docSnap.exists()) {
               setProduct(null);
           } else {
-              const foundProduct = docToType<Product>(snapshot.docs[0]);
+              const foundProduct = docToType<Product>(docSnap);
               setProduct(foundProduct);
           }
           setLoading(false);
@@ -96,7 +97,7 @@ export default function ProductPage() {
       });
   
       return () => unsubscribe();
-  }, [slug]);
+  }, [productId]);
   
   // Memoize initial variant and size selection to prevent re-renders
   const initialSelections = useMemo(() => {
