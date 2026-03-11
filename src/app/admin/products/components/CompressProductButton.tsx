@@ -4,9 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { compressProductImage } from '@/app/actions/compress';
+import { replaceProductImage } from '@/app/actions/products';
 import type { Product } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
+import { storage } from '@/firebase/config';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import short from 'short-uuid';
 
 interface CompressProductButtonProps {
     product: Product;
@@ -33,9 +37,17 @@ export function CompressProductButton({ product }: CompressProductButtonProps) {
         const imagesToCompress: {variantColor: string, url: string}[] = [];
         product.variants.forEach(variant => {
             variant.imageUrls.forEach(url => {
-                imagesToCompress.push({ variantColor: variant.color, url });
+                if (!url.includes('.webp')) {
+                    imagesToCompress.push({ variantColor: variant.color, url });
+                }
             });
         });
+
+        if (imagesToCompress.length === 0) {
+            toast({ title: 'No Images to Compress', description: 'All images for this product are already in WebP format.' });
+            setIsLoading(false);
+            return;
+        }
 
         let successCount = 0;
         let skippedCount = 0;
@@ -44,18 +56,51 @@ export function CompressProductButton({ product }: CompressProductButtonProps) {
         let totalCompressedSize = 0;
 
         for (const image of imagesToCompress) {
-            const result = await compressProductImage(product.id, image.variantColor, image.url);
-            if (result.success) {
-                if(result.skipped) {
+             try {
+                // 1. Fetch the image
+                const response = await fetch(image.url);
+                if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
+                const blob = await response.blob();
+                const originalSize = blob.size;
+
+                // 2. Compress the image
+                const options = {
+                    maxSizeMB: 0.5,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true,
+                    initialQuality: 0.7,
+                    fileType: 'image/webp',
+                    alwaysKeepOrientation: true,
+                };
+                const compressedFile = await imageCompression(blob, options);
+                const compressedSize = compressedFile.size;
+
+                if (compressedSize >= originalSize) {
                     skippedCount++;
-                } else {
-                    successCount++;
-                    totalOriginalSize += result.originalSize || 0;
-                    totalCompressedSize += result.compressedSize || 0;
+                    continue;
                 }
-            } else {
+
+                // 3. Upload the new blob
+                const fileId = short.generate();
+                const newName = `${fileId}.webp`;
+                const newStorageRef = ref(storage, `products/${newName}`);
+                const snapshot = await uploadBytes(newStorageRef, compressedFile);
+                const newUrl = await getDownloadURL(snapshot.ref);
+
+                // 4. Update Firestore and delete old image
+                const result = await replaceProductImage(product.id, image.variantColor, image.url, newUrl);
+
+                if (result.success) {
+                    successCount++;
+                    totalOriginalSize += originalSize;
+                    totalCompressedSize += compressedSize;
+                } else {
+                    throw new Error(result.message || 'Failed to update database.');
+                }
+            } catch (error) {
                 failCount++;
-                toast({ variant: 'destructive', title: 'Compression Failed', description: result.message });
+                const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+                toast({ variant: 'destructive', title: `Compression Failed for ${image.url.split('/').pop()}`, description: errorMessage });
             }
         }
         

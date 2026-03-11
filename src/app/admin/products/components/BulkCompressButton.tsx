@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { compressProductImage } from '@/app/actions/compress';
+import { replaceProductImage } from '@/app/actions/products';
 import type { Product } from '@/lib/types';
 import { Image as ImageIcon, Loader2 } from 'lucide-react';
 import {
@@ -18,6 +18,12 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { getAllProducts } from '@/lib/data';
+import imageCompression from 'browser-image-compression';
+import { storage } from '@/firebase/config';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import short from 'short-uuid';
+import { useRouter } from 'next/navigation';
+
 
 const formatBytes = (bytes: number, decimals = 2) => {
     if (!bytes || bytes === 0) return '0 Bytes';
@@ -32,6 +38,7 @@ const formatBytes = (bytes: number, decimals = 2) => {
 export function BulkCompressButton() {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
+    const router = useRouter();
 
     const handleBulkCompress = async () => {
         setIsLoading(true);
@@ -44,12 +51,20 @@ export function BulkCompressButton() {
             products.forEach(product => {
                 product.variants.forEach(variant => {
                     variant.imageUrls.forEach(url => {
-                        allImages.push({ productId: product.id, variantColor: variant.color, url });
+                        if (!url.includes('.webp')) {
+                            allImages.push({ productId: product.id, variantColor: variant.color, url });
+                        }
                     });
                 });
             });
+
+            if (allImages.length === 0) {
+                toast({ title: 'No Images to Compress', description: 'All product images seem to be optimized already.' });
+                setIsLoading(false);
+                return;
+            }
             
-            toast({ title: `Found ${allImages.length} total images`, description: 'Starting compression process...' });
+            toast({ title: `Found ${allImages.length} uncompressed images`, description: 'Starting compression process...' });
             
             let successCount = 0;
             let skippedCount = 0;
@@ -64,21 +79,51 @@ export function BulkCompressButton() {
                     description: `Processing: ${image.url.split('/').pop()?.split('?')[0]}`
                 });
 
-                const result = await compressProductImage(image.productId, image.variantColor, image.url);
-                
-                if (result.success) {
-                    if (result.skipped) {
+                try {
+                    // 1. Fetch
+                    const response = await fetch(image.url);
+                    if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
+                    const blob = await response.blob();
+                    const originalSize = blob.size;
+
+                    // 2. Compress
+                    const options = {
+                        maxSizeMB: 0.5,
+                        maxWidthOrHeight: 1920,
+                        useWebWorker: true,
+                        initialQuality: 0.7,
+                        fileType: 'image/webp',
+                        alwaysKeepOrientation: true,
+                    };
+                    const compressedFile = await imageCompression(blob, options);
+                    const compressedSize = compressedFile.size;
+                    
+                    if (compressedSize >= originalSize) {
                         skippedCount++;
-                        toast({ id: toastId, title: `Skipped ${i + 1} of ${allImages.length}`, description: result.message });
-                    } else {
-                        successCount++;
-                        totalOriginalSize += result.originalSize || 0;
-                        totalCompressedSize += result.compressedSize || 0;
-                        toast({ id: toastId, title: `Compressed ${i + 1} of ${allImages.length}`, description: `Saved ${formatBytes((result.originalSize || 0) - (result.compressedSize || 0))}`});
+                        toast({ id: toastId, title: `Skipped ${i + 1} of ${allImages.length}`, description: 'Image could not be compressed further.' });
+                        continue;
                     }
-                } else {
+                    
+                    // 3. Upload
+                    const fileId = short.generate();
+                    const newName = `${fileId}.webp`;
+                    const newStorageRef = ref(storage, `products/${newName}`);
+                    const snapshot = await uploadBytes(newStorageRef, compressedFile);
+                    const newUrl = await getDownloadURL(snapshot.ref);
+
+                    // 4. Update DB
+                    const result = await replaceProductImage(image.productId, image.variantColor, image.url, newUrl);
+                    if (!result.success) throw new Error(result.message || 'DB update failed.');
+
+                    successCount++;
+                    totalOriginalSize += originalSize;
+                    totalCompressedSize += compressedSize;
+                    toast({ id: toastId, title: `Compressed ${i + 1} of ${allImages.length}`, description: `Saved ${formatBytes(originalSize - compressedSize)}`});
+
+                } catch(error) {
                     failCount++;
-                    toast({ id: toastId, variant: 'destructive', title: `Failed ${i + 1} of ${allImages.length}`, description: result.message });
+                    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+                    toast({ id: toastId, variant: 'destructive', title: `Failed ${i + 1} of ${allImages.length}`, description: errorMessage });
                 }
             }
             
@@ -93,6 +138,7 @@ export function BulkCompressButton() {
             toast({ variant: 'destructive', title: 'Bulk Compression Failed', description: error instanceof Error ? error.message : 'An unknown error occurred.' });
         } finally {
             setIsLoading(false);
+            router.refresh();
         }
     };
 
