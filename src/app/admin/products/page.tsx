@@ -35,8 +35,6 @@ import type { Product } from '@/lib/types';
 import { DeleteProductButton } from './components/DeleteProductButton';
 import { collection, onSnapshot, query, orderBy, DocumentData } from 'firebase/firestore';
 import { db } from '@/firebase/config';
-import { CompressProductButton } from './components/CompressProductButton';
-import { BulkCompressButton } from './components/BulkCompressButton';
 
 function docToProduct(doc: DocumentData): Product {
     const data = doc.data();
@@ -115,7 +113,6 @@ export default function AdminProductsPage() {
             <CardDescription>Manage your products here.</CardDescription>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-            <BulkCompressButton />
             <Button asChild>
                 <Link href="/admin/products/new">
                     <PlusCircle className="mr-2 h-4 w-4"/>
@@ -209,7 +206,6 @@ export default function AdminProductsPage() {
                                     <DropdownMenuItem asChild>
                                         <Link href={`/admin/products/edit/${product.id}`}>Edit</Link>
                                     </DropdownMenuItem>
-                                    <CompressProductButton product={product} />
                                     <DropdownMenuSeparator />
                                     <DeleteProductButton 
                                         productId={product.id}

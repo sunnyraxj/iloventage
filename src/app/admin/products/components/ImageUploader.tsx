@@ -6,13 +6,14 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Trash2, Loader2, Download, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Upload, Trash2, Loader2, Download, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
 import heic2any from 'heic2any';
 import { ImageEditor } from './ImageEditor';
+import { CompressSingleImageButton } from './CompressSingleImageButton';
 
 const formatBytes = (bytes: number, decimals = 2) => {
     if (!bytes || bytes === 0) return '0 Bytes';
@@ -25,9 +26,10 @@ const formatBytes = (bytes: number, decimals = 2) => {
 
 interface ImageUploaderProps {
   variantIndex: number;
+  productId?: string;
 }
 
-export function ImageUploader({ variantIndex }: ImageUploaderProps) {
+export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
   const { control, getValues } = useFormContext();
   const { fields, remove, append, move } = useFieldArray({
     control,
@@ -37,6 +39,8 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
   const [filesToEdit, setFilesToEdit] = useState<File[]>([]);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const variantColor = getValues(`variants.${variantIndex}.color`);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -156,10 +160,13 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
       <FormLabel>Images</FormLabel>
       <p className="text-sm text-muted-foreground">The first image is the main display image. Use the arrows to re-order.</p>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-        {fields.map((field, index) => (
+        {fields.map((field, index) => {
+            const imageUrl = (field as any).value as string;
+            const isWebp = imageUrl.includes('.webp');
+          return (
           <div key={field.id} className="relative aspect-square group">
             <img
-              src={(field as any).value}
+              src={imageUrl}
               alt={`Product image ${index + 1}`}
               className="h-full w-full object-cover rounded-md border"
             />
@@ -181,11 +188,20 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
                     className="h-6 w-6"
                     asChild
                 >
-                    <a href={(field as any).value} download target="_blank" rel="noopener noreferrer">
+                    <a href={imageUrl} download target="_blank" rel="noopener noreferrer">
                         <Download className="h-4 w-4" />
                         <span className="sr-only">Download image</span>
                     </a>
                 </Button>
+                
+                {!isWebp && productId && variantColor && (
+                    <CompressSingleImageButton
+                        productId={productId}
+                        variantColor={variantColor}
+                        imageUrl={imageUrl}
+                    />
+                )}
+
                 <Button
                   type="button"
                   variant="destructive"
@@ -222,7 +238,7 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
                 </Button>
             </div>
           </div>
-        ))}
+        )})}
         <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed rounded-md cursor-pointer hover:bg-accent hover:border-primary transition-colors">
           {isUploading ? <Loader2 className="h-8 w-8 animate-spin" /> : <Upload className="h-8 w-8 text-muted-foreground" />}
           <Input 

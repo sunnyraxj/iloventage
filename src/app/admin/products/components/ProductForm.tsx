@@ -146,7 +146,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                                     <div key={variantField.id} className="p-4 border rounded-lg space-y-4 relative">
                                         <FormField control={form.control} name={`variants.${variantIndex}.color`} render={({ field }) => (<FormItem><FormLabel>Color</FormLabel><FormControl><Input placeholder="e.g. Blue" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                        
-                                        <ImageUploader variantIndex={variantIndex} />
+                                        <ImageUploader variantIndex={variantIndex} productId={product?.id} />
                                         
                                         <SizesFieldArray control={form.control} variantIndex={variantIndex} />
 
