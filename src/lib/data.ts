@@ -49,10 +49,10 @@ function docToType<T>(doc: DocumentData): T {
 // --- Product Functions ---
 export const getProducts = cache(async (): Promise<Product[]> => {
     const productsCol = collection(db, 'products');
-    const q = query(productsCol, orderBy('createdAt', 'desc'));
-    const productsSnapshot = await getDocs(q);
-    const allSortedProducts = productsSnapshot.docs.map(doc => docToType<Product>(doc));
-    return allSortedProducts.filter(p => p.isVisible);
+    const productsSnapshot = await getDocs(productsCol);
+    const allProducts = productsSnapshot.docs.map(doc => docToType<Product>(doc));
+    const sortedProducts = allProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return sortedProducts.filter(p => p.isVisible);
 }, ['products'], { revalidate: 60 });
   
 export const getProductBySlug = async (slug: string): Promise<Product | null> => {
@@ -100,7 +100,7 @@ export const getCategories = cache(async (): Promise<Category[]> => {
 
     return categories.map(category => ({
         ...category,
-        imageUrl: category.imageUrl || categoryImageMap.get(category.id) || '',
+        imageUrl: category.imageUrl || categoryImageMap.get(category.id) || `https://picsum.photos/seed/${category.id}/400/400`,
     }));
 }, ['categories'], { revalidate: 60 });
   
@@ -113,10 +113,12 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
         return null;
     }
     
+    // If the category from DB already has a specific image, use it.
     if (category.imageUrl) {
         return category;
     }
 
+    // Otherwise, try to find one from its products.
     const productsQuery = query(
         collection(db, 'products'),
         where('collectionId', '==', category.id),
@@ -129,9 +131,10 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
         // Sort in-memory to avoid composite index
         products.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         const latestProduct = products[0];
-        category.imageUrl = latestProduct.variants?.[0]?.imageUrls?.[0] || '';
+        category.imageUrl = latestProduct.variants?.[0]?.imageUrls?.[0] || `https://picsum.photos/seed/${category.id}/400/400`;
     } else {
-        category.imageUrl = '';
+        // If no products, use a fallback.
+        category.imageUrl = `https://picsum.photos/seed/${category.id}/400/400`;
     }
 
     return category;
@@ -238,8 +241,8 @@ export const getStoreSettings = cache(async (): Promise<StoreSettings | null> =>
             id: 'default',
             storeDetails: {
                 name: 'My Store',
-                heroImageUrl: 'https://picsum.photos/seed/1/1920/1080',
-                logoUrl: '',
+                heroImageUrl: 'https://picsum.photos/seed/hero/1920/1080',
+                logoUrl: 'https://picsum.photos/seed/logo/200/200',
                 email: 'contact@example.com',
                 phone: '123-456-7890',
                 address: '123 Main Street',
