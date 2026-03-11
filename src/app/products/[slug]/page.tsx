@@ -9,7 +9,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const productId = params.slug;
   const product = await getProductById(productId);
 
-  if (!product || !product.isVisible) {
+  if (!product) {
     notFound();
   }
 

@@ -48,8 +48,7 @@ function docToType<T>(doc: DocumentData): T {
 // --- Product Functions ---
 export const getProducts = async (): Promise<Product[]> => {
     const productsCol = collection(db, 'products');
-    const q = query(productsCol, where('isVisible', '==', true));
-    const productsSnapshot = await getDocs(q);
+    const productsSnapshot = await getDocs(productsCol);
     const products = productsSnapshot.docs.map(doc => docToType<Product>(doc));
     
     // Sort in-memory to avoid needing a composite index
@@ -80,7 +79,6 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 
 export const getProductsByCollectionId = async (collectionId: string): Promise<Product[]> => {
     const q = query(collection(db, 'products'), 
-        where('isVisible', '==', true),
         where('collectionId', '==', collectionId)
     );
     const querySnapshot = await getDocs(q);
