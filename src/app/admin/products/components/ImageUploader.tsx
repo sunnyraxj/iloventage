@@ -15,7 +15,7 @@ import heic2any from 'heic2any';
 import { ImageEditor } from './ImageEditor';
 
 const formatBytes = (bytes: number, decimals = 2) => {
-    if (bytes === 0) return '0 Bytes';
+    if (!bytes || bytes === 0) return '0 Bytes';
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -67,22 +67,25 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     }
   };
 
-  const handleEditComplete = async (processedBlobs: (Blob | null)[]) => {
+  const handleEditComplete = async (processedImages: {blob: Blob | null; originalFile: File}[]) => {
     setFilesToEdit([]);
     setIsUploading(true);
 
-    const uploadPromises = processedBlobs.map(async (blob) => {
-        if (!blob) return null;
+    const uploadPromises = processedImages.map(async (image) => {
+        if (!image.blob) return null;
+        const blob = image.blob;
         
         try {
             const fileId = short.generate();
-            const storageRef = ref(storage, `products/${fileId}.webp`);
+            const newName = image.originalFile.name.replace(/\.[^/.]+$/, ".webp");
+            const storageRef = ref(storage, `products/${fileId}-${newName}`);
             const snapshot = await uploadBytes(storageRef, blob);
             const downloadURL = await getDownloadURL(snapshot.ref);
             
             return {
                 url: downloadURL,
-                size: blob.size,
+                originalFile: image.originalFile,
+                compressedSize: blob.size,
             };
         } catch (error) {
             console.error("Upload failed:", error);
@@ -97,17 +100,20 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
         if (result) {
             append({ 
                 value: result.url,
-                compressedSize: result.size,
+                compressedSize: result.compressedSize,
             });
-            toast({ title: 'Image Uploaded', description: `Size: ${formatBytes(result.size)}` });
+            toast({ 
+                title: 'Image Uploaded & Optimized', 
+                description: `${result.originalFile.name} (${formatBytes(result.originalFile.size)}) → ${formatBytes(result.compressedSize)}` 
+            });
             successCount++;
         } else {
             toast({ variant: 'destructive', title: 'Upload Failed', description: 'One or more images failed to upload.', duration: 9000 });
         }
     });
 
-    if (successCount > 0 && successCount < processedBlobs.length) {
-        toast({ title: 'Partial Success', description: `${successCount} out of ${processedBlobs.length} images were uploaded.` });
+    if (successCount > 0 && successCount < processedImages.length) {
+        toast({ title: 'Partial Success', description: `${successCount} out of ${processedImages.length} images were uploaded.` });
     }
 
     setIsUploading(false);

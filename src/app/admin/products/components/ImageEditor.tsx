@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -25,6 +24,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import imageCompression from 'browser-image-compression';
 
 // Utility to create an image element from a URL
 const createImage = (url: string): Promise<HTMLImageElement> =>
@@ -89,7 +89,7 @@ async function getCroppedImg(
   return new Promise((resolve) => {
     canvas.toBlob((file) => {
       resolve(file);
-    }, 'image/webp', 0.9);
+    }, 'image/png'); // Output PNG for further compression
   });
 }
 
@@ -106,7 +106,7 @@ interface EditState {
 interface ImageEditorProps {
   files: File[];
   onCancel: () => void;
-  onComplete: (processedImages: (Blob | null)[]) => void;
+  onComplete: (processedImages: {blob: Blob | null; originalFile: File}[]) => void;
 }
 
 export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
@@ -148,18 +148,46 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
 
   const handleFinish = async () => {
     setIsProcessing(true);
-    toast({ title: 'Processing Images', description: 'Please wait...' });
+    toast({ title: 'Processing Images', description: 'Applying edits and compressing...' });
     try {
-      const processedImages = await Promise.all(
-        editStates.map(state =>
-          getCroppedImg(state.url, state.croppedAreaPixels!, state.rotation, state.flip)
-        )
-      );
-      onComplete(processedImages);
+        const editedBlobs = await Promise.all(
+            editStates.map(state =>
+              getCroppedImg(state.url, state.croppedAreaPixels!, state.rotation, state.flip)
+            )
+        );
+
+        const compressionOptions = {
+            maxSizeMB: 0.5,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+            initialQuality: 0.7,
+            fileType: 'image/webp',
+            alwaysKeepOrientation: true,
+        };
+
+        const results = await Promise.all(
+            editedBlobs.map(async (blob, index) => {
+              const originalFile = editStates[index].file;
+              if (!blob) return { blob: null, originalFile };
+              
+              const fileToCompress = new File([blob], originalFile.name.replace(/\.[^/.]+$/, ".png"), { type: 'image/png' });
+    
+              try {
+                const compressedFile = await imageCompression(fileToCompress, compressionOptions);
+                return { blob: compressedFile, originalFile };
+              } catch (compressionError) {
+                console.error('Compression failed for an image:', compressionError);
+                toast({ variant: 'destructive', title: 'Compression Failed', description: `Could not compress ${originalFile.name}. Uploading edited version without extra compression.`});
+                return { blob: blob, originalFile };
+              }
+            })
+        );
+      
+      onComplete(results);
       setIsOpen(false);
     } catch (e) {
         console.error(e);
-        toast({ variant: 'destructive', title: 'Error Processing Images', description: 'Could not process images. Please try again.'});
+        toast({ variant: 'destructive', title: 'Error Processing Images', description: 'Could not apply edits. Please try again.'});
     } finally {
         setIsProcessing(false);
     }
