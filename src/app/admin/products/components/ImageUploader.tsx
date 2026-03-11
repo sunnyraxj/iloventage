@@ -5,7 +5,7 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Trash2, Loader2, Download } from 'lucide-react';
+import { Upload, Trash2, Loader2, Download, ArrowLeft, ArrowRight } from 'lucide-react';
 import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
@@ -28,7 +28,7 @@ interface ImageUploaderProps {
 
 export function ImageUploader({ variantIndex }: ImageUploaderProps) {
   const { control, getValues } = useFormContext();
-  const { fields, remove, append } = useFieldArray({
+  const { fields, remove, append, move } = useFieldArray({
     control,
     name: `variants.${variantIndex}.imageUrls`
   });
@@ -153,9 +153,16 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     toast({ title: 'Image removed' });
   };
 
+  const handleMoveImage = (from: number, to: number) => {
+      if (to >= 0 && to < fields.length) {
+          move(from, to);
+      }
+  }
+
   return (
     <div className="space-y-4">
       <FormLabel>Images</FormLabel>
+      <p className="text-sm text-muted-foreground">The first image is the main display image. Use the arrows to re-order.</p>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
         {fields.map((field, index) => (
           <div key={field.id} className="relative aspect-square group">
@@ -164,6 +171,11 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
               alt={`Product image ${index + 1}`}
               className="h-full w-full object-cover rounded-md border"
             />
+            {index === 0 && (
+                <div className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-sm font-bold tracking-wider">
+                    MAIN
+                </div>
+            )}
             {(field as any).compressedSize && (
                 <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1 py-0.5 rounded">
                     {formatBytes((field as any).compressedSize)}
@@ -191,6 +203,30 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
                 >
                   <Trash2 className="h-4 w-4" />
                   <span className="sr-only">Remove image</span>
+                </Button>
+            </div>
+            <div className="absolute bottom-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => handleMoveImage(index, index - 1)}
+                    disabled={index === 0}
+                >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="sr-only">Move left</span>
+                </Button>
+                <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => handleMoveImage(index, index + 1)}
+                    disabled={index === fields.length - 1}
+                >
+                    <ArrowRight className="h-4 w-4" />
+                    <span className="sr-only">Move right</span>
                 </Button>
             </div>
           </div>
