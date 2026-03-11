@@ -62,10 +62,10 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
         const originalName = fileToProcess.name;
 
         const options = {
-            maxSizeMB: 1,
+            maxSizeMB: 0.5,
             maxWidthOrHeight: 1920,
             useWebWorker: true,
-            initialQuality: 0.6,
+            initialQuality: 0.7,
             fileType: 'image/webp',
             alwaysKeepOrientation: true,
         };
