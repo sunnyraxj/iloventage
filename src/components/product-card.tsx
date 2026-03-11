@@ -1,9 +1,7 @@
-
 'use client';
 
 import Link from 'next/link';
 import { ShoppingBag, Plus } from 'lucide-react';
-import Image from 'next/image';
 import React from 'react';
 
 import type { Product } from '@/lib/types';
@@ -65,24 +63,23 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
         <div className="relative overflow-hidden rounded-md">
           {imageUrl ? (
             <>
-              <Image
+              <img
                 src={imageUrl}
                 alt={product.name}
                 width={600}
                 height={800}
                 className="aspect-[3/4] w-full object-cover transition-opacity duration-300"
-                priority={priority}
-                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+                loading={priority ? "eager" : "lazy"}
                 decoding="async"
               />
               {hoverImageUrl && (
-                <Image
+                <img
                   src={hoverImageUrl}
                   alt={`${product.name} - hover view`}
                   width={600}
                   height={800}
                   className="hidden md:block absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+                  loading="lazy"
                   decoding="async"
                 />
               )}
