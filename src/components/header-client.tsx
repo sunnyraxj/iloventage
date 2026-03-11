@@ -139,7 +139,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
         </div>
 
         {/* Center Section (Logo) */}
-        <div className="flex justify-center">
+        <div className="flex-shrink-0">
           <Link href="/" className="flex items-center space-x-2">
             {logoUrl ? (
                 <img src={logoUrl} alt={storeName} width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
