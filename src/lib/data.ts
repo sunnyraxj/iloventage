@@ -49,9 +49,10 @@ function docToType<T>(doc: DocumentData): T {
 // --- Product Functions ---
 export const getProducts = cache(async (): Promise<Product[]> => {
     const productsCol = collection(db, 'products');
-    const q = query(productsCol, where('isVisible', '==', true));
+    const q = query(productsCol, orderBy('createdAt', 'desc'));
     const productsSnapshot = await getDocs(q);
-    return productsSnapshot.docs.map(doc => docToType<Product>(doc));
+    const allSortedProducts = productsSnapshot.docs.map(doc => docToType<Product>(doc));
+    return allSortedProducts.filter(p => p.isVisible);
 }, ['products'], { revalidate: 60 });
   
 export const getProductBySlug = async (slug: string): Promise<Product | null> => {
