@@ -174,13 +174,14 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
     };
 
     setCompressingImageUrl(imageUrlToCompress);
-    toast({ title: 'Starting Compression', description: `Processing image...` });
+    const { id: toastId, update: updateToast } = toast({ title: 'Step 1/4: Downloading image...', description: 'Please wait...' });
 
     try {
         const imageRef = ref(storage, imageUrlToCompress);
         const blob = await getBlob(imageRef);
         const originalSize = blob.size;
 
+        updateToast({ title: 'Step 2/4: Compressing image...', description: 'This may take a moment...' });
         const options = {
             maxSizeMB: 0.5,
             maxWidthOrHeight: 1920,
@@ -193,40 +194,39 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
         const compressedSize = compressedFile.size;
 
         if (compressedSize >= originalSize) {
-            toast({ title: 'Skipped', description: 'Image is already optimized.' });
+            updateToast({ title: 'Skipped', description: 'Image is already optimized.', duration: 3000 });
             setCompressingImageUrl(null);
             return;
         }
 
+        updateToast({ title: 'Step 3/4: Uploading compressed image...', description: 'Almost done...' });
         const fileId = short.generate();
         const newName = `${fileId}.webp`;
         const newStorageRef = ref(storage, `products/${newName}`);
         await uploadBytes(newStorageRef, compressedFile);
         const newUrl = await getDownloadURL(newStorageRef);
-
+        
+        updateToast({ title: 'Step 4/4: Updating product...', description: 'Finalizing changes...' });
         const result = await replaceProductImage(productId, variantColor, imageUrlToCompress, newUrl);
 
         if (result.success) {
-            toast({
-                title: 'Compression Complete',
-                description: `Saved ${formatBytes(originalSize - compressedSize)}.`,
+            updateToast({
+                title: 'Compression Complete!',
+                description: `Saved ${formatBytes(originalSize - compressedSize)}. Page will now refresh.`,
             });
-            // Set loading state to false before refreshing to prevent UI from getting stuck.
-            setCompressingImageUrl(null);
-            router.refresh();
+            setTimeout(() => router.refresh(), 1500);
         } else {
             throw new Error(result.message || 'Failed to update database.');
         }
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        toast({ variant: 'destructive', title: 'Compression Failed', description: errorMessage });
+        updateToast({ variant: 'destructive', title: 'Compression Failed', description: errorMessage, duration: 9000 });
         setCompressingImageUrl(null);
     }
   };
 
   const handleDownload = async (imageUrl: string) => {
     try {
-        // Use getBlob to bypass CORS issues for cross-origin images
         const imageRef = ref(storage, imageUrl);
         const blob = await getBlob(imageRef);
         const objectUrl = window.URL.createObjectURL(blob);
@@ -234,7 +234,6 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
         const link = document.createElement('a');
         link.href = objectUrl;
 
-        // Create a filename from the URL
         const urlParts = imageUrl.split('/');
         const lastPart = urlParts[urlParts.length - 1] || 'image';
         const filename = lastPart.split('?')[0].split('%2F').pop() || 'image';
@@ -243,13 +242,11 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
         document.body.appendChild(link);
         link.click();
         
-        // Clean up
         document.body.removeChild(link);
         window.URL.revokeObjectURL(objectUrl);
     } catch (error) {
         console.error("Download failed:", error);
         toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not download the image. Opening in new tab as fallback.'});
-        // Fallback to opening in a new tab if download fails
         window.open(imageUrl, '_blank');
     }
   };
