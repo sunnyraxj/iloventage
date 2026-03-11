@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
@@ -105,16 +106,18 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col p-0 sm:max-w-xs">
-                <div className="p-4 border-b">
-                    <Link href="/" className="flex items-center gap-2">
-                        {logoUrl ? (
-                            <img src={logoUrl} alt={storeName} width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
-                        ) : (
-                            <div className="h-8 w-8 bg-muted rounded-full" />
-                        )}
-                        <span className="font-bold text-lg">{storeName}</span>
-                    </Link>
-                </div>
+                <SheetHeader className="p-4 border-b text-left">
+                    <SheetTitle asChild>
+                        <Link href="/" className="flex items-center gap-2">
+                            {logoUrl ? (
+                                <img src={logoUrl} alt={storeName} width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
+                            ) : (
+                                <div className="h-8 w-8 bg-muted rounded-full" />
+                            )}
+                            <span className="font-bold text-lg">{storeName}</span>
+                        </Link>
+                    </SheetTitle>
+                </SheetHeader>
                 <nav className="flex-1 space-y-1 p-4">
                   <Link href="/products" className="block rounded-lg px-3 py-2 text-base font-medium text-foreground hover:bg-accent">All Products</Link>
                   {navLinks.map((link) => (
