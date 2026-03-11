@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef } from 'react';
@@ -10,8 +11,8 @@ import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
-import imageCompression from 'browser-image-compression';
 import heic2any from 'heic2any';
+import { ImageEditor } from './ImageEditor';
 
 const formatBytes = (bytes: number, decimals = 2) => {
     if (bytes === 0) return '0 Bytes';
@@ -33,103 +34,88 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     name: `variants.${variantIndex}.imageUrls`
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [filesToEdit, setFilesToEdit] = useState<File[]>([]);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
-
-    setIsUploading(true);
-
-    const uploadPromises = Array.from(files).map(async (file) => {
-        let fileToProcess = file;
+    
+    // HEIC conversion
+    const convertedFiles = await Promise.all(Array.from(files).map(async file => {
         const fileName = file.name.toLowerCase();
         const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || fileName.endsWith('.heic') || fileName.endsWith('.heif');
-
         if (isHeic) {
             try {
                 const conversionResult = await heic2any({ blob: file, toType: 'image/png' });
                 const convertedBlob = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
-                fileToProcess = new File([convertedBlob], file.name.replace(/\.(heic|heif)$/i, '.png'), { type: 'image/png' });
+                return new File([convertedBlob], file.name.replace(/\.(heic|heif)$/i, '.png'), { type: 'image/png' });
             } catch (e) {
-                console.error("HEIC conversion failed for", file.name, e);
-                throw new Error(`Could not convert HEIC file: ${file.name}`);
+                toast({ variant: 'destructive', title: 'Conversion Failed', description: `Could not convert HEIC file: ${file.name}` });
+                return null;
             }
         }
-        
-        const originalSize = fileToProcess.size;
-        const originalName = fileToProcess.name;
-
-        const options = {
-            maxSizeMB: 0.5,
-            maxWidthOrHeight: 1920,
-            useWebWorker: true,
-            initialQuality: 0.7,
-            fileType: 'image/webp',
-            alwaysKeepOrientation: true,
-        };
-        
-        const compressedFile = await imageCompression(fileToProcess, options);
-        const compressedSize = compressedFile.size;
-        const newName = compressedFile.name;
-        
-        const fileId = short.generate();
-        const storageRef = ref(storage, `products/${fileId}-${newName}`);
-        await uploadBytes(storageRef, compressedFile);
-        const downloadURL = await getDownloadURL(storageRef);
-        
-        return {
-            url: downloadURL,
-            originalName,
-            originalSize,
-            newName,
-            compressedSize,
-        };
-    });
-
-    const results = await Promise.allSettled(uploadPromises);
-
-    let successCount = 0;
-    results.forEach(result => {
-        if (result.status === 'fulfilled') {
-            const { url, originalName, originalSize, newName, compressedSize } = result.value;
-            append({ 
-                value: url,
-                originalSize: originalSize,
-                compressedSize: compressedSize,
-            });
-            toast({ title: 'Image Optimized & Uploaded', description: `${originalName} (${formatBytes(originalSize)}) → ${newName} (${formatBytes(compressedSize)})` });
-            successCount++;
-        } else {
-            console.error("Upload failed:", result.reason);
-            let errorMessage = 'An upload failed.';
-            if (result.reason instanceof Error) {
-                errorMessage = result.reason.message;
-            } else if (typeof result.reason === 'string') {
-                errorMessage = result.reason;
-            } else if (result.reason && result.reason.code) {
-                 switch (result.reason.code) {
-                    case 'storage/unauthorized': errorMessage = `Permission denied. Check storage rules.`; break;
-                    case 'storage/canceled': errorMessage = `Upload was canceled.`; break;
-                    case 'storage/retry-limit-exceeded': errorMessage = `Upload timed out. Check network.`; break;
-                    case 'storage/unauthenticated': errorMessage = `You must be logged in to upload images.`; break;
-                    default: errorMessage = result.reason.message || 'An unknown upload error occurred.'; break;
-                }
-            }
-            toast({ variant: 'destructive', title: 'Upload Failed', description: errorMessage, duration: 9000 });
-        }
-    });
-
-    if (successCount > 0 && successCount < files.length) {
-        toast({ title: 'Partial Success', description: `${successCount} out of ${files.length} images were uploaded.` });
-    }
-
-    setIsUploading(false);
+        return file;
+    }));
+    
+    const validFiles = convertedFiles.filter((f): f is File => f !== null);
+    setFilesToEdit(validFiles);
+    
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
+
+  const handleEditComplete = async (processedBlobs: (Blob | null)[]) => {
+    setFilesToEdit([]);
+    setIsUploading(true);
+
+    const uploadPromises = processedBlobs.map(async (blob) => {
+        if (!blob) return null;
+        
+        try {
+            const fileId = short.generate();
+            const storageRef = ref(storage, `products/${fileId}.webp`);
+            const snapshot = await uploadBytes(storageRef, blob);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            
+            return {
+                url: downloadURL,
+                size: blob.size,
+            };
+        } catch (error) {
+            console.error("Upload failed:", error);
+            return null;
+        }
+    });
+
+    const results = await Promise.all(uploadPromises);
+
+    let successCount = 0;
+    results.forEach(result => {
+        if (result) {
+            append({ 
+                value: result.url,
+                compressedSize: result.size,
+            });
+            toast({ title: 'Image Uploaded', description: `Size: ${formatBytes(result.size)}` });
+            successCount++;
+        } else {
+            toast({ variant: 'destructive', title: 'Upload Failed', description: 'One or more images failed to upload.', duration: 9000 });
+        }
+    });
+
+    if (successCount > 0 && successCount < processedBlobs.length) {
+        toast({ title: 'Partial Success', description: `${successCount} out of ${processedBlobs.length} images were uploaded.` });
+    }
+
+    setIsUploading(false);
+  }
+
+  const handleEditCancel = () => {
+    setFilesToEdit([]);
+  }
 
   const handleRemoveImage = async (index: number) => {
     const urlToRemove = getValues(`variants.${variantIndex}.imageUrls`)[index].value;
@@ -237,7 +223,7 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
             ref={fileInputRef}
             type="file" 
             className="hidden" 
-            onChange={handleFileChange} 
+            onChange={handleFileSelect} 
             accept="image/*,.heic,.heif" 
             multiple
             disabled={isUploading}
@@ -245,6 +231,15 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
           <span className="text-xs text-muted-foreground mt-2">Upload</span>
         </label>
       </div>
+
+      {filesToEdit.length > 0 && (
+          <ImageEditor
+              files={filesToEdit}
+              onComplete={handleEditComplete}
+              onCancel={handleEditCancel}
+          />
+      )}
+
       <FormField
         control={control}
         name={`variants.${variantIndex}.imageUrls`}
