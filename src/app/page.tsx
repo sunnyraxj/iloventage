@@ -60,7 +60,7 @@ export default async function HomePage() {
                     Curated Collections
                 </p>
             </div>
-            <div className="grid auto-cols-[28vw] grid-flow-col gap-4 overflow-x-auto pb-4 sm:auto-cols-[20vw] md:auto-cols-auto md:grid-cols-3 md:grid-flow-row lg:grid-cols-5 xl:grid-cols-5 -mx-4 px-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {categories.map((category) => (
                 <Link key={category.id} href={`/categories/${category.slug}`} className="group block">
                   <div className="overflow-hidden rounded-lg">
