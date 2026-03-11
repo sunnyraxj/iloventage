@@ -2,7 +2,7 @@
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import type { Product, ProductVariant, ProductSize } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel"
 import { db } from '@/firebase/config';
-import { collection, query, onSnapshot, DocumentData, Timestamp } from 'firebase/firestore';
+import { collection, query, onSnapshot, DocumentData, Timestamp, where, limit } from 'firebase/firestore';
 
 
 function docToType<T>(doc: DocumentData): T {
@@ -80,22 +80,20 @@ export default function ProductPage() {
       };
       setLoading(true);
   
-      // Listen to all products and filter client-side.
-      // This is robust for items that might not have a 'slug' field in the DB,
-      // as our docToType helper generates one on the fly.
-      const q = query(collection(db, 'products'));
+      const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1));
       
       const unsubscribe = onSnapshot(q, (snapshot) => {
-          const allProducts = snapshot.docs.map(doc => docToType<Product>(doc));
-          const foundProduct = allProducts.find(p => p.slug === slug);
-          
-          // Client-side visibility check
-          if (foundProduct && foundProduct.isVisible) {
-            setProduct(foundProduct);
+          if (snapshot.empty) {
+              setProduct(null);
           } else {
-            setProduct(null);
+              const foundProduct = docToType<Product>(snapshot.docs[0]);
+              // Also check visibility client-side as an extra guard
+              if (foundProduct.isVisible) {
+                  setProduct(foundProduct);
+              } else {
+                  setProduct(null);
+              }
           }
-
           setLoading(false);
       }, (error) => {
           console.error("Error fetching product:", error);
@@ -106,32 +104,45 @@ export default function ProductPage() {
       return () => unsubscribe();
   }, [slug]);
   
+  // Memoize initial variant and size selection to prevent re-renders
+  const initialSelections = useMemo(() => {
+    if (!product) return { variant: null, size: null };
+
+    const firstVariant = product.variants[0];
+    const firstAvailableSize = firstVariant?.sizes.find(s => s.stock > 0) || null;
+    return { variant: firstVariant, size: firstAvailableSize };
+  }, [product]);
+
   // Effect for synchronizing variant and size selections when product data changes
   useEffect(() => {
       if (!product) return;
   
-      // Determine the variant to select. Prioritize the currently selected one if it still exists.
-      const newVariantToSet = product.variants.find(v => v.color === selectedVariant?.color) || product.variants[0];
+      // Set initial selections once
+      if (!selectedVariant) {
+        setSelectedVariant(initialSelections.variant);
+        setSelectedSize(initialSelections.size);
+      }
   
-      // Determine the size to select based on the new variant. Prioritize current size if available.
-      const newSizeToSet =
-        (newVariantToSet.sizes.find(s => s.size === selectedSize?.size) && newVariantToSet.sizes.find(s => s.size === selectedSize?.size)!.stock > 0)
-          ? newVariantToSet.sizes.find(s => s.size === selectedSize?.size)!
-          : (newVariantToSet.sizes.find(s => s.stock > 0) || null);
-  
-      if (newVariantToSet.color !== selectedVariant?.color) {
-          setSelectedVariant(newVariantToSet);
-          api?.scrollTo(0, true);
+      // Validate and update selections if they become invalid (e.g. out of stock)
+      const currentVariantIsValid = product.variants.some(v => v.color === selectedVariant?.color);
+      const newVariant = currentVariantIsValid ? selectedVariant! : initialSelections.variant;
+      
+      const currentSizeIsValid = newVariant?.sizes.some(s => s.size === selectedSize?.size && s.stock > 0);
+      const newSize = currentSizeIsValid ? selectedSize : newVariant?.sizes.find(s => s.stock > 0) || null;
+
+      if (newVariant?.color !== selectedVariant?.color) {
+        setSelectedVariant(newVariant);
+        api?.scrollTo(0, true);
       }
       
-      if (newSizeToSet?.size !== selectedSize?.size || newSizeToSet?.stock !== selectedSize?.stock) {
-          setSelectedSize(newSizeToSet);
+      if (newSize?.size !== selectedSize?.size || newSize?.stock !== selectedSize?.stock) {
+        setSelectedSize(newSize);
       }
       
       setQuantity(product.moq || 1);
       
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product, api]);
+  }, [product, initialSelections, api]);
 
   const handleSelectVariant = (variant: ProductVariant) => {
     setSelectedVariant(variant);
@@ -243,6 +254,7 @@ export default function ProductPage() {
                                       height={800}
                                       className="h-full w-full object-cover"
                                       loading={index === 0 ? "eager" : "lazy"}
+                                      decoding="async"
                                   />
                               </div>
                           </CarouselItem>
@@ -271,6 +283,7 @@ export default function ProductPage() {
                                   height={200}
                                   className="h-full w-full object-cover"
                                   loading="lazy"
+                                  decoding="async"
                               />
                           </div>
                       )

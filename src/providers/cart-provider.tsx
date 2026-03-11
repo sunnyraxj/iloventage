@@ -1,7 +1,9 @@
+
 'use client';
 
-import React, { createContext, useReducer, useEffect, type ReactNode } from 'react';
+import React, { createContext, useReducer, useEffect, type ReactNode, useCallback } from 'react';
 import type { CartItem } from '@/lib/types';
+import { useDebouncedCallback } from 'use-debounce';
 
 type CartState = {
   items: CartItem[];
@@ -84,11 +86,22 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  const debouncedSave = useDebouncedCallback(
+    (cartState: CartState) => {
+        try {
+            localStorage.setItem('cart', JSON.stringify(cartState));
+        } catch (error) {
+            console.error("Failed to save cart to localStorage", error);
+        }
+    },
+    500 // Debounce time in milliseconds
+  );
+
   useEffect(() => {
     if(state !== initialState){
-        localStorage.setItem('cart', JSON.stringify(state));
+        debouncedSave(state);
     }
-  }, [state]);
+  }, [state, debouncedSave]);
 
   return (
     <CartContext.Provider value={{ state, dispatch }}>

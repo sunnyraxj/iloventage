@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -5,7 +6,7 @@ import type { Product, Category } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { notFound, useParams } from 'next/navigation';
-import { collection, onSnapshot, query, where, DocumentData, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, DocumentData, getDocs, limit } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 function docToProduct(doc: DocumentData): Product {
@@ -49,17 +50,17 @@ export default function CategoryPage() {
     setLoading(true);
 
     const findCategoryAndFetchProducts = async () => {
-        const categoriesQuery = query(collection(db, 'collections'));
+        const categoryQuery = query(collection(db, 'collections'), where('slug', '==', slug), limit(1));
         try {
-            const categorySnapshot = await getDocs(categoriesQuery);
-            const allCategories = categorySnapshot.docs.map(docToCategory);
-            const foundCategory = allCategories.find(c => c.slug === slug);
-
-            if (!foundCategory) {
+            const categorySnapshot = await getDocs(categoryQuery);
+            
+            if (categorySnapshot.empty) {
                 setLoading(false);
                 setCategory(null); // This will trigger notFound()
                 return;
             }
+
+            const foundCategory = docToCategory(categorySnapshot.docs[0]);
 
             setCategory(foundCategory);
 
@@ -78,7 +79,7 @@ export default function CategoryPage() {
                 setLoading(false);
             });
         } catch (error) {
-            console.error("Error fetching categories:", error);
+            console.error("Error fetching category:", error);
             setLoading(false);
             setCategory(null);
         }

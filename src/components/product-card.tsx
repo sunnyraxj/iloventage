@@ -1,7 +1,10 @@
+
 'use client';
 
 import Link from 'next/link';
 import { ShoppingBag, Plus } from 'lucide-react';
+import Image from 'next/image';
+import React from 'react';
 
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -13,7 +16,7 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
-export function ProductCard({ product, priority = false }: ProductCardProps) {
+export const ProductCard = React.memo(function ProductCard({ product, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
 
@@ -62,22 +65,25 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
         <div className="relative overflow-hidden rounded-md">
           {imageUrl ? (
             <>
-              <img
+              <Image
                 src={imageUrl}
                 alt={product.name}
                 width={600}
                 height={800}
                 className="aspect-[3/4] w-full object-cover transition-opacity duration-300"
-                loading={priority ? 'eager' : 'lazy'}
+                priority={priority}
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+                decoding="async"
               />
               {hoverImageUrl && (
-                <img
+                <Image
                   src={hoverImageUrl}
                   alt={`${product.name} - hover view`}
                   width={600}
                   height={800}
                   className="hidden md:block absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  loading="lazy"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+                  decoding="async"
                 />
               )}
             </>
@@ -136,4 +142,4 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
       </Link>
     </div>
   );
-}
+});

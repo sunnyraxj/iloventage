@@ -85,23 +85,11 @@ export const getCategories = async (): Promise<Category[]> => {
     const categoriesSnapshot = await getDocs(categoriesCol);
     const categories = categoriesSnapshot.docs.map(doc => docToType<Category>(doc));
 
-    const productsQuery = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
-    const productsSnapshot = await getDocs(productsQuery);
-    const products = productsSnapshot.docs.map(doc => docToType<Product>(doc));
-
-    const categoryImageMap = new Map<string, string>();
-    for (const product of products) {
-        if (!categoryImageMap.has(product.collectionId)) {
-            const imageUrl = product.variants?.[0]?.imageUrls?.[0];
-            if (imageUrl) {
-                categoryImageMap.set(product.collectionId, imageUrl);
-            }
-        }
-    }
-
+    // Return categories and let the UI handle image fallbacks.
+    // This avoids fetching all products which is a major performance bottleneck.
     return categories.map(category => ({
         ...category,
-        imageUrl: category.imageUrl || categoryImageMap.get(category.id) || `https://picsum.photos/seed/${category.id}/400/400`,
+        imageUrl: category.imageUrl || `https://picsum.photos/seed/${category.id}/400/400`,
     }));
 };
   
@@ -113,25 +101,8 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
     }
     const category = docToType<Category>(snapshot.docs[0]);
 
-    if (category.imageUrl) {
-        return category;
-    }
-
-    const productsQuery = query(
-        collection(db, 'products'),
-        where('collectionId', '==', category.id),
-        where('isVisible', '==', true),
-        orderBy('createdAt', 'desc'),
-        limit(1)
-    );
-    const productsSnapshot = await getDocs(productsQuery);
-
-    if (!productsSnapshot.empty) {
-        const latestProduct = docToType<Product>(productsSnapshot.docs[0]);
-        category.imageUrl = latestProduct.variants?.[0]?.imageUrls?.[0] || `https://picsum.photos/seed/${category.id}/400/400`;
-    } else {
-        category.imageUrl = `https://picsum.photos/seed/${category.id}/400/400`;
-    }
+    // Add a fallback imageUrl if one doesn't exist, without an extra DB call.
+    category.imageUrl = category.imageUrl || `https://picsum.photos/seed/${category.id}/400/400`;
 
     return category;
 };
