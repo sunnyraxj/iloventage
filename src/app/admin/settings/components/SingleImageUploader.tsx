@@ -57,9 +57,9 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
     if (isHeic) {
         try {
             toast({ title: 'Converting HEIC...', description: 'Please wait while the image is being converted.' });
-            const conversionResult = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
+            const conversionResult = await heic2any({ blob: file, toType: 'image/png' });
             processedFile = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
-            processedFile = new File([processedFile], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+            processedFile = new File([processedFile], file.name.replace(/\.(heic|heif)$/i, '.png'), { type: 'image/png' });
         } catch (e) {
             console.error("HEIC conversion failed", e);
             toast({ variant: 'destructive', title: 'Conversion Failed', description: 'Could not convert the HEIC file. Please try a different format.' });
@@ -88,10 +88,10 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
       const originalName = processedFile.name;
       
       const options = {
-        maxSizeMB: 1.5,
+        maxSizeMB: 1,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
-        initialQuality: 0.75,
+        initialQuality: 0.6,
         fileType: 'image/webp',
         alwaysKeepOrientation: true,
       };
