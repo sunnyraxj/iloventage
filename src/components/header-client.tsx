@@ -159,7 +159,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                   type="search"
                   name="search"
                   placeholder="Search products..."
-                  className="w-full rounded-lg bg-secondary pl-8"
+                  className="w-full rounded-full bg-secondary pl-8"
                 />
               </div>
             </form>

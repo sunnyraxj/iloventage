@@ -277,7 +277,7 @@ export function ProductsView({ categories, initialProducts = [], searchParams: s
                           <Input
                               type="search"
                               placeholder="Search products..."
-                              className="w-full rounded-lg bg-background pl-10"
+                              className="w-full rounded-full bg-background pl-10"
                               value={searchTerm}
                               onChange={(e) => setSearchTerm(e.target.value)}
                           />
