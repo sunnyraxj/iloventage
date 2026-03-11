@@ -211,6 +211,8 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
                 title: 'Compression Complete',
                 description: `Saved ${formatBytes(originalSize - compressedSize)}.`,
             });
+            // Set loading state to false before refreshing to prevent UI from getting stuck.
+            setCompressingImageUrl(null);
             router.refresh();
         } else {
             throw new Error(result.message || 'Failed to update database.');
@@ -218,8 +220,37 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
         toast({ variant: 'destructive', title: 'Compression Failed', description: errorMessage });
-    } finally {
         setCompressingImageUrl(null);
+    }
+  };
+
+  const handleDownload = async (imageUrl: string) => {
+    try {
+        // Use getBlob to bypass CORS issues for cross-origin images
+        const imageRef = ref(storage, imageUrl);
+        const blob = await getBlob(imageRef);
+        const objectUrl = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = objectUrl;
+
+        // Create a filename from the URL
+        const urlParts = imageUrl.split('/');
+        const lastPart = urlParts[urlParts.length - 1] || 'image';
+        const filename = lastPart.split('?')[0].split('%2F').pop() || 'image';
+        
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+        console.error("Download failed:", error);
+        toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not download the image. Opening in new tab as fallback.'});
+        // Fallback to opening in a new tab if download fails
+        window.open(imageUrl, '_blank');
     }
   };
 
@@ -259,11 +290,9 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
                         <ArrowLeft className="h-4 w-4" />
                         <span className="sr-only">Move left</span>
                     </Button>
-                    <Button type="button" variant="outline" size="icon" className="h-7 w-7" asChild>
-                        <a href={imageUrl} download target="_blank" rel="noopener noreferrer">
-                            <Download className="h-4 w-4" />
-                            <span className="sr-only">Download image</span>
-                        </a>
+                    <Button type="button" variant="outline" size="icon" className="h-7 w-7" onClick={() => handleDownload(imageUrl)}>
+                        <Download className="h-4 w-4" />
+                        <span className="sr-only">Download image</span>
                     </Button>
                     {!isWebp && productId && variantColor && (
                         <CompressSingleImageButton
@@ -296,10 +325,8 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
                             <DropdownMenuItem onSelect={() => handleMoveImage(index, index + 1)} disabled={index === fields.length - 1}>
                                 <ArrowRight className="mr-2 h-4 w-4" /> Move Right
                             </DropdownMenuItem>
-                             <DropdownMenuItem asChild>
-                                <a href={imageUrl} download target="_blank" rel="noopener noreferrer">
-                                    <Download className="mr-2 h-4 w-4" /> Download
-                                </a>
+                             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleDownload(imageUrl); }}>
+                                <Download className="mr-2 h-4 w-4" /> Download
                             </DropdownMenuItem>
                             {!isWebp && productId && variantColor && (
                                 <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleCompress(imageUrl); }} disabled={isLoading}>
