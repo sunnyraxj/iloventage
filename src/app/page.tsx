@@ -39,14 +39,12 @@ export default async function HomePage() {
             <Skeleton className="h-full w-full" />
           )}
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 p-4 text-center">
-            <h1 className="mb-4 font-headline text-4xl font-bold md:text-6xl [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">
-              {settings?.storeDetails?.name || 'Welcome to our store'}
+            <p className="mb-2 font-light tracking-[0.3em] text-sm md:text-base uppercase">Premium Selection</p>
+            <h1 className="mb-6 font-headline text-4xl font-bold md:text-6xl [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">
+              Timeless <span className="italic">Vintage</span><br /> Modern Style.
             </h1>
-            <p className="mb-8 max-w-2xl text-lg md:text-xl [text-shadow:1px_1px_2px_rgba(0,0,0,0.5)]">
-              Where timeless style meets modern edge.
-            </p>
-            <Button asChild size="lg" className="rounded-full">
-              <Link href="/products">Shop Now</Link>
+            <Button asChild size="lg" className="rounded-full bg-white text-black hover:bg-white/90 font-semibold tracking-wider">
+              <Link href="/products">START SHOPPING</Link>
             </Button>
           </div>
         </section>
