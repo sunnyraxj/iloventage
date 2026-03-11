@@ -22,13 +22,22 @@ interface OrderCreationData {
     address: OrderAddress;
 }
 
-const razorpay = new Razorpay({
-    key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-    key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
-
 
 export async function createOrderAndInitiatePayment(orderData: OrderCreationData) {
+    const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!keyId || !keySecret) {
+        const errorMessage = "Razorpay API keys are not configured on the server. Please contact support.";
+        console.error(errorMessage);
+        return { success: false, message: errorMessage };
+    }
+
+    const razorpay = new Razorpay({
+        key_id: keyId,
+        key_secret: keySecret,
+    });
+
     const ordersCol = collection(db, 'orders');
     const orderCountSnapshot = await getDocs(ordersCol);
     const orderNumber = (orderCountSnapshot.size + 1).toString().padStart(6, '0');
@@ -67,7 +76,18 @@ export async function createOrderAndInitiatePayment(orderData: OrderCreationData
     } catch (error) {
         await updateDoc(docRef, { orderStatus: 'cancelled', paymentStatus: 'unpaid' });
         console.error("Razorpay order creation failed:", error);
-        const errorMessage = error instanceof Error ? error.message : 'Could not create Razorpay order.';
+        
+        let errorMessage = 'Could not create Razorpay order.';
+        // Check for Razorpay's specific error structure
+        if (typeof error === 'object' && error !== null && 'error' in error) {
+            const razorpayError = (error as any).error;
+            if (razorpayError && typeof razorpayError.description === 'string') {
+                errorMessage = razorpayError.description;
+            }
+        } else if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+
         return { success: false, message: errorMessage };
     }
 }
@@ -78,10 +98,18 @@ export async function verifyPaymentAndUpdateOrder(
 ): Promise<{success: boolean, message?: string, orderId?: string}> {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = verificationData;
     
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!keySecret) {
+        const errorMessage = "Razorpay secret key is not configured on the server. Payment cannot be verified.";
+        console.error(errorMessage);
+        return { success: false, message: errorMessage };
+    }
+    
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+        .createHmac('sha256', keySecret)
         .update(body.toString())
         .digest('hex');
 
