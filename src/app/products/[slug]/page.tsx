@@ -68,50 +68,56 @@ export default function ProductPage() {
     return () => { api && api.off("select", onSelect) };
   }, [api]);
 
+  // Effect for fetching product data
   useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-
-    const q = query(collection(db, 'products'), where('slug', '==', slug), where('isVisible', '==', true), limit(1));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        if (snapshot.empty) {
-            setProduct(null);
-            setLoading(false);
-            notFound();
-            return;
-        }
-
-        const fetchedProduct = docToType<Product>(snapshot.docs[0]);
-        setProduct(fetchedProduct);
-
-        setSelectedVariant(currentVariant => {
-            const newVariantStillExists = fetchedProduct.variants.find(v => v.color === currentVariant?.color);
-            const variantToSet = newVariantStillExists || fetchedProduct.variants[0];
-
-            setSelectedSize(currentSize => {
-                 const newSizeStillExists = variantToSet.sizes.find(s => s.size === currentSize?.size);
-                 const sizeToSet = (newSizeStillExists && newSizeStillExists.stock > 0) 
-                                ? newSizeStillExists
-                                : (variantToSet.sizes.find(s => s.stock > 0) || null);
-                 return sizeToSet;
-            });
-            
-            if (variantToSet.color !== currentVariant?.color) {
-                api?.scrollTo(0, true);
-            }
-
-            return variantToSet;
-        });
-
-        setLoading(false);
-    }, (error) => {
-        console.error("Error fetching product:", error);
-        setLoading(false);
-    });
-
-    return () => unsubscribe();
-}, [slug, api]);
+      if (!slug) return;
+      setLoading(true);
+  
+      const q = query(collection(db, 'products'), where('slug', '==', slug), where('isVisible', '==', true), limit(1));
+      
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+          if (snapshot.empty) {
+              setProduct(null);
+              setLoading(false);
+              return;
+          }
+  
+          const fetchedProduct = docToType<Product>(snapshot.docs[0]);
+          setProduct(fetchedProduct);
+          setLoading(false);
+      }, (error) => {
+          console.error("Error fetching product:", error);
+          setLoading(false);
+      });
+  
+      return () => unsubscribe();
+  }, [slug]);
+  
+  // Effect for synchronizing variant and size selections when product data changes
+  useEffect(() => {
+      if (!product) return;
+  
+      // Determine the variant to select. Prioritize the currently selected one if it still exists.
+      const newVariantToSet = product.variants.find(v => v.color === selectedVariant?.color) || product.variants[0];
+  
+      // Determine the size to select based on the new variant. Prioritize current size if available.
+      const newSizeToSet =
+        (newVariantToSet.sizes.find(s => s.size === selectedSize?.size) && newVariantToSet.sizes.find(s => s.size === selectedSize?.size)!.stock > 0)
+          ? newVariantToSet.sizes.find(s => s.size === selectedSize?.size)!
+          : (newVariantToSet.sizes.find(s => s.stock > 0) || null);
+  
+      // Only update state if it has changed to avoid unnecessary re-renders
+      if (newVariantToSet.color !== selectedVariant?.color) {
+          setSelectedVariant(newVariantToSet);
+          api?.scrollTo(0, true);
+      }
+      
+      if (newSizeToSet?.size !== selectedSize?.size || newSizeToSet?.stock !== selectedSize?.stock) {
+          setSelectedSize(newSizeToSet);
+      }
+      
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product, api]);
 
 
   const handleSelectVariant = (variant: ProductVariant) => {
