@@ -5,7 +5,7 @@ import type { Product, Category } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { notFound, useParams } from 'next/navigation';
-import { collection, onSnapshot, query, where, DocumentData, limit } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, DocumentData, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 function docToProduct(doc: DocumentData): Product {
@@ -34,60 +34,72 @@ export default function CategoryPage() {
   const params = useParams();
   const slug = params.slug as string;
   const [products, setProducts] = useState<Product[]>([]);
-  const [category, setCategory] = useState<Category | null>(null);
+  const [category, setCategory] = useState<Category | null | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let categoryUnsubscribe = () => {};
     let productsUnsubscribe = () => {};
 
-    if (!slug) return;
+    if (!slug) {
+        setLoading(false);
+        setCategory(null);
+        return;
+    };
+
     setLoading(true);
 
-    const categoryQuery = query(collection(db, 'collections'), where('slug', '==', slug), limit(1));
+    const findCategoryAndFetchProducts = async () => {
+        const categoriesQuery = query(collection(db, 'collections'));
+        try {
+            const categorySnapshot = await getDocs(categoriesQuery);
+            const allCategories = categorySnapshot.docs.map(docToCategory);
+            const foundCategory = allCategories.find(c => c.slug === slug);
 
-    categoryUnsubscribe = onSnapshot(categoryQuery, (categorySnapshot) => {
-        if (categorySnapshot.empty) {
+            if (!foundCategory) {
+                setLoading(false);
+                setCategory(null); // This will trigger notFound()
+                return;
+            }
+
+            setCategory(foundCategory);
+
+            const productsQuery = query(
+                collection(db, 'products'),
+                where('collectionId', '==', foundCategory.id),
+                where('isVisible', '==', true)
+            );
+
+            productsUnsubscribe = onSnapshot(productsQuery, (productsSnapshot) => {
+                const categoryProducts = productsSnapshot.docs.map(docToProduct);
+                setProducts(categoryProducts);
+                setLoading(false);
+            }, (error) => {
+                console.error("Error fetching category products:", error);
+                setLoading(false);
+            });
+        } catch (error) {
+            console.error("Error fetching categories:", error);
             setLoading(false);
-            notFound();
-            return;
+            setCategory(null);
         }
+    };
 
-        const categoryData = docToCategory(categorySnapshot.docs[0]);
-        setCategory(categoryData);
-        
-        const productsQuery = query(
-            collection(db, 'products'), 
-            where('collectionId', '==', categoryData.id),
-            where('isVisible', '==', true)
-        );
-
-        productsUnsubscribe = onSnapshot(productsQuery, (productsSnapshot) => {
-          const categoryProducts = productsSnapshot.docs.map(docToProduct);
-          setProducts(categoryProducts);
-          setLoading(false);
-        }, (error) => {
-          console.error("Error fetching category products:", error);
-          setLoading(false);
-        });
-
-    }, (error) => {
-        console.error("Error fetching category data:", error);
-        setLoading(false);
-        notFound();
-    });
+    findCategoryAndFetchProducts();
 
     return () => {
-        categoryUnsubscribe();
         productsUnsubscribe();
     };
 }, [slug]);
+
+  if (category === null) {
+      notFound();
+  }
 
   return (
     <>
       <main className="flex-1 bg-secondary">
         <div className="container mx-auto px-4 py-8 md:py-12">
-          {loading ? (
+          {loading || category === undefined ? (
             <>
               <Skeleton className="mb-8 h-10 w-1/3" />
               <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">

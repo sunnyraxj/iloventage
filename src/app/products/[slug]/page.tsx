@@ -22,7 +22,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel"
 import { db } from '@/firebase/config';
-import { collection, query, where, limit, onSnapshot, DocumentData, Timestamp } from 'firebase/firestore';
+import { collection, query, onSnapshot, DocumentData, Timestamp } from 'firebase/firestore';
 
 
 function docToType<T>(doc: DocumentData): T {
@@ -52,7 +52,7 @@ function docToType<T>(doc: DocumentData): T {
 export default function ProductPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<Product | null | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedSize, setSelectedSize] = useState<ProductSize | null>(null);
@@ -73,23 +73,25 @@ export default function ProductPage() {
 
   // Effect for fetching product data
   useEffect(() => {
-      if (!slug) return;
+      if (!slug) {
+        setLoading(false);
+        setProduct(null);
+        return;
+      };
       setLoading(true);
   
-      const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1));
+      // Listen to all products and filter client-side.
+      // This is robust for items that might not have a 'slug' field in the DB,
+      // as our docToType helper generates one on the fly.
+      const q = query(collection(db, 'products'));
       
       const unsubscribe = onSnapshot(q, (snapshot) => {
-          if (snapshot.empty) {
-              setProduct(null);
-              setLoading(false);
-              return;
-          }
-  
-          const fetchedProduct = docToType<Product>(snapshot.docs[0]);
+          const allProducts = snapshot.docs.map(doc => docToType<Product>(doc));
+          const foundProduct = allProducts.find(p => p.slug === slug);
           
           // Client-side visibility check
-          if (fetchedProduct.isVisible) {
-            setProduct(fetchedProduct);
+          if (foundProduct && foundProduct.isVisible) {
+            setProduct(foundProduct);
           } else {
             setProduct(null);
           }
@@ -98,6 +100,7 @@ export default function ProductPage() {
       }, (error) => {
           console.error("Error fetching product:", error);
           setLoading(false);
+          setProduct(null);
       });
   
       return () => unsubscribe();
@@ -187,7 +190,11 @@ export default function ProductPage() {
     });
   }
 
-  if (loading) {
+  if (product === null) {
+    notFound();
+  }
+
+  if (loading || product === undefined) {
     return (
       <main className="flex-1 bg-secondary">
         <div className="container mx-auto px-4 py-8 md:py-12">
@@ -213,10 +220,6 @@ export default function ProductPage() {
         </div>
       </main>
     );
-  }
-
-  if (!product) {
-    notFound();
   }
 
   const stockForSelectedSize = selectedSize?.stock ?? 0;
