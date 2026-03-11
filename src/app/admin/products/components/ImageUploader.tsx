@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef } from 'react';
@@ -6,7 +5,7 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Trash2, Loader2, Download, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { Upload, Trash2, Loader2, Download, ArrowLeft, ArrowRight } from 'lucide-react';
 import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
@@ -164,80 +163,80 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
             const imageUrl = (field as any).value as string;
             const isWebp = imageUrl.includes('.webp');
           return (
-          <div key={field.id} className="relative aspect-square group">
-            <img
-              src={imageUrl}
-              alt={`Product image ${index + 1}`}
-              className="h-full w-full object-cover rounded-md border"
-            />
-            {index === 0 && (
-                <div className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-sm font-bold tracking-wider">
-                    MAIN
-                </div>
-            )}
-            {(field as any).compressedSize && (
-                <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1 py-0.5 rounded">
-                    {formatBytes((field as any).compressedSize)}
-                </div>
-            )}
-            <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="h-6 w-6"
-                    asChild
-                >
-                    <a href={imageUrl} download target="_blank" rel="noopener noreferrer">
-                        <Download className="h-4 w-4" />
-                        <span className="sr-only">Download image</span>
-                    </a>
-                </Button>
-                
-                {!isWebp && productId && variantColor && (
-                    <CompressSingleImageButton
-                        productId={productId}
-                        variantColor={variantColor}
-                        imageUrl={imageUrl}
+            <div key={field.id} className="flex flex-col gap-2">
+                <div className="relative aspect-square">
+                    <img
+                        src={imageUrl}
+                        alt={`Product image ${index + 1}`}
+                        className="h-full w-full object-cover rounded-md border"
                     />
-                )}
+                    {index === 0 && (
+                        <div className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-sm font-bold tracking-wider">
+                            MAIN
+                        </div>
+                    )}
+                    {(field as any).compressedSize && (
+                        <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1 py-0.5 rounded">
+                            {formatBytes((field as any).compressedSize)}
+                        </div>
+                    )}
+                </div>
+                <div className="flex items-center justify-center gap-1">
+                     <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleMoveImage(index, index - 1)}
+                        disabled={index === 0}
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="sr-only">Move left</span>
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7"
+                        asChild
+                    >
+                        <a href={imageUrl} download target="_blank" rel="noopener noreferrer">
+                            <Download className="h-4 w-4" />
+                            <span className="sr-only">Download image</span>
+                        </a>
+                    </Button>
+                    
+                    {!isWebp && productId && variantColor && (
+                        <CompressSingleImageButton
+                            productId={productId}
+                            variantColor={variantColor}
+                            imageUrl={imageUrl}
+                        />
+                    )}
 
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => handleRemoveImage(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="sr-only">Remove image</span>
-                </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => handleRemoveImage(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">Remove image</span>
+                    </Button>
+                     <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleMoveImage(index, index + 1)}
+                        disabled={index === fields.length - 1}
+                    >
+                        <ArrowRight className="h-4 w-4" />
+                        <span className="sr-only">Move right</span>
+                    </Button>
+                </div>
             </div>
-            <div className="absolute bottom-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => handleMoveImage(index, index - 1)}
-                    disabled={index === 0}
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">Move left</span>
-                </Button>
-                <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => handleMoveImage(index, index + 1)}
-                    disabled={index === fields.length - 1}
-                >
-                    <ArrowRight className="h-4 w-4" />
-                    <span className="sr-only">Move right</span>
-                </Button>
-            </div>
-          </div>
         )})}
         <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed rounded-md cursor-pointer hover:bg-accent hover:border-primary transition-colors">
           {isUploading ? <Loader2 className="h-8 w-8 animate-spin" /> : <Upload className="h-8 w-8 text-muted-foreground" />}

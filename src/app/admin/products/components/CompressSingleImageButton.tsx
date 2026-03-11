@@ -89,9 +89,9 @@ export function CompressSingleImageButton({ productId, variantColor, imageUrl }:
     return (
         <Button
             type="button"
-            variant="secondary"
+            variant="outline"
             size="icon"
-            className="h-6 w-6 bg-blue-100 hover:bg-blue-200 text-blue-800"
+            className="h-7 w-7 text-blue-600 border-blue-300 hover:bg-blue-50 hover:text-blue-700"
             onClick={handleCompress}
             disabled={isLoading}
             title="Compress this image"
