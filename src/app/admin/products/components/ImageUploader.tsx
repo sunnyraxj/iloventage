@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef } from 'react';
@@ -43,84 +42,87 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
 
     setIsUploading(true);
 
-    const options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 2000,
-        useWebWorker: true,
-        initialQuality: 0.75,
-        fileType: 'image/webp',
-    };
+    const uploadPromises = Array.from(files).map(async (file) => {
+        let fileToProcess = file;
+        const fileName = file.name.toLowerCase();
+        const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || fileName.endsWith('.heic') || fileName.endsWith('.heif');
 
-    for (const file of Array.from(files)) {
-        try {
-            let fileToProcess = file;
-            const fileName = file.name.toLowerCase();
-            const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || fileName.endsWith('.heic') || fileName.endsWith('.heif');
-
-            if (isHeic) {
-                try {
-                    toast({ title: 'Converting HEIC...', description: 'Please wait while the image is being converted.' });
-                    const conversionResult = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
-                    const convertedBlob = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
-                    fileToProcess = new File([convertedBlob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
-                } catch (e) {
-                    console.error("HEIC conversion failed", e);
-                    toast({ variant: 'destructive', title: 'Conversion Failed', description: 'Could not convert the HEIC file. Please try a different format.' });
-                    continue; // Move to the next file
-                }
+        if (isHeic) {
+            try {
+                const conversionResult = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
+                const convertedBlob = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
+                fileToProcess = new File([convertedBlob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+            } catch (e) {
+                console.error("HEIC conversion failed for", file.name, e);
+                throw new Error(`Could not convert HEIC file: ${file.name}`);
             }
-            
-            const originalSize = fileToProcess.size;
-            const originalName = fileToProcess.name;
-            const compressedFile = await imageCompression(fileToProcess, options);
-            const compressedSize = compressedFile.size;
-            const newName = compressedFile.name;
-            
-            const fileId = short.generate();
-            const storageRef = ref(storage, `products/${fileId}-${newName}`);
-            await uploadBytes(storageRef, compressedFile);
-            const downloadURL = await getDownloadURL(storageRef);
-            append({ 
-                value: downloadURL,
-                originalSize,
-                compressedSize,
-            });
-
-            toast({ title: 'Image Optimized & Uploaded', description: `${originalName} (${formatBytes(originalSize)}) → ${newName} (${formatBytes(compressedSize)})` });
-        } catch (error: any) {
-            console.error(`Upload failed for ${file.name}:`, error);
-
-            let errorMessage = `Could not upload ${file.name}.`;
-            if (error instanceof Error) {
-                errorMessage = error.message;
-            } else if (error.code) {
-                switch (error.code) {
-                    case 'storage/unauthorized':
-                        errorMessage = `Permission denied for ${file.name}. Please check your storage rules.`;
-                        break;
-                    case 'storage/canceled':
-                        errorMessage = `Upload for ${file.name} was canceled.`;
-                        break;
-                    case 'storage/retry-limit-exceeded':
-                        errorMessage = `Upload for ${file.name} timed out. Please check your network connection.`;
-                        break;
-                    case 'storage/unauthenticated':
-                        errorMessage = `You must be logged in to upload images.`;
-                        break;
-                    default:
-                        errorMessage = `For ${file.name}: ${error.message}`;
-                        break;
-                }
-            }
-
-            toast({ variant: 'destructive', title: 'Upload Failed', description: errorMessage, duration: 9000 });
-            // Stop on first error
-            setIsUploading(false);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
-            return; 
         }
+        
+        const originalSize = fileToProcess.size;
+        const originalName = fileToProcess.name;
+
+        const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 2000,
+            useWebWorker: true,
+            initialQuality: originalSize > 1024 * 1024 ? 0.75 : 0.95,
+            fileType: 'image/webp',
+            alwaysKeepOrientation: true,
+        };
+        
+        const compressedFile = await imageCompression(fileToProcess, options);
+        const compressedSize = compressedFile.size;
+        const newName = compressedFile.name;
+        
+        const fileId = short.generate();
+        const storageRef = ref(storage, `products/${fileId}-${newName}`);
+        await uploadBytes(storageRef, compressedFile);
+        const downloadURL = await getDownloadURL(storageRef);
+        
+        return {
+            url: downloadURL,
+            originalName,
+            originalSize,
+            newName,
+            compressedSize,
+        };
+    });
+
+    const results = await Promise.allSettled(uploadPromises);
+
+    let successCount = 0;
+    results.forEach(result => {
+        if (result.status === 'fulfilled') {
+            const { url, originalName, originalSize, newName, compressedSize } = result.value;
+            append({ 
+                value: url,
+                originalSize: originalSize,
+                compressedSize: compressedSize,
+            });
+            toast({ title: 'Image Optimized & Uploaded', description: `${originalName} (${formatBytes(originalSize)}) → ${newName} (${formatBytes(compressedSize)})` });
+            successCount++;
+        } else {
+            console.error("Upload failed:", result.reason);
+            let errorMessage = 'An upload failed.';
+            if (result.reason instanceof Error) {
+                errorMessage = result.reason.message;
+            } else if (typeof result.reason === 'string') {
+                errorMessage = result.reason;
+            } else if (result.reason && result.reason.code) {
+                 switch (result.reason.code) {
+                    case 'storage/unauthorized': errorMessage = `Permission denied. Check storage rules.`; break;
+                    case 'storage/canceled': errorMessage = `Upload was canceled.`; break;
+                    case 'storage/retry-limit-exceeded': errorMessage = `Upload timed out. Check network.`; break;
+                    case 'storage/unauthenticated': errorMessage = `You must be logged in to upload images.`; break;
+                    default: errorMessage = result.reason.message || 'An unknown upload error occurred.'; break;
+                }
+            }
+            toast({ variant: 'destructive', title: 'Upload Failed', description: errorMessage, duration: 9000 });
+        }
+    });
+
+    if (successCount > 0 && successCount < files.length) {
+        toast({ title: 'Partial Success', description: `${successCount} out of ${files.length} images were uploaded.` });
     }
 
     setIsUploading(false);
