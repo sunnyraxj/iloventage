@@ -149,12 +149,30 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
   const handleFinish = async () => {
     setIsProcessing(true);
     toast({ title: 'Processing Images', description: 'Applying edits and compressing...' });
+
     try {
-        const editedBlobs = await Promise.all(
-            editStates.map(state =>
-              getCroppedImg(state.url, state.croppedAreaPixels!, state.rotation, state.flip)
-            )
-        );
+        const editedBlobPromises = editStates.map(async (state) => {
+            try {
+                if (!state.croppedAreaPixels) {
+                    throw new Error('Crop data not yet available for this image.');
+                }
+                const blob = await getCroppedImg(state.url, state.croppedAreaPixels, state.rotation, state.flip);
+                if (!blob) {
+                    throw new Error('Cropping failed to produce an image.');
+                }
+                return { blob, originalFile: state.file };
+            } catch (error) {
+                console.error(`Failed to process image ${state.file.name}:`, error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Processing Failed',
+                    description: `Skipping ${state.file.name}. It might be a corrupted or unsupported file.`
+                });
+                return { blob: null, originalFile: state.file }; // Mark as failed
+            }
+        });
+
+        const editedBlobs = await Promise.all(editedBlobPromises);
 
         const compressionOptions = {
             maxSizeMB: 0.5,
@@ -166,28 +184,29 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
         };
 
         const results = await Promise.all(
-            editedBlobs.map(async (blob, index) => {
-              const originalFile = editStates[index].file;
-              if (!blob) return { blob: null, originalFile };
+            editedBlobs.map(async (image) => {
+                const { blob, originalFile } = image;
+                if (!blob) return { blob: null, originalFile };
               
-              const fileToCompress = new File([blob], originalFile.name.replace(/\.[^/.]+$/, ".png"), { type: 'image/png' });
+                const fileToCompress = new File([blob], originalFile.name.replace(/\.[^/.]+$/, ".png"), { type: 'image/png' });
     
-              try {
-                const compressedFile = await imageCompression(fileToCompress, compressionOptions);
-                return { blob: compressedFile, originalFile };
-              } catch (compressionError) {
-                console.error('Compression failed for an image:', compressionError);
-                toast({ variant: 'destructive', title: 'Compression Failed', description: `Could not compress ${originalFile.name}. Uploading edited version without extra compression.`});
-                return { blob: blob, originalFile };
-              }
+                try {
+                    const compressedFile = await imageCompression(fileToCompress, compressionOptions);
+                    return { blob: compressedFile, originalFile };
+                } catch (compressionError) {
+                    console.error('Compression failed for an image:', compressionError);
+                    toast({ variant: 'destructive', title: 'Compression Failed', description: `Could not compress ${originalFile.name}. Using uncompressed edited version.`});
+                    return { blob: blob, originalFile };
+                }
             })
         );
       
       onComplete(results);
       setIsOpen(false);
     } catch (e) {
-        console.error(e);
-        toast({ variant: 'destructive', title: 'Error Processing Images', description: 'Could not apply edits. Please try again.'});
+        // This catch block will now only handle very unexpected errors, as per-image errors are caught above.
+        console.error("An unexpected error occurred during image processing:", e);
+        toast({ variant: "destructive", title: 'Unexpected Error', description: 'An unknown error occurred while processing images.'});
     } finally {
         setIsProcessing(false);
     }
