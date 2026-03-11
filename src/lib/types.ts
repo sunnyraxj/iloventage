@@ -1,12 +1,9 @@
 
-
-
 // From collections collection
 export type Category = {
     id: string;
     name: string;
     description?: string;
-    gender: 'male' | 'female' | 'unisex' | 'all';
     imageUrl?: string;
     slug: string;
 };

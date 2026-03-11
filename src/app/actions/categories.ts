@@ -1,3 +1,4 @@
+
 'use server';
 
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
@@ -26,7 +27,6 @@ export async function createCategory(categoryName: string): Promise<{ success: b
         const newCategoryData = {
             name: trimmedName,
             description: "",
-            gender: "all" as const,
             createdAt: serverTimestamp(),
         };
 
@@ -40,7 +40,6 @@ export async function createCategory(categoryName: string): Promise<{ success: b
             category: {
                 id: newCategoryRef.id,
                 name: newCategoryData.name,
-                gender: newCategoryData.gender,
                 slug: trimmedName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
                 description: newCategoryData.description,
             }

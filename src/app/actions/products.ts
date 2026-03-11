@@ -24,7 +24,6 @@ export async function upsertProduct(data: ProductFormValues, productId?: string)
             const newCategoryData = {
                 name: data.categoryName,
                 description: "",
-                gender: "all", // default gender
                 createdAt: serverTimestamp(),
             };
             const newCategoryRef = await addDoc(collection(db, 'collections'), newCategoryData);
