@@ -5,14 +5,24 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Trash2, Loader2, Download, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Upload, Trash2, Loader2, Download, ArrowLeft, ArrowRight, MoreVertical, Sparkles } from 'lucide-react';
 import { storage } from '@/firebase/config';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject, getBlob } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
 import heic2any from 'heic2any';
 import { ImageEditor } from './ImageEditor';
 import { CompressSingleImageButton } from './CompressSingleImageButton';
+import imageCompression from 'browser-image-compression';
+import { useRouter } from 'next/navigation';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { replaceProductImage } from '@/app/actions/products';
+
 
 const formatBytes = (bytes: number, decimals = 2) => {
     if (!bytes || bytes === 0) return '0 Bytes';
@@ -36,7 +46,9 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
   });
   const [isUploading, setIsUploading] = useState(false);
   const [filesToEdit, setFilesToEdit] = useState<File[]>([]);
+  const [compressingImageUrl, setCompressingImageUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const variantColor = getValues(`variants.${variantIndex}.color`);
@@ -154,6 +166,61 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
       }
   }
 
+  const handleCompress = async (imageUrlToCompress: string) => {
+    if (compressingImageUrl) return;
+    if (!productId || !variantColor) return;
+
+    setCompressingImageUrl(imageUrlToCompress);
+    toast({ title: 'Starting Compression', description: `Processing image...` });
+
+    try {
+        const imageRef = ref(storage, imageUrlToCompress);
+        const blob = await getBlob(imageRef);
+        const originalSize = blob.size;
+
+        const options = {
+            maxSizeMB: 0.5,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+            initialQuality: 0.7,
+            fileType: 'image/webp',
+            alwaysKeepOrientation: true,
+        };
+        const compressedFile = await imageCompression(blob, options);
+        const compressedSize = compressedFile.size;
+
+        if (compressedSize >= originalSize) {
+            toast({ title: 'Skipped', description: 'Image is already optimized.' });
+            setCompressingImageUrl(null);
+            return;
+        }
+
+        const fileId = short.generate();
+        const newName = `${fileId}.webp`;
+        const newStorageRef = ref(storage, `products/${newName}`);
+        await uploadBytes(newStorageRef, compressedFile);
+        const newUrl = await getDownloadURL(newStorageRef);
+
+        const result = await replaceProductImage(productId, variantColor, imageUrlToCompress, newUrl);
+
+        if (result.success) {
+            toast({
+                title: 'Compression Complete',
+                description: `Saved ${formatBytes(originalSize - compressedSize)}.`,
+            });
+            router.refresh();
+        } else {
+            throw new Error(result.message || 'Failed to update database.');
+        }
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        toast({ variant: 'destructive', title: 'Compression Failed', description: errorMessage });
+    } finally {
+        setCompressingImageUrl(null);
+    }
+  };
+
+
   return (
     <div className="space-y-4">
       <FormLabel>Images</FormLabel>
@@ -162,6 +229,7 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
         {fields.map((field, index) => {
             const imageUrl = (field as any).value as string;
             const isWebp = imageUrl.includes('.webp');
+            const isLoading = compressingImageUrl === imageUrl;
           return (
             <div key={field.id} className="flex flex-col gap-2">
                 <div className="relative aspect-square">
@@ -181,60 +249,66 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
                         </div>
                     )}
                 </div>
-                <div className="flex items-center justify-center gap-1">
-                     <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleMoveImage(index, index - 1)}
-                        disabled={index === 0}
-                    >
+
+                {/* Desktop Buttons */}
+                <div className="hidden md:flex items-center justify-center gap-1">
+                    <Button type="button" variant="outline" size="icon" className="h-7 w-7" onClick={() => handleMoveImage(index, index - 1)} disabled={index === 0}>
                         <ArrowLeft className="h-4 w-4" />
                         <span className="sr-only">Move left</span>
                     </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        asChild
-                    >
+                    <Button type="button" variant="outline" size="icon" className="h-7 w-7" asChild>
                         <a href={imageUrl} download target="_blank" rel="noopener noreferrer">
                             <Download className="h-4 w-4" />
                             <span className="sr-only">Download image</span>
                         </a>
                     </Button>
-                    
                     {!isWebp && productId && variantColor && (
                         <CompressSingleImageButton
-                            productId={productId}
-                            variantColor={variantColor}
-                            imageUrl={imageUrl}
+                            onClick={() => handleCompress(imageUrl)}
+                            isLoading={isLoading}
                         />
                     )}
-
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => handleRemoveImage(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Remove image</span>
+                    <Button type="button" variant="destructive" size="icon" className="h-7 w-7" onClick={() => handleRemoveImage(index)}>
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Remove image</span>
                     </Button>
-                     <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleMoveImage(index, index + 1)}
-                        disabled={index === fields.length - 1}
-                    >
+                    <Button type="button" variant="outline" size="icon" className="h-7 w-7" onClick={() => handleMoveImage(index, index + 1)} disabled={index === fields.length - 1}>
                         <ArrowRight className="h-4 w-4" />
                         <span className="sr-only">Move right</span>
                     </Button>
+                </div>
+
+                {/* Mobile Dropdown */}
+                <div className="flex md:hidden items-center justify-center">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => handleMoveImage(index, index - 1)} disabled={index === 0}>
+                                <ArrowLeft className="mr-2 h-4 w-4" /> Move Left
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleMoveImage(index, index + 1)} disabled={index === fields.length - 1}>
+                                <ArrowRight className="mr-2 h-4 w-4" /> Move Right
+                            </DropdownMenuItem>
+                             <DropdownMenuItem asChild>
+                                <a href={imageUrl} download target="_blank" rel="noopener noreferrer">
+                                    <Download className="mr-2 h-4 w-4" /> Download
+                                </a>
+                            </DropdownMenuItem>
+                            {!isWebp && productId && variantColor && (
+                                <DropdownMenuItem onSelect={() => handleCompress(imageUrl)} disabled={isLoading}>
+                                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-blue-600" />}
+                                    <span>{isLoading ? 'Compressing...' : 'Compress'}</span>
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onSelect={() => handleRemoveImage(index)} className="text-destructive focus:text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
         )})}
