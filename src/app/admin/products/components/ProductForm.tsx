@@ -35,7 +35,7 @@ import { ImageUploader } from "./ImageUploader"
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   description: z.string().min(10, "Description must be at least 10 characters."),
-  brand: z.string().min(2, "Brand is required."),
+  brand: z.string().optional(),
   gender: z.enum(["male", "female", "unisex"]),
   collectionId: z.string().min(1, "Category is required."),
   price: z.coerce.number().min(0, "Price must be a positive number."),
@@ -183,7 +183,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                         <Card>
                             <CardHeader><CardTitle>Organization</CardTitle></CardHeader>
                             <CardContent className="space-y-4">
-                                <FormField control={form.control} name="brand" render={({ field }) => (<FormItem><FormLabel>Brand</FormLabel><FormControl><Input placeholder="e.g. Nike" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={form.control} name="brand" render={({ field }) => (<FormItem><FormLabel>Brand (Optional)</FormLabel><FormControl><Input placeholder="Defaults to ILV if empty" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={form.control} name="collectionId" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Category</FormLabel>

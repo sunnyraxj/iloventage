@@ -15,6 +15,7 @@ export async function upsertProduct(data: ProductFormValues, productId?: string)
         const slug = createSlug(data.name);
         const productData = {
             ...data,
+            brand: data.brand || 'ILV',
             slug: slug,
             price: Number(data.price),
             mrp: Number(data.mrp),
