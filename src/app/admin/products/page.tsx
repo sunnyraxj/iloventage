@@ -41,7 +41,7 @@ function docToProduct(doc: DocumentData): Product {
         id: doc.id,
         ...data,
         createdAt: data.createdAt?.toDate().toISOString(),
-        slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+        slug: data.slug || data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
     } as Product;
 }
 

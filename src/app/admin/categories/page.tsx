@@ -39,7 +39,7 @@ function docToCategory(doc: DocumentData): Category {
         name: data.name,
         description: data.description,
         imageUrl: data.imageUrl,
-        slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+        slug: data.slug || data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
     } as Category;
 }
 
