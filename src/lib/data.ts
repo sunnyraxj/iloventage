@@ -37,6 +37,24 @@ function docToType<T>(doc: DocumentData): T {
         }
     }
     
+    // Specifically for products, clean up the variants data structure to ensure imageUrls is always string[].
+    if (doc.ref.parent.id === 'products' && processedData.variants && Array.isArray(processedData.variants)) {
+        processedData.variants = processedData.variants.map((variant: any) => {
+            if (variant.imageUrls && Array.isArray(variant.imageUrls)) {
+                return {
+                    ...variant,
+                    imageUrls: variant.imageUrls.map((img: any) => {
+                        if (typeof img === 'object' && img !== null && typeof img.value === 'string') {
+                            return img.value;
+                        }
+                        return img;
+                    }).filter((img: any) => typeof img === 'string')
+                };
+            }
+            return variant;
+        });
+    }
+    
     // Add slug for products and categories if name exists and it's not already there
     if (processedData.name && !processedData.slug && (doc.ref.parent.id === 'products' || doc.ref.parent.id === 'collections')) {
       processedData.slug = createSlug(processedData.name);

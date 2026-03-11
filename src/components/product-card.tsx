@@ -23,18 +23,8 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
   const firstVariant = product.variants?.[0];
   const firstSize = firstVariant?.sizes?.[0];
 
-  const getUrl = (urlData: any): string | null => {
-    if (typeof urlData === 'string') {
-      return urlData;
-    }
-    if (typeof urlData === 'object' && urlData !== null && typeof urlData.value === 'string') {
-      return urlData.value;
-    }
-    return null;
-  };
-
-  const imageUrl = getUrl(firstVariant?.imageUrls?.[0]) || `https://picsum.photos/seed/${product.id}/600/800`;
-  const hoverImageUrl = getUrl(firstVariant?.imageUrls?.[1]) || null;
+  const imageUrl = firstVariant?.imageUrls?.[0] || `https://picsum.photos/seed/${product.id}/600/800`;
+  const hoverImageUrl = firstVariant?.imageUrls?.[1] || null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
