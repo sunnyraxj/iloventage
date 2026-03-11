@@ -136,15 +136,19 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
   
   const currentEditState = editStates[currentIndex];
 
-  const updateCurrentState = (updates: Partial<EditState>) => {
-    const newStates = [...editStates];
-    newStates[currentIndex] = { ...newStates[currentIndex], ...updates };
-    setEditStates(newStates);
-  };
+  const updateCurrentState = useCallback((updates: Partial<EditState>) => {
+    setEditStates(prevStates => {
+      const newStates = [...prevStates];
+      if (newStates[currentIndex]) {
+        newStates[currentIndex] = { ...newStates[currentIndex], ...updates };
+      }
+      return newStates;
+    });
+  }, [currentIndex]);
   
   const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
     updateCurrentState({ croppedAreaPixels });
-  }, [editStates, currentIndex]);
+  }, [updateCurrentState]);
 
   const handleFinish = async () => {
     setIsProcessing(true);
@@ -218,15 +222,19 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
   }
 
   const handleReset = () => {
-    const newStates = [...editStates];
-    newStates[currentIndex] = {
-        ...newStates[currentIndex],
-        crop: { x: 0, y: 0 },
-        zoom: 1,
-        rotation: 0,
-        flip: { horizontal: false, vertical: false },
-    };
-    setEditStates(newStates);
+    setEditStates(prev => {
+        const newStates = [...prev];
+        if (newStates[currentIndex]) {
+            newStates[currentIndex] = {
+                ...newStates[currentIndex],
+                crop: { x: 0, y: 0 },
+                zoom: 1,
+                rotation: 0,
+                flip: { horizontal: false, vertical: false },
+            };
+        }
+        return newStates;
+    });
   }
 
   if (!currentEditState) return null;
