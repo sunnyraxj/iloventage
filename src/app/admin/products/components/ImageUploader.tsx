@@ -229,26 +229,55 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
 
   const handleDownload = async (imageUrl: string) => {
     try {
+        // Use the Firebase SDK to fetch the image data as a Blob.
+        // This bypasses browser CORS restrictions that would block a direct fetch.
         const imageRef = ref(storage, imageUrl);
         const blob = await getBlob(imageRef);
+        
+        // Create a temporary URL for the Blob data.
         const objectUrl = window.URL.createObjectURL(blob);
         
+        // Create a temporary anchor element to trigger the download.
         const link = document.createElement('a');
         link.href = objectUrl;
 
-        const urlParts = imageUrl.split('/');
-        const lastPart = urlParts[urlParts.length - 1] || 'image';
-        const filename = lastPart.split('?')[0].split('%2F').pop() || 'image';
+        // Try to parse a user-friendly filename from the image URL.
+        let filename = 'downloaded-image';
+        try {
+            // new URL() can parse complex URLs and extract parts safely.
+            const url = new URL(imageUrl);
+            // The pathname contains the encoded file path, e.g., /.../products%2Fmy-image.jpg
+            const pathname = decodeURIComponent(url.pathname); 
+            const lastSegment = pathname.split('/').pop();
+            if (lastSegment) {
+                filename = lastSegment;
+            }
+        } catch (e) {
+            // A simple fallback if URL parsing fails for any reason.
+            console.warn("Could not parse filename from URL, using a generic name.", imageUrl);
+        }
         
+        // The 'download' attribute tells the browser to save the file instead of navigating to it.
+        // The value of the attribute is used as the default filename in the "Save As" dialog.
         link.download = filename;
+        
+        // Append the link to the page, trigger a click, then remove it.
         document.body.appendChild(link);
         link.click();
-        
         document.body.removeChild(link);
+        
+        // Clean up by revoking the temporary object URL to free up memory.
         window.URL.revokeObjectURL(objectUrl);
+
     } catch (error) {
-        console.error("Download failed:", error);
-        toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not download the image. Opening in new tab as fallback.'});
+        // If any step fails (e.g., fetching the blob), fall back to opening the image in a new tab.
+        // From there, the user can manually save it (e.g., by long-pressing on mobile).
+        console.error("Programmatic download failed:", error);
+        toast({ 
+            variant: 'destructive', 
+            title: 'Download Failed', 
+            description: 'Could not start download. Opening image in new tab as fallback.'
+        });
         window.open(imageUrl, '_blank');
     }
   };
