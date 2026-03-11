@@ -73,10 +73,10 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
       const originalName = processedFile.name;
       
       const options = {
-        maxSizeMB: 1, // Will compress if > 1MB
+        maxSizeMB: 1.5,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
-        initialQuality: originalSize > 1024 * 1024 ? 0.75 : 0.95, // Lower quality for bigger files
+        initialQuality: 0.75,
         fileType: 'image/webp',
         alwaysKeepOrientation: true,
       };

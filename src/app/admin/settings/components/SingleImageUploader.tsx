@@ -52,13 +52,14 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
 
     const fileName = file.name.toLowerCase();
     const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || fileName.endsWith('.heic') || fileName.endsWith('.heif');
+    let processedFile = file;
 
     if (isHeic) {
         try {
             toast({ title: 'Converting HEIC...', description: 'Please wait while the image is being converted.' });
             const conversionResult = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
-            const convertedBlob = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
-            file = new File([convertedBlob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+            processedFile = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
+            processedFile = new File([processedFile], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
         } catch (e) {
             console.error("HEIC conversion failed", e);
             toast({ variant: 'destructive', title: 'Conversion Failed', description: 'Could not convert the HEIC file. Please try a different format.' });
@@ -67,14 +68,6 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
             return;
         }
     }
-
-    const options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 2000,
-        useWebWorker: true,
-        initialQuality: 0.75,
-        fileType: 'image/webp',
-    };
     
     try {
       // First, attempt to delete the old image if it exists and is a Firebase URL
@@ -91,9 +84,19 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
           }
       }
 
-      const originalSize = file.size;
-      const originalName = file.name;
-      const compressedFile = await imageCompression(file, options);
+      const originalSize = processedFile.size;
+      const originalName = processedFile.name;
+      
+      const options = {
+        maxSizeMB: 1.5,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        initialQuality: 0.75,
+        fileType: 'image/webp',
+        alwaysKeepOrientation: true,
+      };
+      
+      const compressedFile = await imageCompression(processedFile, options);
       const compressedSizeVal = compressedFile.size;
       const newName = compressedFile.name;
 
