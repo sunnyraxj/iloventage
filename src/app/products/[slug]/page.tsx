@@ -1,4 +1,3 @@
-
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
@@ -6,10 +5,13 @@ import { useEffect, useState } from 'react';
 import type { Product, ProductVariant, ProductSize } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Minus, Plus, ShoppingBag } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,
@@ -106,7 +108,6 @@ export default function ProductPage() {
           ? newVariantToSet.sizes.find(s => s.size === selectedSize?.size)!
           : (newVariantToSet.sizes.find(s => s.stock > 0) || null);
   
-      // Only update state if it has changed to avoid unnecessary re-renders
       if (newVariantToSet.color !== selectedVariant?.color) {
           setSelectedVariant(newVariantToSet);
           api?.scrollTo(0, true);
@@ -116,9 +117,10 @@ export default function ProductPage() {
           setSelectedSize(newSizeToSet);
       }
       
+      setQuantity(product.moq || 1);
+      
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product, api]);
-
 
   const handleSelectVariant = (variant: ProductVariant) => {
     setSelectedVariant(variant);
@@ -126,6 +128,15 @@ export default function ProductPage() {
     const firstAvailableSize = variant.sizes.find(s => s.stock > 0);
     setSelectedSize(firstAvailableSize || null);
   }
+
+  const handleQuantityChange = (newQuantity: number) => {
+    if (!product) return;
+    if (newQuantity >= product.moq) {
+        setQuantity(newQuantity);
+    } else {
+        setQuantity(product.moq);
+    }
+  };
 
   const handleAddToCart = () => {
     if (!product || !selectedVariant || !selectedSize || selectedSize.stock === 0) {
@@ -257,15 +268,15 @@ export default function ProductPage() {
           </div>
 
           {/* Product Details */}
-          <div className="flex flex-col space-y-3 md:col-span-2 md:space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{product.brand}</p>
-              <h1 className="font-headline text-xl font-bold md:text-2xl">{product.name}</h1>
+          <div className="flex flex-col space-y-4 md:col-span-2 md:space-y-6">
+              <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{product.brand}</p>
+              <h1 className="font-headline text-2xl font-bold md:text-3xl">{product.name}</h1>
               <div className="flex items-baseline gap-2">
-                  <p className="text-lg font-semibold text-primary">₹{product.price.toFixed(2)}</p>
+                  <p className="text-2xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
                   {product.mrp && product.mrp > product.price && (
                     <>
-                      <p className="text-sm text-muted-foreground line-through">₹{product.mrp.toFixed(2)}</p>
-                      <p className="text-xs font-bold text-green-600">({Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF)</p>
+                      <p className="text-lg text-muted-foreground line-through">₹{product.mrp.toFixed(2)}</p>
+                      <p className="text-sm font-bold text-green-600">({Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF)</p>
                     </>
                   )}
               </div>
@@ -327,11 +338,48 @@ export default function ProductPage() {
                     )}
               </div>
               
-              <p className="text-xs text-muted-foreground">Minimum Order Quantity: {product.moq}</p>
-
-              <Button size="lg" onClick={handleAddToCart} disabled={!canAddToCart}>
-                  {canAddToCart ? 'Add to Cart' : 'Out of Stock'}
-              </Button>
+              <div className="flex items-end gap-4">
+                  <div className="space-y-2">
+                      <Label htmlFor="quantity" className="text-sm font-medium">Quantity</Label>
+                      <div className="flex items-center rounded-md border w-28">
+                          <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-10"
+                              onClick={() => handleQuantityChange(Math.max(product.moq, quantity - 1))}
+                              disabled={quantity <= product.moq}
+                          >
+                              <Minus className="h-4 w-4" />
+                          </Button>
+                          <Input
+                              id="quantity"
+                              type="number"
+                              value={quantity}
+                              onChange={(e) => handleQuantityChange(Number(e.target.value))}
+                              onBlur={(e) => { if (Number(e.target.value) < product.moq) { setQuantity(product.moq); } }}
+                              className="h-10 w-full border-0 bg-transparent text-center text-base shadow-none [appearance:textfield] focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                              min={product.moq}
+                          />
+                          <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-10"
+                              onClick={() => handleQuantityChange(quantity + 1)}
+                          >
+                              <Plus className="h-4 w-4" />
+                          </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Min. order: {product.moq}</p>
+                  </div>
+                  <div className="flex-1">
+                      <Button size="lg" className="w-full" onClick={handleAddToCart} disabled={!canAddToCart}>
+                          <ShoppingBag className="mr-2 h-5 w-5" />
+                          {canAddToCart ? 'Add to Cart' : 'Out of Stock'}
+                      </Button>
+                  </div>
+              </div>
 
               <Accordion type="single" collapsible className="w-full mt-2">
                   <AccordionItem value="description">
