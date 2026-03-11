@@ -31,16 +31,16 @@ const formatBytes = (bytes: number, decimals = 2) => {
 
 interface ImageUploaderProps {
   variantIndex: number;
-  productId?: string;
 }
 
-export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
+export function ImageUploader({ variantIndex }: ImageUploaderProps) {
   const { control, getValues } = useFormContext();
   const { fields, remove, append, move } = useFieldArray({
     control,
     name: `variants.${variantIndex}.imageUrls`
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [isPreparing, setIsPreparing] = useState(false);
   const [filesToEdit, setFilesToEdit] = useState<File[]>([]);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -48,8 +48,18 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
+
+    setIsPreparing(true);
     
-    // HEIC conversion
+    const heicFiles = Array.from(files).filter(file => {
+        const fileName = file.name.toLowerCase();
+        return file.type === 'image/heic' || file.type === 'image/heif' || fileName.endsWith('.heic') || fileName.endsWith('.heif');
+    });
+
+    if (heicFiles.length > 0) {
+        toast({ title: 'Converting HEIC files...', description: `Please wait while we convert ${heicFiles.length} image(s).` });
+    }
+
     const convertedFiles = await Promise.all(Array.from(files).map(async file => {
         const fileName = file.name.toLowerCase();
         const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || fileName.endsWith('.heic') || fileName.endsWith('.heif');
@@ -68,6 +78,7 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
     
     const validFiles = convertedFiles.filter((f): f is File => f !== null);
     setFilesToEdit(validFiles);
+    setIsPreparing(false);
     
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -167,7 +178,7 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
             const imageUrl = (field as any).value as string;
           return (
             <div key={field.id} className="flex flex-col gap-2">
-                <div className="relative aspect-square">
+                <div className="relative aspect-[3/4]">
                     <img
                         src={imageUrl}
                         alt={`Product image ${index + 1}`}
@@ -224,8 +235,8 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
                 </div>
             </div>
         )})}
-        <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed rounded-md cursor-pointer hover:bg-accent hover:border-primary transition-colors">
-          {isUploading ? <Loader2 className="h-8 w-8 animate-spin" /> : <Upload className="h-8 w-8 text-muted-foreground" />}
+        <label className="flex flex-col items-center justify-center aspect-[3/4] border-2 border-dashed rounded-md cursor-pointer hover:bg-accent hover:border-primary transition-colors">
+          {isUploading || isPreparing ? <Loader2 className="h-8 w-8 animate-spin" /> : <Upload className="h-8 w-8 text-muted-foreground" />}
           <Input 
             ref={fileInputRef}
             type="file" 
@@ -233,9 +244,11 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
             onChange={handleFileSelect} 
             accept="image/*,.heic,.heif" 
             multiple
-            disabled={isUploading}
+            disabled={isUploading || isPreparing}
           />
-          <span className="text-xs text-muted-foreground mt-2">Upload</span>
+          <span className="text-xs text-muted-foreground mt-2 text-center">
+            {isPreparing ? 'Preparing...' : (isUploading ? 'Uploading...' : 'Upload')}
+          </span>
         </label>
       </div>
 

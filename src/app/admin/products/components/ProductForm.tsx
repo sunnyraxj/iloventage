@@ -23,13 +23,12 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash2, PlusCircle, Loader2 } from "lucide-react"
+import { Trash2, PlusCircle } from "lucide-react"
 import type { Product, Category } from "@/lib/types"
 import { upsertProduct } from "@/app/actions/products"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { Switch } from "@/components/ui/switch"
 import { ImageUploader } from "./ImageUploader"
 
 const formSchema = z.object({
@@ -46,7 +45,6 @@ const formSchema = z.object({
     color: z.string().min(1, "Color is required."),
     imageUrls: z.array(z.object({ 
         value: z.string().url(),
-        originalSize: z.number().optional(),
         compressedSize: z.number().optional(),
     })).min(1, "At least one image is required."),
     sizes: z.array(z.object({
@@ -146,7 +144,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                                     <div key={variantField.id} className="p-4 border rounded-lg space-y-4 relative">
                                         <FormField control={form.control} name={`variants.${variantIndex}.color`} render={({ field }) => (<FormItem><FormLabel>Color</FormLabel><FormControl><Input placeholder="e.g. Blue" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                        
-                                        <ImageUploader variantIndex={variantIndex} productId={product?.id} />
+                                        <ImageUploader variantIndex={variantIndex} />
                                         
                                         <SizesFieldArray control={form.control} variantIndex={variantIndex} />
 

@@ -115,6 +115,7 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
   const [editStates, setEditStates] = useState<EditState[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [viewedIndices, setViewedIndices] = useState(new Set([0]));
 
   useEffect(() => {
     const initialStates: EditState[] = files.map((file) => ({
@@ -128,6 +129,7 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
     }));
     setEditStates(initialStates);
     setCurrentIndex(0);
+    setViewedIndices(new Set([0]));
 
     return () => {
       initialStates.forEach(state => URL.revokeObjectURL(state.url));
@@ -158,9 +160,10 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
         const editedBlobPromises = editStates.map(async (state) => {
             try {
                 if (!state.croppedAreaPixels) {
-                    throw new Error('Crop data not yet available for this image.');
+                    const image = await createImage(state.url);
+                    state.croppedAreaPixels = { x: 0, y: 0, width: image.width, height: image.height };
                 }
-                const blob = await getCroppedImg(state.url, state.croppedAreaPixels, state.rotation, state.flip);
+                const blob = await getCroppedImg(state.url, state.croppedAreaPixels!, state.rotation, state.flip);
                 if (!blob) {
                     throw new Error('Cropping failed to produce an image.');
                 }
@@ -208,7 +211,6 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
       onComplete(results);
       setIsOpen(false);
     } catch (e) {
-        // This catch block will now only handle very unexpected errors, as per-image errors are caught above.
         console.error("An unexpected error occurred during image processing:", e);
         toast({ variant: "destructive", title: 'Unexpected Error', description: 'An unknown error occurred while processing images.'});
     } finally {
@@ -220,6 +222,21 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
       setIsOpen(false);
       onCancel();
   }
+
+  const handleNext = () => {
+    const nextIndex = currentIndex + 1;
+    if (nextIndex < editStates.length) {
+      setCurrentIndex(nextIndex);
+      setViewedIndices(prev => new Set(prev).add(nextIndex));
+    }
+  };
+
+  const handlePrevious = () => {
+    const prevIndex = currentIndex - 1;
+    if (prevIndex >= 0) {
+      setCurrentIndex(prevIndex);
+    }
+  };
 
   const handleReset = () => {
     setEditStates(prev => {
@@ -236,6 +253,8 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
         return newStates;
     });
   }
+  
+  const allImagesViewed = viewedIndices.size === editStates.length;
 
   if (!currentEditState) return null;
 
@@ -303,19 +322,26 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
             </div>
         </div>
 
-        <DialogFooter className="p-4 border-t flex justify-between w-full">
+        <DialogFooter className="p-4 border-t flex-col items-center gap-2 sm:flex-row sm:justify-between w-full">
             <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => setCurrentIndex(i => i - 1)} disabled={currentIndex === 0}>
+                <Button variant="outline" onClick={handlePrevious} disabled={currentIndex === 0}>
                     <ChevronLeft className="mr-2 h-4 w-4" /> Previous
                 </Button>
-                <Button variant="outline" onClick={() => setCurrentIndex(i => i + 1)} disabled={currentIndex === editStates.length - 1}>
+                <Button variant="outline" onClick={handleNext} disabled={currentIndex === editStates.length - 1}>
                     Next <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
             </div>
-          <Button onClick={handleFinish} disabled={isProcessing}>
-            {isProcessing ? <Loader2 className="animate-spin mr-2"/> : null}
-            {isProcessing ? `Processing ${editStates.length} images...` : `Finish & Upload ${editStates.length} Images`}
-          </Button>
+            <div className="flex items-center gap-4">
+                {!allImagesViewed && (
+                    <p className="text-sm text-muted-foreground whitespace-nowrap">
+                        Reviewed {viewedIndices.size} of {editStates.length}
+                    </p>
+                )}
+                <Button onClick={handleFinish} disabled={isProcessing || !allImagesViewed}>
+                    {isProcessing ? <Loader2 className="animate-spin mr-2"/> : null}
+                    {isProcessing ? `Processing...` : `Finish & Upload ${editStates.length} Images`}
+                </Button>
+            </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
