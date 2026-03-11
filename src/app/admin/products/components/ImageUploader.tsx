@@ -174,14 +174,14 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
     };
 
     setCompressingImageUrl(imageUrlToCompress);
-    const { id: toastId, update: updateToast } = toast({ title: 'Step 1/4: Downloading image...', description: 'Please wait...' });
+    const { id: toastId, update } = toast({ title: 'Step 1/4: Downloading image...', description: 'Please wait...' });
 
     try {
         const imageRef = ref(storage, imageUrlToCompress);
         const blob = await getBlob(imageRef);
         const originalSize = blob.size;
 
-        updateToast({ title: 'Step 2/4: Compressing image...', description: 'This may take a moment...' });
+        update({ title: 'Step 2/4: Compressing image...', description: 'This may take a moment...' });
         const options = {
             maxSizeMB: 0.5,
             maxWidthOrHeight: 1920,
@@ -194,23 +194,24 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
         const compressedSize = compressedFile.size;
 
         if (compressedSize >= originalSize) {
-            updateToast({ title: 'Skipped', description: 'Image is already optimized.', duration: 3000 });
+            update({ title: 'Skipped', description: 'Image is already optimized.', duration: 3000 });
             setCompressingImageUrl(null);
             return;
         }
 
-        updateToast({ title: 'Step 3/4: Uploading compressed image...', description: 'Almost done...' });
+        update({ title: 'Step 3/4: Uploading compressed image...', description: 'Almost done...' });
         const fileId = short.generate();
         const newName = `${fileId}.webp`;
         const newStorageRef = ref(storage, `products/${newName}`);
         await uploadBytes(newStorageRef, compressedFile);
         const newUrl = await getDownloadURL(newStorageRef);
         
-        updateToast({ title: 'Step 4/4: Updating product...', description: 'Finalizing changes...' });
+        update({ title: 'Step 4/4: Updating product...', description: 'Finalizing changes...' });
         const result = await replaceProductImage(productId, variantColor, imageUrlToCompress, newUrl);
 
         if (result.success) {
-            updateToast({
+            update({
+                id: toastId,
                 title: 'Compression Complete!',
                 description: `Saved ${formatBytes(originalSize - compressedSize)}. Page will now refresh.`,
             });
@@ -220,7 +221,8 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
         }
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        updateToast({ variant: 'destructive', title: 'Compression Failed', description: errorMessage, duration: 9000 });
+        update({ id: toastId, variant: 'destructive', title: 'Compression Failed', description: errorMessage, duration: 9000 });
+    } finally {
         setCompressingImageUrl(null);
     }
   };
