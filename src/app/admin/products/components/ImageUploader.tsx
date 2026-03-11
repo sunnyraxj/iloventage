@@ -168,7 +168,10 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
 
   const handleCompress = async (imageUrlToCompress: string) => {
     if (compressingImageUrl) return;
-    if (!productId || !variantColor) return;
+    if (!productId || !variantColor) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Product or variant data is missing. Cannot compress.' });
+        return;
+    };
 
     setCompressingImageUrl(imageUrlToCompress);
     toast({ title: 'Starting Compression', description: `Processing image...` });
@@ -299,7 +302,7 @@ export function ImageUploader({ variantIndex, productId }: ImageUploaderProps) {
                                 </a>
                             </DropdownMenuItem>
                             {!isWebp && productId && variantColor && (
-                                <DropdownMenuItem onSelect={() => handleCompress(imageUrl)} disabled={isLoading}>
+                                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleCompress(imageUrl); }} disabled={isLoading}>
                                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-blue-600" />}
                                     <span>{isLoading ? 'Compressing...' : 'Compress'}</span>
                                 </DropdownMenuItem>
