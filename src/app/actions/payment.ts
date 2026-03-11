@@ -133,13 +133,19 @@ export async function verifyPaymentAndUpdateOrder(
 
         const orderDoc = querySnapshot.docs[0];
         
-        // This client-side update is just for immediate feedback.
-        // The webhook is the source of truth for changing orderStatus to 'confirmed'.
+        // This is now the primary source of truth for confirmation.
+        // The webhook will act as a fallback.
         await updateDoc(orderDoc.ref, {
+            orderStatus: 'confirmed',
             paymentStatus: 'paid',
             'razorpay.paymentId': razorpay_payment_id,
+            confirmedAt: serverTimestamp(),
         });
+        
+        // Revalidate all necessary paths
         revalidatePath(`/dashboard/orders/${orderDoc.id}`);
+        revalidatePath('/admin/orders');
+        revalidatePath('/admin');
 
         return { success: true, orderId: orderDoc.id };
     } else {
