@@ -28,12 +28,15 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { Product } from '@/lib/types';
 import { DeleteProductButton } from './components/DeleteProductButton';
 import { collection, onSnapshot, query, orderBy, DocumentData } from 'firebase/firestore';
 import { db } from '@/firebase/config';
+import { CompressProductButton } from './components/CompressProductButton';
+import { BulkCompressButton } from './components/BulkCompressButton';
 
 function docToProduct(doc: DocumentData): Product {
     const data = doc.data();
@@ -106,17 +109,20 @@ export default function AdminProductsPage() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
             <CardTitle>Products</CardTitle>
             <CardDescription>Manage your products here.</CardDescription>
         </div>
-        <Button asChild>
-            <Link href="/admin/products/new">
-                <PlusCircle className="mr-2 h-4 w-4"/>
-                Add Product
-            </Link>
-        </Button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <BulkCompressButton />
+            <Button asChild>
+                <Link href="/admin/products/new">
+                    <PlusCircle className="mr-2 h-4 w-4"/>
+                    Add Product
+                </Link>
+            </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4 mb-4">
@@ -165,7 +171,8 @@ export default function AdminProductsPage() {
                 </TableHeader>
                 <TableBody>
                     {filteredProducts.map((product) => {
-                        const imageUrl = product.variants?.[0]?.imageUrls?.[0] || `https://picsum.photos/seed/${product.id}/64/64`;
+                        const firstVariant = product.variants?.[0];
+                        const imageUrl = firstVariant?.imageUrls?.[0] || `https://picsum.photos/seed/${product.id}/64/64`;
                         const stockStatus = getStockStatus(product);
                         return (
                         <TableRow key={product.id}>
@@ -202,6 +209,8 @@ export default function AdminProductsPage() {
                                     <DropdownMenuItem asChild>
                                         <Link href={`/admin/products/edit/${product.id}`}>Edit</Link>
                                     </DropdownMenuItem>
+                                    <CompressProductButton product={product} />
+                                    <DropdownMenuSeparator />
                                     <DeleteProductButton 
                                         productId={product.id}
                                         productName={product.name}
