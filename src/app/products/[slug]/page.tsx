@@ -1,6 +1,6 @@
 
 import { notFound } from 'next/navigation';
-import { getProductById, getProducts } from '@/lib/data';
+import { getProductById, getProductsByCollectionId } from '@/lib/data';
 import { ProductDetailsView } from './ProductDetailsView';
 import { ProductCard } from '@/components/product-card';
 
@@ -17,9 +17,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
   }
 
   // Fetch related products
-  const allProducts = await getProducts();
-  const relatedProducts = allProducts
-    .filter(p => p.collectionId === product.collectionId && p.id !== product.id)
+  const relatedProducts = (await getProductsByCollectionId(product.collectionId, { limit: 5 }))
+    .filter(p => p.id !== product.id)
     .slice(0, 4);
 
   return (

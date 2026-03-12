@@ -37,7 +37,7 @@ const ProductsViewSkeleton = () => (
 export default async function ProductsPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
     const [categories, initialProducts] = await Promise.all([
         getCategories(),
-        getProducts()
+        getProducts({ limit: 48 })
     ]);
     
     return (

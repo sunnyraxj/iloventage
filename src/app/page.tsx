@@ -10,14 +10,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 export default async function HomePage() {
-  const [products, categories, settings] = await Promise.all([
-    getProducts(),
+  const [featuredProducts, categories, settings] = await Promise.all([
+    getProducts({ limit: 8 }),
     getCategories(),
     getStoreSettings(),
   ]);
 
-  // Simple logic to get some "featured" products, e.g. first 8
-  const featuredProducts = products.slice(0, 8);
   const heroImageUrl =
     settings?.storeDetails?.heroImageUrl ||
     'https://picsum.photos/seed/1/1920/1080';
