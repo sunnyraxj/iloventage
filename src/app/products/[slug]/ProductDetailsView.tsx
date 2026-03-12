@@ -1,7 +1,7 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Product, ProductVariant, ProductSize } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,7 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -137,6 +138,44 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
         title: "Added to cart",
         description: `${product.name} (${selectedVariant.color}, ${selectedSize.size}) has been added to your cart.`
     });
+  }
+
+  const handleBuyNow = () => {
+    if (!product || !selectedVariant || !selectedSize || selectedSize.stock === 0) {
+        toast({
+            variant: "destructive",
+            title: "Cannot buy now",
+            description: "Please select an available color and size.",
+        });
+        return;
+    }
+
+    if (quantity < product.moq) {
+        toast({
+            variant: "destructive",
+            title: "Minimum Order Quantity",
+            description: `You must order at least ${product.moq} of this product.`,
+        });
+        return;
+    }
+
+    const cartImageUrl = selectedVariant.imageUrls?.[0];
+
+    const cartItem = {
+        id: `${product.id}-${selectedVariant.color}-${selectedSize.size}`,
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        color: selectedVariant.color,
+        size: selectedSize.size,
+        stock: selectedSize.stock,
+        quantity: quantity,
+        moq: product.moq,
+        imageUrl: cartImageUrl || `https://picsum.photos/seed/${product.id}/200/200`
+    };
+
+    addItem(cartItem);
+    router.push('/checkout');
   }
 
   const stockForSelectedSize = selectedSize?.stock ?? 0;
@@ -267,10 +306,10 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
                     )}
                 </div>
                 
-                <div className="flex items-end gap-4">
-                    <div className="space-y-2">
+                <div className="space-y-4 pt-2">
+                    <div>
                         <Label htmlFor="quantity" className="text-sm font-medium">Quantity</Label>
-                        <div className="flex items-center rounded-md border w-28">
+                        <div className="flex items-center rounded-md border w-28 mt-1">
                             <Button
                                 type="button"
                                 variant="ghost"
@@ -300,12 +339,15 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground">Min. order: {product.moq}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Min. order: {product.moq}</p>
                     </div>
-                    <div className="flex-1">
-                        <Button size="lg" className="w-full" onClick={handleAddToCart} disabled={!canAddToCart}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart} disabled={!canAddToCart}>
                             <ShoppingBag className="mr-2 h-5 w-5" />
                             {canAddToCart ? 'Add to Cart' : 'Out of Stock'}
+                        </Button>
+                        <Button size="lg" className="w-full" onClick={handleBuyNow} disabled={!canAddToCart}>
+                            Buy Now
                         </Button>
                     </div>
                 </div>
