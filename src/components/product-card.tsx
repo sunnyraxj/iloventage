@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingBag, Plus } from 'lucide-react';
-import React from 'react';
+import { ShoppingBag, Plus, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
 
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ interface ProductCardProps {
 export const ProductCard = React.memo(function ProductCard({ product, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const firstVariant = product.variants?.[0];
   const firstSize = firstVariant?.sizes?.[0];
@@ -54,12 +55,16 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
       description: `${product.name} has been added to your cart.`,
     });
   };
+  
+  const handleNavigation = () => {
+    setIsNavigating(true);
+  };
 
   const hasStock = product.variants?.some(v => v.sizes.some(s => s.stock > 0)) ?? false;
 
   return (
     <div className="group relative">
-      <Link href={`/products/${product.id}`} className="block">
+      <Link href={`/products/${product.id}`} className="block" onClick={handleNavigation}>
         <div className="relative overflow-hidden rounded-md">
           {imageUrl ? (
             <>
@@ -119,6 +124,11 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
                 <Plus className="h-4 w-4" />
               </Button>
             </>
+          )}
+           {isNavigating && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
           )}
         </div>
         <div className="pt-2 text-left">
