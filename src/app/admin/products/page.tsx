@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Card,
@@ -21,7 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, PlusCircle, Search } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
     DropdownMenu,
@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import type { Product } from '@/lib/types';
 import { DeleteProductButton } from './components/DeleteProductButton';
-import { collection, onSnapshot, query, orderBy, DocumentData } from 'firebase/firestore';
+import { collection, query, orderBy, DocumentData, getDocs, limit, startAfter } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 function docToProduct(doc: DocumentData): Product {
@@ -46,26 +46,63 @@ function docToProduct(doc: DocumentData): Product {
     } as Product;
 }
 
+const PAGE_SIZE = 10;
+
 export default function AdminProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // 'all', 'in-stock', 'out-of-stock'
     const [searchTerm, setSearchTerm] = useState('');
+    const [lastVisible, setLastVisible] = useState<DocumentData | null>(null);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+
+    const fetchInitialProducts = useCallback(async () => {
+        setLoading(true);
+        try {
+            const productsRef = collection(db, 'products');
+            const q = query(productsRef, orderBy('createdAt', 'desc'), limit(PAGE_SIZE));
+            const documentSnapshots = await getDocs(q);
+            
+            const fetchedProducts = documentSnapshots.docs.map(docToProduct);
+            setProducts(fetchedProducts);
+            
+            const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+            setLastVisible(lastDoc);
+            setHasMore(documentSnapshots.size === PAGE_SIZE);
+
+        } catch (error) {
+            console.error("Failed to fetch products:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        setLoading(true);
-        const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const allProducts = snapshot.docs.map(docToProduct);
-            setProducts(allProducts);
-            setLoading(false);
-        }, (error) => {
-            console.error("Failed to subscribe to products:", error);
-            setLoading(false);
-        });
+        fetchInitialProducts();
+    }, [fetchInitialProducts]);
 
-        return () => unsubscribe();
-    }, []);
+     const loadMoreProducts = async () => {
+        if (!hasMore || loadingMore || !lastVisible) return;
+
+        setLoadingMore(true);
+        try {
+            const productsRef = collection(db, 'products');
+            const q = query(productsRef, orderBy('createdAt', 'desc'), startAfter(lastVisible), limit(PAGE_SIZE));
+            const documentSnapshots = await getDocs(q);
+
+            const newProducts = documentSnapshots.docs.map(docToProduct);
+            setProducts(prevProducts => [...prevProducts, ...newProducts]);
+
+            const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+            setLastVisible(lastDoc);
+            setHasMore(documentSnapshots.size === PAGE_SIZE);
+        } catch (error) {
+            console.error("Failed to load more products:", error);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
     
     const handleProductDelete = (deletedProductId: string) => {
         setProducts(prevProducts => prevProducts.filter(p => p.id !== deletedProductId));
@@ -137,9 +174,9 @@ export default function AdminProductsPage() {
 
         <Tabs defaultValue="all" onValueChange={setFilter} className="mb-4">
             <TabsList>
-                <TabsTrigger value="all">All ({products.length})</TabsTrigger>
-                <TabsTrigger value="in-stock">In Stock ({products.filter(p => calculateTotalStock(p) > 0).length})</TabsTrigger>
-                <TabsTrigger value="out-of-stock">Out of Stock ({products.filter(p => calculateTotalStock(p) === 0).length})</TabsTrigger>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="in-stock">In Stock</TabsTrigger>
+                <TabsTrigger value="out-of-stock">Out of Stock</TabsTrigger>
             </TabsList>
         </Tabs>
         
@@ -222,7 +259,21 @@ export default function AdminProductsPage() {
         )}
         {!loading && filteredProducts.length === 0 && (
             <div className="text-center text-muted-foreground py-8 border-2 border-dashed rounded-lg">
-                <p>No products found.</p>
+                <p>No products found for the current filters.</p>
+            </div>
+        )}
+        {hasMore && !loading && (
+            <div className="mt-8 flex justify-center">
+                <Button onClick={loadMoreProducts} disabled={loadingMore}>
+                    {loadingMore ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Loading...
+                        </>
+                    ) : (
+                        'Load More'
+                    )}
+                </Button>
             </div>
         )}
       </CardContent>
