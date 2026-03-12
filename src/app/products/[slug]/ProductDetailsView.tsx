@@ -19,6 +19,7 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProductDetailsViewProps {
     product: Product;
@@ -34,6 +35,11 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
   
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!api) return;
@@ -352,24 +358,33 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
                     </div>
                 </div>
 
-                <Accordion type="single" collapsible className="w-full mt-2">
-                    <AccordionItem value="description">
-                        <AccordionTrigger>Description</AccordionTrigger>
-                        <AccordionContent>
-                            <p className="text-muted-foreground">{product.description}</p>
-                        </AccordionContent>
-                    </AccordionItem>
-                    {product.additionalDetails && product.additionalDetails.length > 0 && (
-                        <AccordionItem value="details">
-                            <AccordionTrigger>Additional Details</AccordionTrigger>
+                {hasMounted ? (
+                    <Accordion type="single" collapsible className="w-full mt-2">
+                        <AccordionItem value="description">
+                            <AccordionTrigger>Description</AccordionTrigger>
                             <AccordionContent>
-                                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                                    {product.additionalDetails.map((detail, index) => <li key={index}>{detail}</li>)}
-                                </ul>
+                                <p className="text-muted-foreground">{product.description}</p>
                             </AccordionContent>
                         </AccordionItem>
-                    )}
-                </Accordion>
+                        {product.additionalDetails && product.additionalDetails.length > 0 && (
+                            <AccordionItem value="details">
+                                <AccordionTrigger>Additional Details</AccordionTrigger>
+                                <AccordionContent>
+                                    <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                                        {product.additionalDetails.map((detail, index) => <li key={index}>{detail}</li>)}
+                                    </ul>
+                                </AccordionContent>
+                            </AccordionItem>
+                        )}
+                    </Accordion>
+                ) : (
+                    <div className="w-full mt-2 space-y-2">
+                        <Skeleton className="h-12 w-full" />
+                        {(product.additionalDetails && product.additionalDetails.length > 0) && (
+                            <Skeleton className="h-12 w-full" />
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     </div>
