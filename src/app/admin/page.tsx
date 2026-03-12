@@ -1,15 +1,8 @@
 
-import { getAllProducts, getAllOrders, getAllUsers } from '@/lib/data';
 import { DashboardClient } from './components/DashboardClient';
 
-export default async function AdminDashboardPage() {
-    const [products, allOrders, users] = await Promise.all([
-        getAllProducts(),
-        getAllOrders(),
-        getAllUsers()
-    ]);
-
+export default function AdminDashboardPage() {
     return (
-      <DashboardClient products={products} allOrders={allOrders} users={users} />
+      <DashboardClient />
     );
 }

@@ -1,4 +1,7 @@
+'use client';
 
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -17,13 +20,31 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { getAllOrders } from '@/lib/data';
 import { format } from 'date-fns';
 import { OrderStatusChanger } from './components/OrderStatusChanger';
 import type { Order } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import { OrderImagePreview } from './components/OrderImagePreview';
+import { collection, onSnapshot, query, DocumentData } from 'firebase/firestore';
+import { db } from '@/firebase/config';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function docToOrder(doc: DocumentData): Order {
+    const data = doc.data();
+    const processedData: { [key: string]: any } = { id: doc.id };
+    for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+            const value = data[key];
+            if (value && typeof value.toDate === 'function') {
+                processedData[key] = value.toDate().toISOString();
+            } else {
+                processedData[key] = value;
+            }
+        }
+    }
+    return processedData as Order;
+}
+
 
 const OrderList = ({ orders }: { orders: Order[] }) => {
     if (orders.length === 0) {
@@ -41,7 +62,7 @@ const OrderList = ({ orders }: { orders: Order[] }) => {
                              <CardHeader className="flex flex-row items-center justify-between bg-muted/50 p-3">
                                 <div className="grid gap-0.5">
                                     <h3 className="font-semibold text-sm">Order #{order.orderNumber}</h3>
-                                    <p className="text-xs text-muted-foreground">{format(new Date(order.createdAt), 'PP')}</p>
+                                    <p className="text-xs text-muted-foreground">{order.createdAt ? format(new Date(order.createdAt), 'PP') : ''}</p>
                                 </div>
                                 <OrderStatusChanger orderId={order.id} currentStatus={order.orderStatus} />
                             </CardHeader>
@@ -123,7 +144,7 @@ const OrderList = ({ orders }: { orders: Order[] }) => {
                                             <span className="text-muted-foreground">No items</span>
                                         )}
                                     </TableCell>
-                                    <TableCell>{format(new Date(order.createdAt), 'PP')}</TableCell>
+                                    <TableCell>{order.createdAt ? format(new Date(order.createdAt), 'PP') : ''}</TableCell>
                                     <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
                                     <TableCell className="text-center">
                                         <Badge variant={order.paymentStatus === 'paid' ? 'success' : 'destructive'} className="capitalize">{order.paymentStatus}</Badge>
@@ -146,25 +167,40 @@ const OrderList = ({ orders }: { orders: Order[] }) => {
     );
 };
 
-export default async function AdminOrdersPage() {
-    const statusOrder: Record<Order['orderStatus'], number> = {
-        'confirmed': 1,
-        'shipped': 2,
-        'delivered': 3,
-        'pending': 4,
-        'cancelled': 5,
-    };
+export default function AdminOrdersPage() {
+    const [allOrders, setAllOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const allOrders = (await getAllOrders()).sort((a, b) => {
-        const orderA = statusOrder[a.orderStatus] ?? 99;
-        const orderB = statusOrder[b.orderStatus] ?? 99;
-    
-        if (orderA !== orderB) {
-            return orderA - orderB;
-        }
-    
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+    useEffect(() => {
+        const q = query(collection(db, 'orders'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedOrders = snapshot.docs.map(docToOrder);
+            
+            const statusOrder: Record<Order['orderStatus'], number> = {
+                'confirmed': 1,
+                'shipped': 2,
+                'delivered': 3,
+                'pending': 4,
+                'cancelled': 5,
+            };
+            
+            const sortedOrders = fetchedOrders.sort((a, b) => {
+                const orderA = statusOrder[a.orderStatus] ?? 99;
+                const orderB = statusOrder[b.orderStatus] ?? 99;
+                if (orderA !== orderB) return orderA - orderB;
+                if (!a.createdAt || !b.createdAt) return 0;
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            });
+
+            setAllOrders(sortedOrders);
+            setLoading(false);
+        }, (error) => {
+            console.error("Failed to subscribe to orders:", error);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     const confirmedOrders = allOrders.filter(o => o.orderStatus === 'confirmed');
     const shippedOrders = allOrders.filter(o => o.orderStatus === 'shipped');
@@ -178,32 +214,39 @@ export default async function AdminOrdersPage() {
         <CardDescription>View and manage customer orders.</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="all">
-            <div className="overflow-x-auto">
-                <TabsList className="-mb-px">
-                    <TabsTrigger value="all">All ({allOrders.length})</TabsTrigger>
-                    <TabsTrigger value="confirmed">Confirmed ({confirmedOrders.length})</TabsTrigger>
-                    <TabsTrigger value="shipped">Shipped ({shippedOrders.length})</TabsTrigger>
-                    <TabsTrigger value="delivered">Delivered ({deliveredOrders.length})</TabsTrigger>
-                    <TabsTrigger value="other">Other ({otherOrders.length})</TabsTrigger>
-                </TabsList>
-            </div>
-            <TabsContent value="all">
-                <OrderList orders={allOrders} />
-            </TabsContent>
-            <TabsContent value="confirmed">
-                <OrderList orders={confirmedOrders} />
-            </TabsContent>
-            <TabsContent value="shipped">
-                <OrderList orders={shippedOrders} />
-            </TabsContent>
-            <TabsContent value="delivered">
-                <OrderList orders={deliveredOrders} />
-            </TabsContent>
-            <TabsContent value="other">
-                <OrderList orders={otherOrders} />
-            </TabsContent>
-        </Tabs>
+        {loading ? (
+             <div className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-40 w-full" />
+             </div>
+        ) : (
+            <Tabs defaultValue="all">
+                <div className="overflow-x-auto">
+                    <TabsList className="-mb-px">
+                        <TabsTrigger value="all">All ({allOrders.length})</TabsTrigger>
+                        <TabsTrigger value="confirmed">Confirmed ({confirmedOrders.length})</TabsTrigger>
+                        <TabsTrigger value="shipped">Shipped ({shippedOrders.length})</TabsTrigger>
+                        <TabsTrigger value="delivered">Delivered ({deliveredOrders.length})</TabsTrigger>
+                        <TabsTrigger value="other">Other ({otherOrders.length})</TabsTrigger>
+                    </TabsList>
+                </div>
+                <TabsContent value="all">
+                    <OrderList orders={allOrders} />
+                </TabsContent>
+                <TabsContent value="confirmed">
+                    <OrderList orders={confirmedOrders} />
+                </TabsContent>
+                <TabsContent value="shipped">
+                    <OrderList orders={shippedOrders} />
+                </TabsContent>
+                <TabsContent value="delivered">
+                    <OrderList orders={deliveredOrders} />
+                </TabsContent>
+                <TabsContent value="other">
+                    <OrderList orders={otherOrders} />
+                </TabsContent>
+            </Tabs>
+        )}
       </CardContent>
     </Card>
   );
