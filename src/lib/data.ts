@@ -96,8 +96,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 
 export const getProductsByCollectionId = async (collectionId: string, options?: { limit?: number }): Promise<Product[]> => {
     let q = query(collection(db, 'products'), 
-        where('collectionId', '==', collectionId),
-        orderBy('createdAt', 'desc')
+        where('collectionId', '==', collectionId)
     );
     if (options?.limit) {
         q = query(q, limit(options.limit));
