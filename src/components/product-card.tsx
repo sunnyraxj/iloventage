@@ -133,8 +133,14 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
         </div>
         <div className="pt-2 text-left">
           <p className="text-xs text-muted-foreground">{product.brand}</p>
-          <h3 className="text-sm font-semibold h-10 line-clamp-2">{product.name}</h3>
-          <div className="flex items-baseline justify-start gap-1">
+          <h3 className="h-5 overflow-hidden w-full relative text-sm font-semibold">
+            <span className="truncate group-hover:hidden absolute top-0 left-0 w-full">{product.name}</span>
+            <span className="absolute top-0 left-0 w-max group-hover:animate-marquee hidden group-hover:block whitespace-nowrap">
+                <span className="pr-8">{product.name}</span>
+                <span className="pr-8">{product.name}</span>
+            </span>
+          </h3>
+          <div className="flex items-baseline justify-start gap-1 mt-1">
             <p className="text-sm font-semibold text-foreground">₹{product.price.toFixed(2)}</p>
             {product.mrp && product.mrp > product.price && (
               <p className="text-xs text-muted-foreground line-through">
@@ -143,7 +149,7 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
             )}
           </div>
           {!hasStock && (
-            <p className="text-xs font-semibold text-destructive">SOLD OUT</p>
+            <p className="text-xs font-semibold text-destructive mt-1">SOLD OUT</p>
           )}
         </div>
       </Link>

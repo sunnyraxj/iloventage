@@ -82,11 +82,16 @@ export default {
               transform: 'translateX(100%)',
             },
         },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         shimmer: 'shimmer 1.5s infinite linear',
+        marquee: 'marquee 15s linear infinite',
       },
     },
   },
