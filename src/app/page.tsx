@@ -76,8 +76,7 @@ export default async function HomePage() {
                     />
                   </div>
                   <h3 className="mt-2 h-5 overflow-hidden relative text-sm font-semibold text-foreground">
-                    <span className="truncate group-hover:hidden absolute top-0 left-0 w-full">{category.name}</span>
-                    <span className="absolute top-0 left-0 w-max group-hover:animate-marquee hidden group-hover:block whitespace-nowrap">
+                    <span className="absolute top-0 left-0 w-max animate-marquee whitespace-nowrap flex items-center h-full">
                         <span className="pr-8">{category.name}</span>
                         <span className="pr-8">{category.name}</span>
                     </span>
