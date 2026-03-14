@@ -191,6 +191,7 @@ export default function AdminProductsPage() {
             <Table>
                 <TableHeader>
                     <TableRow>
+                        <TableHead>Sr. No.</TableHead>
                         <TableHead className="hidden w-[100px] sm:table-cell">
                             <span className="sr-only">Image</span>
                         </TableHead>
@@ -204,12 +205,13 @@ export default function AdminProductsPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredProducts.map((product) => {
+                    {filteredProducts.map((product, index) => {
                         const firstVariant = product.variants?.[0];
                         const imageUrl = firstVariant?.imageUrls?.[0] || `https://picsum.photos/seed/${product.id}/64/64`;
                         const stockStatus = getStockStatus(product);
                         return (
                         <TableRow key={product.id}>
+                            <TableCell className="font-medium">{index + 1}</TableCell>
                             <TableCell className="hidden sm:table-cell">
                                 <img
                                     alt={product.name}
