@@ -168,10 +168,10 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
             </form>
           <div className="flex items-center space-x-2">
             <Link href="/cart">
-              <Button variant="outline" size="icon" aria-label="Shopping Cart" className="relative h-11 w-11 rounded-full">
-                <ShoppingCart className="h-6 w-6" />
+              <Button variant="outline" size="icon" aria-label="Shopping Cart" className="relative rounded-full">
+                <ShoppingCart className="h-5 w-5" />
                 {hasMounted && cartItemCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground ring-2 ring-background">
                     {cartItemCount}
                   </span>
                 )}
@@ -186,12 +186,12 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                       <Button
                         variant="outline"
                         size="icon"
-                        className="relative h-11 w-11 rounded-full"
+                        className="relative rounded-full"
                         aria-label="User Menu"
                       >
-                         {user.photoURL ? <img src={user.photoURL} alt={user.name} width={40} height={40} className="rounded-full" /> : <UserCircle className="h-6 w-6" /> }
+                         {user.photoURL ? <img src={user.photoURL} alt={user.name} width={40} height={40} className="rounded-full" /> : <UserCircle className="h-5 w-5" /> }
                          {user.role === 'admin' && confirmedOrdersCount > 0 && (
-                            <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
+                            <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white ring-2 ring-background">
                                 {confirmedOrdersCount}
                             </span>
                          )}
