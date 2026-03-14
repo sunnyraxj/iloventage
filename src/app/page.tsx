@@ -71,7 +71,7 @@ export default async function HomePage() {
                     <img
                       src={category.imageUrl || `https://picsum.photos/seed/${category.id}/400/400`}
                       alt={category.name}
-                      className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="aspect-[3/4] w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
                     />
                   </div>
