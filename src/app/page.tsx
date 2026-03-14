@@ -75,7 +75,13 @@ export default async function HomePage() {
                       loading="lazy"
                     />
                   </div>
-                  <h3 className="mt-2 text-sm font-semibold text-left text-foreground">{category.name}</h3>
+                  <h3 className="mt-2 h-5 overflow-hidden relative text-sm font-semibold text-foreground">
+                    <span className="truncate group-hover:hidden absolute top-0 left-0 w-full">{category.name}</span>
+                    <span className="absolute top-0 left-0 w-max group-hover:animate-marquee hidden group-hover:block whitespace-nowrap">
+                        <span className="pr-8">{category.name}</span>
+                        <span className="pr-8">{category.name}</span>
+                    </span>
+                  </h3>
                 </Link>
               ))}
             </div>
