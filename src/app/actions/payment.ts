@@ -3,10 +3,10 @@
 
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import { doc, addDoc, updateDoc, collection, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
+import { doc, addDoc, updateDoc, collection, serverTimestamp, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { revalidatePath } from 'next/cache';
-import type { CartItem, OrderAddress } from '@/lib/types';
+import type { CartItem, OrderAddress, Order, Product } from '@/lib/types';
 
 interface PaymentVerificationData {
     razorpay_order_id: string;
@@ -125,32 +125,78 @@ export async function verifyPaymentAndUpdateOrder(
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-        const ordersRef = collection(db, 'orders');
-        const q = query(ordersRef, where('razorpay.orderId', '==', razorpay_order_id));
-        const querySnapshot = await getDocs(q);
+        try {
+            const ordersRef = collection(db, 'orders');
+            const q = query(ordersRef, where('razorpay.orderId', '==', razorpay_order_id));
+            const querySnapshot = await getDocs(q);
 
-        if (querySnapshot.empty) {
-            console.error(`Payment verification successful but no order found for Razorpay order ID: ${razorpay_order_id}`);
-            return { success: false, message: 'Order not found.' };
+            if (querySnapshot.empty) {
+                console.error(`Payment verification successful but no order found for Razorpay order ID: ${razorpay_order_id}`);
+                return { success: false, message: 'Order not found.' };
+            }
+
+            const orderDoc = querySnapshot.docs[0];
+            const orderData = orderDoc.data() as Order;
+            
+            // Don't update stock if order is already confirmed to avoid double reduction
+            if (orderData.orderStatus === 'confirmed') {
+                console.log(`Order ${orderDoc.id} already confirmed. Skipping stock update.`);
+                return { success: true, orderId: orderDoc.id };
+            }
+
+            await runTransaction(db, async (transaction) => {
+                // Update stock for each item in the order
+                for (const item of orderData.items) {
+                    const productRef = doc(db, 'products', item.productId);
+                    const productSnap = await transaction.get(productRef);
+
+                    if (!productSnap.exists()) {
+                        throw new Error(`Product with ID ${item.productId} not found.`);
+                    }
+
+                    const productData = productSnap.data() as Product;
+                    const updatedVariants = productData.variants.map(variant => {
+                        if (variant.color === item.color) {
+                            const updatedSizes = variant.sizes.map(size => {
+                                if (size.size === item.size) {
+                                    const newStock = size.stock - item.quantity;
+                                    if (newStock < 0) {
+                                        throw new Error(`Not enough stock for ${productData.name} (${variant.color}, ${size.size}).`);
+                                    }
+                                    return { ...size, stock: newStock };
+                                }
+                                return size;
+                            });
+                            return { ...variant, sizes: updatedSizes };
+                        }
+                        return variant;
+                    });
+                    transaction.update(productRef, { variants: updatedVariants });
+                }
+
+                // Update the order status to confirmed
+                transaction.update(orderDoc.ref, {
+                    orderStatus: 'confirmed',
+                    paymentStatus: 'paid',
+                    'razorpay.paymentId': razorpay_payment_id,
+                    confirmedAt: serverTimestamp(),
+                });
+            });
+            
+            // Revalidate paths to ensure data is fresh
+            revalidatePath(`/dashboard/orders/${orderDoc.id}`);
+            revalidatePath('/admin/orders');
+            revalidatePath('/admin');
+            revalidatePath('/products', 'layout');
+
+
+            return { success: true, orderId: orderDoc.id };
+
+        } catch (error) {
+            console.error("Payment verification and stock update failed:", error);
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during payment verification.';
+            return { success: false, message: errorMessage };
         }
-
-        const orderDoc = querySnapshot.docs[0];
-        
-        // This is now the primary source of truth for confirmation.
-        // The webhook will act as a fallback.
-        await updateDoc(orderDoc.ref, {
-            orderStatus: 'confirmed',
-            paymentStatus: 'paid',
-            'razorpay.paymentId': razorpay_payment_id,
-            confirmedAt: serverTimestamp(),
-        });
-        
-        // Revalidate all necessary paths
-        revalidatePath(`/dashboard/orders/${orderDoc.id}`);
-        revalidatePath('/admin/orders');
-        revalidatePath('/admin');
-
-        return { success: true, orderId: orderDoc.id };
     } else {
         console.error("Razorpay signature verification failed. This might be due to a mismatched webhook secret or an attempt at fraud.");
         return { success: false, message: 'Payment verification failed. If you are the admin, please check your Razorpay webhook secret.' };
