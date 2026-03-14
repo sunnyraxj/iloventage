@@ -75,7 +75,7 @@ export default async function HomePage() {
                       loading="lazy"
                     />
                   </div>
-                  <h3 className="mt-2 truncate text-sm font-semibold text-foreground">
+                  <h3 className="mt-2 truncate text-xs font-semibold text-foreground">
                     {category.name}
                   </h3>
                 </Link>
