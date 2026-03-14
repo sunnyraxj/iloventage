@@ -73,7 +73,7 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
       const originalName = processedFile.name;
       
       const options = {
-        maxSizeMB: 0.5,
+        maxSizeMB: 0.19,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
         initialQuality: 0.7,
