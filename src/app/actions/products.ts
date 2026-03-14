@@ -14,13 +14,17 @@ const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').rep
 export async function upsertProduct(data: ProductFormValues, productId?: string) {
     try {
         const slug = createSlug(data.name);
+        const { collectionId, additionalCollectionIds, ...restOfData } = data;
+        const allCollectionIds = [...new Set([collectionId, ...(additionalCollectionIds || [])])].filter(Boolean);
+
         const productData = {
-            ...data,
+            ...restOfData,
             brand: data.brand || 'ILV',
             slug: slug,
             price: Number(data.price),
             mrp: Number(data.mrp),
             moq: Number(data.moq),
+            collectionIds: allCollectionIds,
             additionalDetails: data.additionalDetails?.map(d => d.value) || [],
             variants: data.variants.map(variant => ({
                 ...variant,
@@ -46,8 +50,8 @@ export async function upsertProduct(data: ProductFormValues, productId?: string)
         revalidatePath(`/products/${slug}`);
         
         // Revalidate category paths
-        if (data.collectionIds) {
-            for (const catId of data.collectionIds) {
+        if (allCollectionIds) {
+            for (const catId of allCollectionIds) {
                 const category = await getDoc(doc(db, 'collections', catId));
                 if(category.exists()) {
                     const categoryData = category.data();

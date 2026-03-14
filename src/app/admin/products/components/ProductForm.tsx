@@ -38,7 +38,8 @@ const formSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters."),
   brand: z.string().optional(),
   gender: z.enum(["male", "female", "unisex"]),
-  collectionIds: z.array(z.string()).min(1, "Please select at least one category."),
+  collectionId: z.string().min(1, "A primary category is required."),
+  additionalCollectionIds: z.array(z.string()).optional(),
   price: z.coerce.number().min(0, "Price must be a positive number."),
   mrp: z.coerce.number().min(0, "MRP must be a positive number.").optional(),
   moq: z.coerce.number().int().min(1, "MOQ must be at least 1."),
@@ -68,9 +69,12 @@ export function ProductForm({ product, categories }: ProductFormProps) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const allCollectionIds = product?.collectionIds || (product && (product as any).collectionId ? [(product as any).collectionId] : []);
+
     const defaultValues: Partial<ProductFormValues> = product ? {
         ...product,
-        collectionIds: product.collectionIds || ((product as any).collectionId ? [(product as any).collectionId] : []),
+        collectionId: allCollectionIds[0] || '',
+        additionalCollectionIds: allCollectionIds.slice(1),
         mrp: product.mrp || 0,
         additionalDetails: product.additionalDetails?.map(d => ({ value: d })),
         // Map the string[] from DB back to { value: string }[] for the form
@@ -83,7 +87,8 @@ export function ProductForm({ product, categories }: ProductFormProps) {
         description: "",
         brand: "",
         gender: "unisex",
-        collectionIds: [],
+        collectionId: "",
+        additionalCollectionIds: [],
         price: 0,
         mrp: 0,
         moq: 1,
@@ -183,30 +188,55 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                             <CardHeader><CardTitle>Organization</CardTitle></CardHeader>
                             <CardContent className="space-y-4">
                                 <FormField control={form.control} name="brand" render={({ field }) => (<FormItem><FormLabel>Brand (Optional)</FormLabel><FormControl><Input placeholder="Defaults to ILV if empty" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+                                
                                 <FormField
-                                  control={form.control}
-                                  name="collectionIds"
-                                  render={({ field }) => (
+                                    control={form.control}
+                                    name="collectionId"
+                                    render={({ field }) => (
                                     <FormItem>
-                                      <div className="mb-4">
-                                        <FormLabel>Categories</FormLabel>
+                                        <FormLabel>Primary Category</FormLabel>
+                                        <FormDescription>This is the main category for the product.</FormDescription>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                            <SelectValue placeholder="Select a primary category" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {categories.map((category) => (
+                                            <SelectItem key={category.id} value={category.id}>
+                                                {category.name}
+                                            </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="additionalCollectionIds"
+                                    render={({ field }) => (
+                                    <FormItem className="mt-4">
+                                        <div className="mb-4">
+                                        <FormLabel>Additional Categories</FormLabel>
                                         <FormDescription>
-                                          Select one or more categories for this product.
+                                            Select other relevant categories (optional).
                                         </FormDescription>
-                                      </div>
-                                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                                        {categories.map((item) => (
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                        {categories.filter(c => c.id !== form.watch('collectionId')).map((item) => (
                                             <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
                                                 <FormControl>
                                                     <Checkbox
                                                     checked={field.value?.includes(item.id)}
                                                     onCheckedChange={(checked) => {
                                                         const currentIds = field.value || [];
-                                                        if (checked) {
-                                                            field.onChange([...currentIds, item.id]);
-                                                        } else {
-                                                            field.onChange(currentIds.filter((id) => id !== item.id));
-                                                        }
+                                                        return checked
+                                                        ? field.onChange([...currentIds, item.id])
+                                                        : field.onChange(currentIds.filter((id) => id !== item.id));
                                                     }}
                                                     />
                                                 </FormControl>
@@ -215,11 +245,12 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                                                 </FormLabel>
                                             </FormItem>
                                         ))}
-                                      </div>
-                                      <FormMessage />
+                                        </div>
+                                        <FormMessage />
                                     </FormItem>
-                                  )}
+                                    )}
                                 />
+                                
                                 <FormField control={form.control} name="gender" render={({ field }) => (<FormItem><FormLabel>Gender</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger></FormControl><SelectContent><SelectItem value="male">Men</SelectItem><SelectItem value="female">Women</SelectItem><SelectItem value="unisex">Unisex</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                             </CardContent>
                         </Card>
