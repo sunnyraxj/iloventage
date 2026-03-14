@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -30,13 +31,14 @@ import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { ImageUploader } from "./ImageUploader"
+import { Checkbox } from "@/components/ui/checkbox"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   description: z.string().min(10, "Description must be at least 10 characters."),
   brand: z.string().optional(),
   gender: z.enum(["male", "female", "unisex"]),
-  collectionId: z.string().min(1, "Category is required."),
+  collectionIds: z.array(z.string()).min(1, "Please select at least one category."),
   price: z.coerce.number().min(0, "Price must be a positive number."),
   mrp: z.coerce.number().min(0, "MRP must be a positive number.").optional(),
   moq: z.coerce.number().int().min(1, "MOQ must be at least 1."),
@@ -68,6 +70,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
 
     const defaultValues: Partial<ProductFormValues> = product ? {
         ...product,
+        collectionIds: product.collectionIds || ((product as any).collectionId ? [(product as any).collectionId] : []),
         mrp: product.mrp || 0,
         additionalDetails: product.additionalDetails?.map(d => ({ value: d })),
         // Map the string[] from DB back to { value: string }[] for the form
@@ -80,7 +83,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
         description: "",
         brand: "",
         gender: "unisex",
-        collectionId: "",
+        collectionIds: [],
         price: 0,
         mrp: 0,
         moq: 1,
@@ -180,22 +183,43 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                             <CardHeader><CardTitle>Organization</CardTitle></CardHeader>
                             <CardContent className="space-y-4">
                                 <FormField control={form.control} name="brand" render={({ field }) => (<FormItem><FormLabel>Brand (Optional)</FormLabel><FormControl><Input placeholder="Defaults to ILV if empty" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={form.control} name="collectionId" render={({ field }) => (
+                                <FormField
+                                  control={form.control}
+                                  name="collectionIds"
+                                  render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Category</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a category" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
+                                      <div className="mb-4">
+                                        <FormLabel>Categories</FormLabel>
+                                        <FormDescription>
+                                          Select one or more categories for this product.
+                                        </FormDescription>
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                        {categories.map((item) => (
+                                            <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                                <FormControl>
+                                                    <Checkbox
+                                                    checked={field.value?.includes(item.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        const currentIds = field.value || [];
+                                                        if (checked) {
+                                                            field.onChange([...currentIds, item.id]);
+                                                        } else {
+                                                            field.onChange(currentIds.filter((id) => id !== item.id));
+                                                        }
+                                                    }}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className="font-normal text-sm">
+                                                    {item.name}
+                                                </FormLabel>
+                                            </FormItem>
+                                        ))}
+                                      </div>
+                                      <FormMessage />
                                     </FormItem>
-                                )}/>
+                                  )}
+                                />
                                 <FormField control={form.control} name="gender" render={({ field }) => (<FormItem><FormLabel>Gender</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger></FormControl><SelectContent><SelectItem value="male">Men</SelectItem><SelectItem value="female">Women</SelectItem><SelectItem value="unisex">Unisex</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                             </CardContent>
                         </Card>

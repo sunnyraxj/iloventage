@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -121,7 +122,16 @@ export function ProductsView({ categories, initialProducts, searchParams: server
     
     // Category filter
     if (categoryFilters.length > 0) {
-      tempProducts = tempProducts.filter(p => categoryFilters.includes(p.collectionId));
+      tempProducts = tempProducts.filter(p => {
+        if (p.collectionIds && p.collectionIds.length > 0) {
+            return p.collectionIds.some(catId => categoryFilters.includes(catId))
+        }
+        // for backward compatibility with old data structure.
+        if ((p as any).collectionId) {
+            return categoryFilters.includes((p as any).collectionId);
+        }
+        return false;
+      });
     }
     
     // Color filter

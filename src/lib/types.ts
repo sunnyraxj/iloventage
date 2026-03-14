@@ -27,7 +27,7 @@ export type Product = {
     description: string;
     brand: string;
     gender: 'male' | 'female' | 'unisex';
-    collectionId: string;
+    collectionIds: string[];
     price: number;
     mrp?: number;
     moq: number;

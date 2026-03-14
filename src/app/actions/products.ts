@@ -1,3 +1,4 @@
+
 'use server';
 
 import { doc, addDoc, updateDoc, collection, serverTimestamp, getDoc, getDocs, query, where, deleteDoc } from 'firebase/firestore';
@@ -45,11 +46,15 @@ export async function upsertProduct(data: ProductFormValues, productId?: string)
         revalidatePath(`/products/${slug}`);
         
         // Revalidate category paths
-        const category = await getDoc(doc(db, 'collections', data.collectionId));
-        if(category.exists()) {
-            const categoryData = category.data();
-            if (categoryData.slug) {
-                revalidatePath(`/categories/${categoryData.slug}`);
+        if (data.collectionIds) {
+            for (const catId of data.collectionIds) {
+                const category = await getDoc(doc(db, 'collections', catId));
+                if(category.exists()) {
+                    const categoryData = category.data();
+                    if (categoryData.slug) {
+                        revalidatePath(`/categories/${categoryData.slug}`);
+                    }
+                }
             }
         }
         revalidatePath('/categories');
