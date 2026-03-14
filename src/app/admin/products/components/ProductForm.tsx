@@ -95,7 +95,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
         mrp: 0,
         moq: 1,
         additionalDetails: [],
-        variants: [{ color: "", imageUrls: [], sizes: [{ size: "", stock: 0 }] }],
+        variants: [{ color: "", imageUrls: [], sizes: [{ size: "", stock: 1 }] }],
     }
     
     const form = useForm<ProductFormValues>({
@@ -165,7 +165,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                                         )}
                                     </div>
                                 ))}
-                                <Button type="button" variant="outline" onClick={() => appendVariant({ color: "", imageUrls: [], sizes: [{ size: "", stock: 0 }]})}>
+                                <Button type="button" variant="outline" onClick={() => appendVariant({ color: "", imageUrls: [], sizes: [{ size: "", stock: 1 }]})}>
                                     <PlusCircle className="mr-2 h-4 w-4" /> Add Variant
                                 </Button>
                             </CardContent>
@@ -315,7 +315,7 @@ function SizesFieldArray({ control, variantIndex }: { control: any, variantIndex
                     </Button>
                 </div>
             ))}
-            <Button type="button" variant="outline" size="sm" onClick={() => append({ size: "", stock: 0 })}>
+            <Button type="button" variant="outline" size="sm" onClick={() => append({ size: "", stock: 1 })}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Size
             </Button>
         </div>
