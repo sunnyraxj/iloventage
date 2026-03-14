@@ -89,6 +89,9 @@ export async function createOrderAndInitiatePayment(orderData: OrderCreationData
             const razorpayError = (error as any).error;
             if (razorpayError && typeof razorpayError.description === 'string') {
                 errorMessage = razorpayError.description;
+                if (errorMessage.toLowerCase().includes('authentication failed')) {
+                    errorMessage = 'Authentication failed. Please ensure your Razorpay Key ID and Key Secret are correctly set in your environment variables.';
+                }
             }
         } else if (error instanceof Error) {
             errorMessage = error.message;
@@ -149,6 +152,7 @@ export async function verifyPaymentAndUpdateOrder(
 
         return { success: true, orderId: orderDoc.id };
     } else {
-        return { success: false, message: 'Payment verification failed.' };
+        console.error("Razorpay signature verification failed. This might be due to a mismatched webhook secret or an attempt at fraud.");
+        return { success: false, message: 'Payment verification failed. If you are the admin, please check your Razorpay webhook secret.' };
     }
 }
