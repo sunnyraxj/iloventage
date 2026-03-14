@@ -196,11 +196,11 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
                     <CarouselContent>
                         {selectedVariant?.imageUrls.map((url, index) => (
                             <CarouselItem key={index}>
-                                <div className="aspect-square w-full overflow-hidden rounded-lg bg-secondary">
+                                <div className="aspect-[3/4] w-full overflow-hidden rounded-lg bg-secondary">
                                     <img
-                                        src={url || `https://picsum.photos/seed/${product.id}/800/800`}
+                                        src={url || `https://picsum.photos/seed/${product.id}/600/800`}
                                         alt={`${product.name} - ${selectedVariant?.color} image ${index + 1}`}
-                                        width={800}
+                                        width={600}
                                         height={800}
                                         className="h-full w-full object-cover"
                                         loading={index === 0 ? "eager" : "lazy"}
@@ -222,14 +222,14 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
                                 key={i} 
                                 onClick={() => api?.scrollTo(i)}
                                 className={cn(
-                                    "aspect-square w-full overflow-hidden rounded-md border-2 cursor-pointer",
+                                    "aspect-[3/4] w-full overflow-hidden rounded-md border-2 cursor-pointer",
                                     currentSlide === i ? 'border-primary' : 'border-transparent hover:border-primary'
                                 )}
                             >
                                 <img
                                     src={url}
                                     alt={`${product.name} - ${selectedVariant?.color} thumbnail ${i+1}`}
-                                    width={200}
+                                    width={150}
                                     height={200}
                                     className="h-full w-full object-cover"
                                     loading="lazy"
