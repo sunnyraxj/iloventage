@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, User, MapPin } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   { href: '/dashboard', label: 'My Account', icon: User },
@@ -31,8 +32,15 @@ export function DashboardLayoutClient({
 
   if (loading || !user) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Loading...</p>
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+          <aside className="md:col-span-1">
+            <Skeleton className="h-40 w-full" />
+          </aside>
+          <div className="md:col-span-3">
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
       </div>
     );
   }

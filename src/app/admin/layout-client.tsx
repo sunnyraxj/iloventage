@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LayoutGrid } from 'lucide-react';
 import { getConfirmedOrdersCount } from '@/lib/data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -56,8 +57,15 @@ export function AdminLayoutClient({
 
   if (loading || !user || user.role !== 'admin') {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Loading...</p>
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+          <aside className="md:col-span-1">
+            <Skeleton className="h-72 w-full" />
+          </aside>
+          <div className="md:col-span-3">
+            <Skeleton className="h-96 w-full" />
+          </div>
+        </div>
       </div>
     );
   }

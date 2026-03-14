@@ -14,6 +14,61 @@ import {
 import { format } from 'date-fns';
 import type { Order } from '@/lib/types';
 import { OrderStatusChanger } from '@/app/admin/orders/components/OrderStatusChanger';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function OrderDetailsSkeleton() {
+    return (
+        <div className="space-y-8">
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-4 w-64 mt-2" />
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                        <div className="space-y-2">
+                           <Skeleton className="h-4 w-24" />
+                           <Skeleton className="h-6 w-28" />
+                        </div>
+                    </div>
+                    <Skeleton className="h-6 w-40 mb-4" />
+                    <div className="divide-y">
+                        {Array.from({length: 2}).map((_, i) => (
+                            <div key={i} className="flex items-center py-4">
+                                <Skeleton className="h-20 w-20 rounded-md" />
+                                <div className="ml-4 flex-grow space-y-2">
+                                    <Skeleton className="h-5 w-3/4" />
+                                    <Skeleton className="h-4 w-1/2" />
+                                    <Skeleton className="h-4 w-1/4" />
+                                </div>
+                                <Skeleton className="h-6 w-20" />
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                <Card>
+                    <CardHeader><CardTitle>Shipping Address</CardTitle></CardHeader>
+                    <CardContent className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
+                    <CardContent className="space-y-3">
+                        <div className="flex justify-between"><Skeleton className="h-4 w-20" /><Skeleton className="h-4 w-24" /></div>
+                        <div className="flex justify-between"><Skeleton className="h-4 w-20" /><Skeleton className="h-4 w-24" /></div>
+                        <div className="flex justify-between border-t pt-2"><Skeleton className="h-5 w-20" /><Skeleton className="h-5 w-24" /></div>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
+}
+
 
 export default function OrderDetailsPage() {
     const params = useParams();
@@ -49,7 +104,7 @@ export default function OrderDetailsPage() {
     }, [id, user, authLoading, router]);
     
     if (loading || authLoading) {
-        return <div className="text-center p-8">Loading order details...</div>
+        return <OrderDetailsSkeleton />;
     }
 
     if (!order) {
