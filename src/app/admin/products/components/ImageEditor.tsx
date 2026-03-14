@@ -22,6 +22,8 @@ import {
   ChevronRight,
   RefreshCcw,
   Loader2,
+  Minus,
+  Plus
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import imageCompression from 'browser-image-compression';
@@ -281,18 +283,39 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
             showGrid={true}
             flipHorizontal={currentEditState.flip.horizontal}
             flipVertical={currentEditState.flip.vertical}
+            objectFit="contain"
           />
         </div>
 
         <div className="p-4 space-y-4 border-t">
-            <div className="grid grid-cols-2 gap-4 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                 <div className="space-y-2">
                     <Label>Zoom</Label>
-                    <Slider
-                        value={[currentEditState.zoom]}
-                        min={1} max={3} step={0.1}
-                        onValueChange={(val) => updateCurrentState({ zoom: val[0] })}
-                    />
+                    <div className="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => updateCurrentState({ zoom: Math.max(1, currentEditState.zoom - 0.1) })}
+                        >
+                            <Minus className="h-4 w-4" />
+                        </Button>
+                        <Slider
+                            value={[currentEditState.zoom]}
+                            min={1} max={3} step={0.1}
+                            onValueChange={(val) => updateCurrentState({ zoom: val[0] })}
+                        />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => updateCurrentState({ zoom: Math.min(3, currentEditState.zoom + 0.1) })}
+                        >
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
                  <div className="space-y-2">
                     <Label>Rotation</Label>
