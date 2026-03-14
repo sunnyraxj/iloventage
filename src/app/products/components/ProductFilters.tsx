@@ -86,23 +86,25 @@ export function ProductFilters({
                 </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="categories">
-                <AccordionTrigger className="text-sm font-medium">Category</AccordionTrigger>
-                <AccordionContent>
-                    <div className="space-y-2 pt-2">
-                        {categories.map(cat => (
-                            <div key={cat.id} className="flex items-center space-x-2">
-                                <Checkbox 
-                                    id={`cat-filter-${cat.id}`}
-                                    onCheckedChange={(checked) => onCategoryChange(cat.id, checked as boolean)}
-                                    checked={categoryFilters.includes(cat.id)}
-                                />
-                                <Label htmlFor={`cat-filter-${cat.id}`} className="font-normal text-sm">{cat.name}</Label>
-                            </div>
-                        ))}
-                    </div>
-                </AccordionContent>
-            </AccordionItem>
+            {categories.length > 0 && (
+                <AccordionItem value="categories">
+                    <AccordionTrigger className="text-sm font-medium">Category</AccordionTrigger>
+                    <AccordionContent>
+                        <div className="space-y-2 pt-2">
+                            {categories.map(cat => (
+                                <div key={cat.id} className="flex items-center space-x-2">
+                                    <Checkbox 
+                                        id={`cat-filter-${cat.id}`}
+                                        onCheckedChange={(checked) => onCategoryChange(cat.id, checked as boolean)}
+                                        checked={categoryFilters.includes(cat.id)}
+                                    />
+                                    <Label htmlFor={`cat-filter-${cat.id}`} className="font-normal text-sm">{cat.name}</Label>
+                                </div>
+                            ))}
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+            )}
 
             <AccordionItem value="colors">
                 <AccordionTrigger className="text-sm font-medium">Colors</AccordionTrigger>
