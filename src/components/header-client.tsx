@@ -166,12 +166,12 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                 />
               </div>
             </form>
-          <div className="flex items-center space-x-1 md:space-x-2">
+          <div className="flex items-center space-x-2">
             <Link href="/cart">
-              <Button variant="ghost" size="icon" aria-label="Shopping Cart" className="relative">
-                <ShoppingCart className="h-5 w-5" />
+              <Button variant="outline" size="icon" aria-label="Shopping Cart" className="relative h-11 w-11 rounded-full">
+                <ShoppingCart className="h-6 w-6" />
                 {hasMounted && cartItemCount > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                  <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                     {cartItemCount}
                   </span>
                 )}
@@ -184,12 +184,12 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         size="icon"
-                        className="rounded-full relative"
+                        className="relative h-11 w-11 rounded-full"
                         aria-label="User Menu"
                       >
-                         {user.photoURL ? <img src={user.photoURL} alt={user.name} width={32} height={32} className="rounded-full" /> : <UserCircle className="h-5 w-5" /> }
+                         {user.photoURL ? <img src={user.photoURL} alt={user.name} width={40} height={40} className="rounded-full" /> : <UserCircle className="h-6 w-6" /> }
                          {user.role === 'admin' && confirmedOrdersCount > 0 && (
                             <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
                                 {confirmedOrdersCount}
@@ -237,7 +237,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  <Button asChild>
+                  <Button asChild size="lg" variant="outline">
                     <Link href="/login">
                       <LogIn className="mr-2 h-4 w-4" />
                       Login
