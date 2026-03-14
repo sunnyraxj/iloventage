@@ -32,6 +32,8 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { ImageUploader } from "./ImageUploader"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -215,41 +217,45 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                                     )}
                                 />
 
-                                <FormField
-                                    control={form.control}
-                                    name="additionalCollectionIds"
-                                    render={({ field }) => (
-                                    <FormItem className="mt-4">
-                                        <div className="mb-4">
-                                        <FormLabel>Additional Categories</FormLabel>
-                                        <FormDescription>
-                                            Select other relevant categories (optional).
-                                        </FormDescription>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                                        {categories.filter(c => c.id !== form.watch('collectionId')).map((item) => (
-                                            <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
-                                                <FormControl>
-                                                    <Checkbox
-                                                    checked={field.value?.includes(item.id)}
-                                                    onCheckedChange={(checked) => {
-                                                        const currentIds = field.value || [];
-                                                        return checked
-                                                        ? field.onChange([...currentIds, item.id])
-                                                        : field.onChange(currentIds.filter((id) => id !== item.id));
-                                                    }}
-                                                    />
-                                                </FormControl>
-                                                <FormLabel className="font-normal text-sm">
-                                                    {item.name}
-                                                </FormLabel>
-                                            </FormItem>
-                                        ))}
-                                        </div>
-                                        <FormMessage />
-                                    </FormItem>
-                                    )}
-                                />
+                                <Accordion type="single" collapsible className="w-full">
+                                    <AccordionItem value="additional-categories">
+                                        <AccordionTrigger>Additional Categories</AccordionTrigger>
+                                        <AccordionContent>
+                                            <FormField
+                                                control={form.control}
+                                                name="additionalCollectionIds"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormDescription>
+                                                        Select other relevant categories (optional).
+                                                    </FormDescription>
+                                                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-2">
+                                                    {categories.filter(c => c.id !== form.watch('collectionId')).map((item) => (
+                                                        <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                                            <FormControl>
+                                                                <Checkbox
+                                                                checked={field.value?.includes(item.id)}
+                                                                onCheckedChange={(checked) => {
+                                                                    const currentIds = field.value || [];
+                                                                    return checked
+                                                                    ? field.onChange([...currentIds, item.id])
+                                                                    : field.onChange(currentIds.filter((id) => id !== item.id));
+                                                                }}
+                                                                />
+                                                            </FormControl>
+                                                            <FormLabel className="font-normal text-sm">
+                                                                {item.name}
+                                                            </FormLabel>
+                                                        </FormItem>
+                                                    ))}
+                                                    </div>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
                                 
                                 <FormField control={form.control} name="gender" render={({ field }) => (<FormItem><FormLabel>Gender</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger></FormControl><SelectContent><SelectItem value="male">Men</SelectItem><SelectItem value="female">Women</SelectItem><SelectItem value="unisex">Unisex</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                             </CardContent>
