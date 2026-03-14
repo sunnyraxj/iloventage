@@ -134,12 +134,7 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
         </div>
         <div className="pt-2 text-left">
           <p className="text-xs text-muted-foreground">{product.brand}</p>
-          <h3 className="h-5 overflow-hidden w-full relative text-sm font-semibold">
-            <span className="absolute top-0 left-0 w-max animate-marquee whitespace-nowrap flex items-center h-full">
-                <span className="pr-8">{product.name}</span>
-                <span className="pr-8">{product.name}</span>
-            </span>
-          </h3>
+          <h3 className="truncate text-sm font-semibold">{product.name}</h3>
           <div className="flex items-baseline justify-start gap-1 mt-1">
             <p className="text-sm font-semibold text-foreground">₹{product.price.toFixed(2)}</p>
             {product.mrp && product.mrp > product.price && (
