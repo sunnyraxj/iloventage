@@ -105,7 +105,7 @@ export function HorizontalProductScroll({ products }: HorizontalProductScrollPro
                             className="flex h-screen flex-shrink-0 flex-col items-center justify-center px-4"
                             style={{ width: `${itemWidthVw}vw` }}
                         >
-                            <Link href={`/products/${product.id}`} className="group block text-center">
+                            <Link href={`/products/${product.id}`} className="group block">
                                 <div className="relative w-72 h-96 md:w-80 md:h-[426px] overflow-hidden rounded-lg shadow-2xl transition-transform duration-300 group-hover:scale-105">
                                     <img
                                         src={imageUrl}
@@ -115,9 +115,11 @@ export function HorizontalProductScroll({ products }: HorizontalProductScrollPro
                                         height={533}
                                         loading="lazy"
                                     />
+                                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent p-4 text-left">
+                                        <h3 className="text-xl font-semibold text-white">{product.name}</h3>
+                                        <p className="text-sm text-white/80">{product.brand || 'ILV'}</p>
+                                    </div>
                                 </div>
-                                <h3 className="mt-4 text-xl font-semibold">{product.name}</h3>
-                                <p className="text-sm text-muted-foreground">{product.brand || 'ILV'}</p>
                             </Link>
                         </li>
                     );
