@@ -8,12 +8,14 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { cn } from '@/lib/utils';
 import { HeroImageGrid } from '@/components/hero-image-grid';
+import { HorizontalProductScroll } from '@/components/horizontal-product-scroll';
 
 export default async function HomePage() {
-  const [productsForGrid, featuredProducts, categories] = await Promise.all([
+  const [productsForGrid, featuredProducts, categories, horizontalScrollProducts] = await Promise.all([
     getProducts({ limit: 12 }),
     getProducts({ limit: 8 }),
     getCategories(),
+    getProducts({ limit: 6 }),
   ]);
 
   return (
@@ -44,6 +46,8 @@ export default async function HomePage() {
                 </div>
             </div>
         </section>
+
+        <HorizontalProductScroll products={horizontalScrollProducts} />
 
         <section className="py-12 md:py-16">
           <div className="container mx-auto px-4">
