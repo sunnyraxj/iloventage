@@ -10,10 +10,8 @@ import {
   UserCircle,
   LayoutDashboard,
   LogOut,
-  LogIn,
   User,
-  MapPin,
-  ShoppingBag,
+  Heart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,10 +30,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
 import type { Category, StoreSettings } from '@/lib/types';
 import { getConfirmedOrdersCount } from '@/lib/data';
+import { NitecLogo } from '@/components/icons';
 
 interface HeaderClientProps {
     categories: Category[];
@@ -60,47 +65,38 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
         const count = await getConfirmedOrdersCount();
         setConfirmedOrdersCount(count);
       } else {
-        setConfirmedOrdersCount(0); // Reset if not admin or logged out
+        setConfirmedOrdersCount(0);
       }
     };
-    
     if (user) {
         fetchOrderCount();
-      // Poll for new orders periodically
-      const interval = setInterval(fetchOrderCount, 60000); // every minute
+      const interval = setInterval(fetchOrderCount, 60000);
       return () => clearInterval(interval);
     } else {
-        // Clear count if user logs out
         setConfirmedOrdersCount(0);
     }
   }, [user]);
 
-
   const navLinks = categories.map(c => ({ href: `/categories/${c.slug}`, label: c.name }));
-  const logoUrl = settings?.storeDetails?.logoUrl;
-  const storeName = settings?.storeDetails?.name || 'My Store';
+  const storeName = settings?.storeDetails?.name || 'nitec.';
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const searchQuery = formData.get('search') as string;
-    if (searchQuery.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-    } else {
-      router.push('/products');
-    }
+    router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
   };
 
-
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center gap-4">
-        {/* Left Section */}
-        <div className="flex flex-1 items-center justify-start gap-4">
-          {hasMounted && (
-            <Sheet>
+    <TooltipProvider>
+    <header className="sticky top-0 z-50 w-full p-2 md:p-3">
+      <div className="container flex h-16 items-center justify-between gap-4 rounded-full border border-border/40 bg-background/80 shadow-lg backdrop-blur-lg">
+        
+        {/* Left Section: Logo & Mobile Nav */}
+        <div className="flex items-center gap-2">
+           <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button variant="ghost" size="icon" className="md:hidden rounded-full">
                   <Menu className="h-5 w-5" />
                   <span className="sr-only">Toggle Menu</span>
                 </Button>
@@ -109,12 +105,8 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                 <SheetHeader className="p-4 border-b text-left">
                     <SheetTitle asChild>
                         <Link href="/" className="flex items-center gap-2">
-                            {logoUrl ? (
-                                <img src={logoUrl} alt={storeName} width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
-                            ) : (
-                                <div className="h-8 w-8 bg-muted rounded-full" />
-                            )}
-                            <span className="font-bold text-lg">{storeName}</span>
+                           <NitecLogo className="h-6 w-6 text-foreground" />
+                           <span className="font-bold text-lg">{storeName}</span>
                         </Link>
                     </SheetTitle>
                 </SheetHeader>
@@ -132,66 +124,93 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                 </nav>
               </SheetContent>
             </Sheet>
-          )}
-          <nav className="hidden items-center gap-4 text-sm font-medium md:flex">
-            <Link href="/products" className="text-muted-foreground transition-colors hover:text-foreground">All Products</Link>
-            {navLinks.slice(0, 3).map(link => (
-                 <Link key={link.href} href={link.href} className="text-muted-foreground transition-colors hover:text-foreground">{link.label}</Link>
-            ))}
-        </nav>
-        </div>
-
-        {/* Center Section (Logo) */}
-        <div className="flex-shrink-0">
-          <Link href="/" className="flex items-center space-x-2">
-            {logoUrl ? (
-                <img src={logoUrl} alt={storeName} width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
-            ) : (
-                <div className="h-10 w-10 bg-muted rounded-full" />
-            )}
-            <span className="font-bold hidden lg:inline-block">{storeName}</span>
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+             <NitecLogo className="h-6 w-6 text-foreground" />
+             <span className="font-bold hidden md:inline-block">nitec.</span>
           </Link>
         </div>
-        
-        {/* Right Section */}
-        <div className="flex flex-1 items-center justify-end gap-2 md:gap-4">
-          <form className="hidden sm:block sm:flex-1 sm:max-w-xs" onSubmit={handleSearchSubmit}>
-              <div className="relative w-full">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+
+        {/* Center Section: Search */}
+        <div className="flex-1 justify-center hidden md:flex">
+          <form className="w-full max-w-md" onSubmit={handleSearchSubmit}>
+              <div className="relative">
                 <Input
                   type="search"
                   name="search"
                   placeholder="Search products..."
-                  className="w-full rounded-full bg-secondary pl-8"
+                  className="w-full rounded-full bg-secondary pl-4 pr-12 h-10"
                 />
+                <Button type="submit" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Search className="h-4 w-4" />
+                </Button>
               </div>
             </form>
-          <div className="flex items-center space-x-2">
-            <Link href="/cart">
-              <Button variant="outline" size="icon" aria-label="Shopping Cart" className="relative rounded-full">
-                <ShoppingCart className="h-5 w-5" />
-                {hasMounted && cartItemCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground ring-2 ring-background">
-                    {cartItemCount}
-                  </span>
-                )}
-              </Button>
-            </Link>
+        </div>
+
+        {/* Right Section: Actions */}
+        <div className="flex items-center gap-1 md:gap-2">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full md:hidden">
+                  <Search className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="top" className="p-4">
+                 <form className="w-full" onSubmit={handleSearchSubmit}>
+                    <div className="relative">
+                        <Input
+                        type="search"
+                        name="search"
+                        placeholder="Search products..."
+                        className="w-full rounded-full bg-secondary pl-4 pr-12 h-10"
+                        />
+                        <Button type="submit" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+                            <Search className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </form>
+              </SheetContent>
+            </Sheet>
+            
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full" disabled>
+                        <Heart className="h-5 w-5" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>Wishlist coming soon!</p>
+                </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="/cart">
+                  <Button variant="ghost" size="icon" aria-label="Shopping Cart" className="relative rounded-full">
+                    <ShoppingCart className="h-5 w-5" />
+                    {hasMounted && cartItemCount > 0 && (
+                      <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                        {cartItemCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View Cart</p>
+              </TooltipContent>
+            </Tooltip>
 
             {hasMounted && (
               <>
                 {user ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="relative rounded-full"
-                        aria-label="User Menu"
-                      >
-                         {user.photoURL ? <img src={user.photoURL} alt={user.name} width={40} height={40} className="rounded-full" /> : <UserCircle className="h-5 w-5" /> }
+                      <Button variant="secondary" className="rounded-full flex items-center gap-2 pl-1 pr-3 h-10">
+                         {user.photoURL ? <img src={user.photoURL} alt={user.name || ''} width={32} height={32} className="rounded-full h-8 w-8" /> : <UserCircle className="h-8 w-8" /> }
+                         <span className="hidden sm:inline text-sm font-medium">{user.name}</span>
                          {user.role === 'admin' && confirmedOrdersCount > 0 && (
-                            <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white ring-2 ring-background">
+                            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                                 {confirmedOrdersCount}
                             </span>
                          )}
@@ -200,35 +219,20 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                        
                         {user.role === 'admin' && (
                             <DropdownMenuItem asChild>
                                 <Link href="/admin">
                                 <LayoutDashboard className="mr-2 h-4 w-4" />
-                                <span>Admin Dashboard</span>
+                                <span>Admin</span>
                                 </Link>
                             </DropdownMenuItem>
                         )}
-                        
                         <DropdownMenuItem asChild>
                             <Link href="/dashboard">
                             <User className="mr-2 h-4 w-4" />
                             <span>My Account</span>
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href="/dashboard/addresses">
-                            <MapPin className="mr-2 h-4 w-4" />
-                            <span>My Addresses</span>
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href="/dashboard/orders">
-                            <ShoppingBag className="mr-2 h-4 w-4" />
-                            <span>My Orders</span>
-                            </Link>
-                        </DropdownMenuItem>
-                        
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={logout}>
                         <LogOut className="mr-2 h-4 w-4" />
@@ -237,18 +241,17 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  <Button asChild size="lg" variant="outline">
+                  <Button asChild className="rounded-full h-10 px-4 hidden sm:flex">
                     <Link href="/login">
-                      <LogIn className="mr-2 h-4 w-4" />
                       Login
                     </Link>
                   </Button>
                 )}
               </>
             )}
-          </div>
         </div>
       </div>
     </header>
+    </TooltipProvider>
   );
 }

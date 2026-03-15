@@ -18,3 +18,21 @@ export function Placeholder(props: SVGProps<SVGSVGElement>) {
         </svg>
     );
 }
+
+export function NitecLogo(props: SVGProps<SVGSVGElement>) {
+    return (
+        <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            {...props}
+        >
+            <path
+                d="M11.23 3.48H4.2V20.52H11.23V13.8L19.8 20.52V3.48L11.23 10.2V3.48Z"
+                fill="currentColor"
+            />
+        </svg>
+    );
+}
