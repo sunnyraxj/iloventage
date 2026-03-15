@@ -83,17 +83,8 @@ export function CinematicScroll({ children, products }: CinematicScrollProps) {
   // This effect scrolls the user to the top of the page once the animation is complete.
   useEffect(() => {
     if (animationComplete) {
-      // Restore body scroll and scroll to top
-      document.body.style.overflow = 'auto';
       window.scrollTo(0, 0);
-    } else {
-      // Disable body scroll during the animation sequence
-      document.body.style.overflow = 'hidden';
     }
-    // Cleanup function to restore scrolling if the component unmounts unexpectedly
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
   }, [animationComplete]);
 
   // Define animation ranges based on scroll progress (0 to 1)
