@@ -68,6 +68,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
@@ -77,11 +78,13 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
   
   useEffect(() => {
     if (debouncedSearchQuery) {
+      setIsSearching(true);
       const filtered = allProducts.filter(product =>
         product.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
         product.brand?.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
       );
       setSearchResults(filtered);
+      setIsSearching(false);
     } else {
       setSearchResults([]);
     }
@@ -206,9 +209,13 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                  {showSearchResults ? (
                     <div>
                       <h3 className="text-xs font-semibold text-muted-foreground px-2 mb-2">
-                        {`Showing results for "${searchQuery}"`}
+                        {isSearching ? 'Searching...' : `Showing results for "${searchQuery}"`}
                       </h3>
-                      {debouncedSearchQuery && searchResults.length === 0 ? (
+                      {isSearching ? (
+                        <div className="flex justify-center items-center py-4">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : searchResults.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-4">No products found.</p>
                       ) : (
                         <div className="space-y-1 max-h-96 overflow-y-auto">
@@ -217,7 +224,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                               key={product.id}
                               href={`/products/${product.id}`}
                               onClick={handleSuggestionClick}
-                              className="flex items-center gap-4 p-2 rounded-md hover:bg-accent"
+                              className="flex items-center gap-4 p-2 rounded-md transition-all duration-200 hover:bg-accent hover:shadow-md hover:scale-105"
                             >
                               <img src={product.variants[0]?.imageUrls[0] || `https://picsum.photos/seed/${product.id}/50/50`} alt={product.name} className="h-10 w-10 object-cover rounded-md" />
                               <div className="text-sm">
@@ -247,7 +254,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                             key={product.id}
                             href={`/products/${product.id}`}
                             onClick={handleSuggestionClick}
-                            className="flex items-center gap-4 p-2 rounded-md hover:bg-accent"
+                            className="flex items-center gap-4 p-2 rounded-md transition-all duration-200 hover:bg-accent hover:shadow-md hover:scale-105"
                           >
                             <img src={product.variants[0]?.imageUrls[0] || `https://picsum.photos/seed/${product.id}/50/50`} alt={product.name} className="h-10 w-10 object-cover rounded-md" />
                             <div className="text-sm">
