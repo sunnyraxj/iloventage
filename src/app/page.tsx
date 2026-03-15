@@ -2,49 +2,47 @@
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
-import { getCategories, getProducts, getStoreSettings } from '@/lib/data';
+import { getCategories, getProducts } from '@/lib/data';
 import { ProductCard } from '@/components/product-card';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
-import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { HeroImageGrid } from '@/components/hero-image-grid';
 
 export default async function HomePage() {
-  const [featuredProducts, categories, settings] = await Promise.all([
+  const [productsForGrid, featuredProducts, categories] = await Promise.all([
+    getProducts({ limit: 12 }),
     getProducts({ limit: 8 }),
     getCategories(),
-    getStoreSettings(),
   ]);
-
-  const heroImageUrl =
-    settings?.storeDetails?.heroImageUrl ||
-    'https://picsum.photos/seed/1/1920/1080';
 
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <section className="relative h-[60vh] w-full overflow-hidden rounded-b-2xl text-white">
-          {heroImageUrl ? (
-            <img
-              src={heroImageUrl}
-              alt={settings?.storeDetails?.name || 'Hero Image'}
-              className="absolute inset-0 h-full w-full object-cover"
-              loading="eager"
-              data-ai-hint="hero image"
-            />
-          ) : (
-            <Skeleton className="h-full w-full" />
-          )}
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 p-4 text-center">
-            <p className="mb-2 font-light tracking-[0.3em] text-sm md:text-base uppercase">Premium Selection</p>
-            <h1 className="mb-6 font-headline text-4xl font-bold md:text-6xl [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">
-              Timeless <span className="italic">Vintage</span><br /> Modern Style.
-            </h1>
-            <Button asChild size="lg" className="rounded-full bg-white text-black hover:bg-white/90 font-semibold tracking-wider">
-              <Link href="/products">START SHOPPING</Link>
-            </Button>
-          </div>
+        <section className="container mx-auto px-4 pt-24 pb-12 md:pt-32">
+            <div className="grid grid-cols-1 items-center gap-16 md:grid-cols-2">
+                <div className="text-center md:text-left">
+                     <p className="mb-4 font-semibold tracking-widest uppercase text-primary">Premium Selection</p>
+                     <h1 className="mb-6 font-headline text-4xl font-bold md:text-6xl lg:text-7xl">
+                        Timeless Vintage,<br /> Modern Style.
+                     </h1>
+                     <p className="max-w-md mx-auto md:mx-0 text-muted-foreground mb-8 text-lg">
+                        Discover curated collections of high-quality apparel that blend classic designs with a modern twist.
+                     </p>
+                     <div className="flex justify-center md:justify-start gap-4">
+                        <Button asChild size="lg" className="rounded-full font-semibold tracking-wider">
+                            <Link href="/products">Shop Now</Link>
+                        </Button>
+                         <Button asChild size="lg" variant="outline" className="rounded-full font-semibold tracking-wider">
+                            <Link href="/categories">View Collections</Link>
+                        </Button>
+                     </div>
+                </div>
+                <div>
+                    <HeroImageGrid products={productsForGrid} />
+                </div>
+            </div>
         </section>
 
         <section className="py-12 md:py-16">
@@ -57,21 +55,18 @@ export default async function HomePage() {
                     Curated Collections
                 </p>
             </div>
-            <div className="grid grid-cols-4 gap-4 lg:grid-cols-6">
-              {categories.slice(0, 6).map((category, index) => (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+              {categories.slice(0, 6).map((category) => (
                 <Link
                   key={category.id}
                   href={`/categories/${category.slug}`}
-                  className={cn(
-                    'group block',
-                    index >= 4 && 'hidden lg:block'
-                  )}
+                  className={'group block'}
                 >
-                  <div className="overflow-hidden rounded-lg">
+                  <div className="overflow-hidden rounded-lg aspect-[3/4]">
                     <img
-                      src={category.imageUrl || `https://picsum.photos/seed/${category.id}/400/400`}
+                      src={category.imageUrl || `https://picsum.photos/seed/${category.id}/400/533`}
                       alt={category.name}
-                      className="aspect-[3/4] w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
                     />
                   </div>

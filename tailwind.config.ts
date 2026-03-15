@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -82,11 +83,16 @@ export default {
               transform: 'translateX(100%)',
             },
         },
+        'scroll-up': {
+          'from': { transform: 'translateY(0)' },
+          'to': { transform: 'translateY(-50%)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         shimmer: 'shimmer 1.5s infinite linear',
+        'scroll-up': 'scroll-up linear infinite',
       },
     },
   },
