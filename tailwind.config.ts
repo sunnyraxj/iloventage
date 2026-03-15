@@ -91,6 +91,10 @@ export default {
           'from': { transform: 'translateY(-50%)' },
           'to': { transform: 'translateY(0)' },
         },
+        'cursor-blink': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -98,6 +102,7 @@ export default {
         shimmer: 'shimmer 1.5s infinite linear',
         'scroll-up': 'scroll-up linear infinite',
         'scroll-down': 'scroll-down linear infinite',
+        'cursor-blink': 'cursor-blink 1.2s infinite',
       },
     },
   },
