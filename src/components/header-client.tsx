@@ -189,13 +189,8 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                     placeholder="Search products..."
                     className="w-full rounded-full bg-secondary pl-4 pr-12 h-10"
                     value={searchQuery}
-                    onClick={() => setIsPopoverOpen(true)}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      if (!isPopoverOpen) {
-                        setIsPopoverOpen(true);
-                      }
-                    }}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setIsPopoverOpen(true)}
                     autoComplete="off"
                   />
                   <Button type="submit" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
@@ -206,6 +201,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
               <PopoverContent 
                   className="w-[var(--radix-popover-trigger-width)] mt-1 p-2"
                   align="start"
+                  onOpenAutoFocus={(e) => e.preventDefault()}
               >
                  {showSearchResults ? (
                     <div>
