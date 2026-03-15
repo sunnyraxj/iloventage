@@ -1,4 +1,3 @@
-
 'use client';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/lib/types';
@@ -30,7 +29,7 @@ const ImageColumn = ({
 
   return (
     <div className={cn('flex flex-col gap-4', className)}>
-      <div className={cn('flex flex-col gap-4 animate-scroll-up', animationClass)}>
+      <div className={cn('flex flex-col gap-4', animationClass)}>
         {/* Duplicate images for seamless loop */}
         {[...imageUrls, ...imageUrls].map((imageUrl, index) => (
           <div key={`${imageUrl}-${index}`} className="w-full overflow-hidden rounded-lg shadow-lg aspect-square">
@@ -60,8 +59,8 @@ export function HeroImageGrid({ products }: { products: Product[] }) {
 
   return (
     <div className="relative hidden md:grid h-[80vh] grid-cols-2 gap-4 overflow-hidden [mask-image:linear-gradient(to_bottom,white_10%,transparent_90%)] md:h-[90vh]">
-        <ImageColumn imageUrls={col1_images} animationClass="[animation-duration:35s]"/>
-        <ImageColumn imageUrls={col2_images} className="pt-16" animationClass="[animation-duration:45s]" />
+        <ImageColumn imageUrls={col1_images} animationClass="animate-scroll-up [animation-duration:35s]"/>
+        <ImageColumn imageUrls={col2_images} className="pt-16" animationClass="animate-scroll-down [animation-duration:45s]" />
     </div>
   );
 }
