@@ -79,6 +79,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
 
   const navLinks = categories.map(c => ({ href: `/categories/${c.slug}`, label: c.name }));
   const storeName = settings?.storeDetails?.name || 'nitec.';
+  const logoUrl = settings?.storeDetails?.logoUrl;
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -105,7 +106,11 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                 <SheetHeader className="p-4 border-b text-left">
                     <SheetTitle asChild>
                         <Link href="/" className="flex items-center gap-2">
-                           <NitecLogo className="h-6 w-6 text-foreground" />
+                           {logoUrl ? (
+                                <img src={logoUrl} alt={storeName} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
+                            ) : (
+                                <NitecLogo className="h-6 w-6 text-foreground" />
+                            )}
                            <span className="font-bold text-lg">{storeName}</span>
                         </Link>
                     </SheetTitle>
@@ -125,8 +130,12 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
               </SheetContent>
             </Sheet>
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-             <NitecLogo className="h-6 w-6 text-foreground" />
-             <span className="font-bold hidden md:inline-block">nitec.</span>
+             {logoUrl ? (
+                <img src={logoUrl} alt={storeName} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
+              ) : (
+                <NitecLogo className="h-6 w-6 text-foreground" />
+              )}
+             <span className="font-bold hidden md:inline-block">{storeName}</span>
           </Link>
         </div>
 
