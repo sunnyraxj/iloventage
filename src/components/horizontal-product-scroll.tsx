@@ -47,7 +47,7 @@ export function HorizontalProductScroll({ products }: HorizontalProductScrollPro
 
   return (
     <div className="relative bg-background">
-        <header className="flex h-[70vh] items-center justify-center text-center">
+        <header className="flex h-[20vh] items-center justify-center text-center">
             <div>
                 <h2 className="text-4xl font-bold tracking-tighter md:text-6xl">
                 Highlighted Collection
@@ -92,7 +92,7 @@ export function HorizontalProductScroll({ products }: HorizontalProductScrollPro
         </section>
         
         {/* Progress Bar */}
-        <div ref={progressRef} className="fixed left-0 right-0 h-1.5 bg-primary bottom-12 origin-left z-50" />
+        <div ref={progressRef} className="fixed left-0 right-0 h-1.5 bg-primary bottom-0 origin-left z-50" />
     </div>
   );
 }
