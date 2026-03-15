@@ -61,7 +61,7 @@ export function HeroImageGrid({ products }: { products: Product[] }) {
   return (
     <div className="relative hidden md:grid h-[80vh] grid-cols-2 gap-4 overflow-hidden [mask-image:linear-gradient(to_bottom,white_10%,transparent_90%)] md:h-[90vh]">
         <ImageColumn imageUrls={col1_images} animationClass="[animation-duration:35s]"/>
-        <ImageColumn imageUrls={col2_images} className="pt-16 [animation-duration:45s]" />
+        <ImageColumn imageUrls={col2_images} className="pt-16" animationClass="[animation-duration:45s]" />
     </div>
   );
 }
