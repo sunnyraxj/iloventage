@@ -11,7 +11,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createOrderAndInitiatePayment, verifyPaymentAndUpdateOrder } from '@/app/actions/payment';
-import type { UserAddress, OrderAddress } from '@/lib/types';
+import type { UserAddress, OrderAddress, StoreDetails } from '@/lib/types';
 import { getStoreSettings } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -35,10 +35,15 @@ export default function CheckoutPage() {
     freeShippingThreshold: number;
     belowThresholdRate: number;
   } | null>(null);
+  const [storeDetails, setStoreDetails] = useState<StoreDetails | null>(null);
+
 
   useEffect(() => {
     getStoreSettings().then(settings => {
       setShippingSettings(settings?.shippingSettings || { freeShippingThreshold: 1000, belowThresholdRate: 50 });
+      if (settings?.storeDetails) {
+        setStoreDetails(settings.storeDetails);
+      }
     });
   }, []);
 
@@ -126,7 +131,7 @@ export default function CheckoutPage() {
             key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
             amount: paymentInitiationResult.amount,
             currency: paymentInitiationResult.currency,
-            name: "My Store",
+            name: storeDetails?.name || "My Store",
             description: "Order Payment",
             order_id: paymentInitiationResult.razorpayOrderId,
             handler: async function (response: any) {
@@ -171,7 +176,28 @@ export default function CheckoutPage() {
                         description: "You cancelled the payment process.",
                     })
                 }
-            }
+            },
+            config: {
+                display: {
+                    blocks: {
+                        upi: {
+                            name: 'Pay with UPI',
+                            instruments: [
+                                {
+                                    method: 'upi'
+                                },
+                                {
+                                    method: 'intent'
+                                }
+                            ],
+                        },
+                    },
+                    sequence: ['block.upi', 'block.other'],
+                    preferences: {
+                        show_default_blocks: false,
+                    },
+                },
+            },
         };
 
         const paymentObject = new (window as any).Razorpay(options);
