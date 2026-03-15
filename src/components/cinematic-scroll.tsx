@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
@@ -8,40 +9,18 @@ import { cn } from '@/lib/utils';
 
 const Typewriter = ({ className }: { className?: string }) => {
   const text = "Scroll to Reveal";
-  const textArray = Array.from(text);
   
-  const container = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.08, delayChildren: 0.5 },
-    },
-  };
-
-  const child = {
-    visible: { opacity: 1, y: 0, transition: { type: 'spring', damping: 12, stiffness: 100 } },
-    hidden: { opacity: 0, y: 20 },
-  };
-
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="visible"
+    <div
       className={cn("flex items-center justify-center font-mono text-xl md:text-3xl font-medium tracking-widest", className)}
     >
-      {textArray.map((char, index) => (
-        <motion.span key={index} variants={child}>
-          {char === " " ? "\u00A0" : char}
-        </motion.span>
-      ))}
-      <motion.span
+      <span>{text}</span>
+      <span
         className="ml-2 h-7 w-0.5 bg-black"
         aria-hidden="true"
-        animate={{ opacity: [0, 1, 1, 0] }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+        style={{ animation: `cursor-blink 1.2s infinite` }}
       />
-    </motion.div>
+    </div>
   );
 };
 
@@ -49,17 +28,27 @@ const Typewriter = ({ className }: { className?: string }) => {
 interface CinematicScrollProps {
   children: React.ReactNode;
   products: Product[];
+  entrySoundUrl?: string;
 }
 
-export function CinematicScroll({ children, products }: CinematicScrollProps) {
+export function CinematicScroll({ children, products, entrySoundUrl }: CinematicScrollProps) {
   const [animationComplete, setAnimationComplete] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     // On mount, check if the intro has already been played in this session.
     if (sessionStorage.getItem('introPlayed') === 'true') {
       setAnimationComplete(true);
+    } else if (entrySoundUrl) {
+      // Play sound if intro hasn't been played
+      audioRef.current = new Audio(entrySoundUrl);
+      audioRef.current.play().catch(error => {
+        // Autoplay was prevented. This is a browser policy.
+        // We can't do much here without user interaction.
+        console.warn("Audio autoplay was prevented:", error);
+      });
     }
-  }, []);
+  }, [entrySoundUrl]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({

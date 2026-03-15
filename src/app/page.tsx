@@ -1,8 +1,9 @@
 
+
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
-import { getCategories, getProducts } from '@/lib/data';
+import { getCategories, getProducts, getStoreSettings } from '@/lib/data';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { HeroImageGrid } from '@/components/hero-image-grid';
@@ -11,17 +12,18 @@ import { RealtimeProductSearch } from '@/components/realtime-product-search';
 import { CinematicScroll } from '@/components/cinematic-scroll';
 
 export default async function HomePage() {
-  const [productsForGrid, searchableProducts, categories, horizontalScrollProducts] = await Promise.all([
+  const [productsForGrid, searchableProducts, categories, horizontalScrollProducts, settings] = await Promise.all([
     getProducts({ limit: 12 }),
     getProducts({ limit: 24 }),
     getCategories(),
     getProducts({ limit: 6 }),
+    getStoreSettings(),
   ]);
 
   const cinematicProducts = productsForGrid.slice(0, 2);
 
   return (
-    <CinematicScroll products={cinematicProducts}>
+    <CinematicScroll products={cinematicProducts} entrySoundUrl={settings?.storeDetails.entrySoundUrl}>
       <div className="flex min-h-screen flex-col">
         <Header />
         <main className="flex-1">
