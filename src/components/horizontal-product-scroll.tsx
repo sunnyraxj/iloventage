@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -28,13 +27,12 @@ export function HorizontalProductScroll({ products }: HorizontalProductScrollPro
     }
 
     const group = groupRef.current;
-    const items = group.querySelectorAll('li');
-    if (items.length === 0) return;
-
+    
     const itemsPerScreen = isMobile ? 1 : 3;
+    const numItems = products.length;
     
     // We can only scroll if we have more items than fit on screen
-    if (items.length <= itemsPerScreen) {
+    if (numItems <= itemsPerScreen) {
         if (progressRef.current) progressRef.current.style.transform = 'scaleX(0)';
         if (groupRef.current) {
             groupRef.current.style.transform = 'none';
@@ -46,14 +44,14 @@ export function HorizontalProductScroll({ products }: HorizontalProductScrollPro
         group.classList.remove('justify-center');
     }
     
+    const numScrollSteps = numItems - itemsPerScreen;
     const itemWidthVw = 100 / itemsPerScreen;
-    const scrollDistanceVw = (items.length - itemsPerScreen) * itemWidthVw;
+    const scrollDistanceVw = numScrollSteps * itemWidthVw;
 
     // Horizontal scroll animation for the product group
     const scrollAnimation = animate(
       group,
-      { transform: ['none', `translateX(-${scrollDistanceVw}vw)`] },
-      { easing: 'linear' }
+      { transform: ['none', `translateX(-${scrollDistanceVw}vw)`] }
     );
     
     // Link the animation to the vertical scroll of the container
