@@ -192,7 +192,13 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                     placeholder="Search products..."
                     className="w-full rounded-full bg-secondary pl-4 pr-12 h-10"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onClick={() => setIsPopoverOpen(true)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      if (!isPopoverOpen) {
+                        setIsPopoverOpen(true);
+                      }
+                    }}
                     autoComplete="off"
                   />
                   <Button type="submit" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
