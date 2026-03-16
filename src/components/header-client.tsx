@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Menu,
   Search,
@@ -50,8 +50,13 @@ import { NitecLogo } from '@/components/icons';
 import { useDebounce } from 'use-debounce';
 import { CartDrawer } from '@/components/CartDrawer';
 
+
+interface CategoryWithProducts extends Category {
+    products: Product[];
+}
+
 interface HeaderClientProps {
-    categories: Category[];
+    categories: CategoryWithProducts[];
     settings: StoreSettings | null;
 }
 
@@ -70,6 +75,23 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = (categoryHref: string) => {
+      if (closeTimeoutRef.current) {
+          clearTimeout(closeTimeoutRef.current);
+      }
+      setHoveredCategory(categoryHref);
+  };
+
+  const handleMouseLeave = () => {
+      closeTimeoutRef.current = setTimeout(() => {
+          setHoveredCategory(null);
+      }, 100);
+  };
+
 
   useEffect(() => {
     setHasMounted(true);
@@ -109,7 +131,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
     }
   }, [user]);
 
-  const navLinks = categories.map(c => ({ href: `/categories/${c.slug}`, label: c.name }));
+  const navLinks = categories.map(c => ({ href: `/categories/${c.slug}`, label: c.name, products: c.products }));
   const storeName = settings?.storeDetails?.name || 'nitec.';
   const logoUrl = settings?.storeDetails?.logoUrl;
 
@@ -185,13 +207,57 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
         <div className="flex-1 justify-center items-center hidden md:flex gap-x-6">
             <nav className="flex items-center gap-x-4 lg:gap-x-6">
                 {navLinks.slice(0, 3).map((link) => (
-                <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                >
-                    {link.label}
-                </Link>
+                    <Popover key={link.href} open={hoveredCategory === link.href} onOpenChange={(isOpen) => !isOpen && setHoveredCategory(null)}>
+                        <PopoverTrigger asChild>
+                            <div className="py-4" onMouseEnter={() => handleMouseEnter(link.href)} onMouseLeave={handleMouseLeave}>
+                                <Link
+                                    href={link.href}
+                                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                                >
+                                    {link.label}
+                                </Link>
+                            </div>
+                        </PopoverTrigger>
+                        <PopoverContent
+                            onMouseEnter={() => handleMouseEnter(link.href)}
+                            onMouseLeave={handleMouseLeave}
+                            className="w-screen max-w-lg p-0"
+                            align="start"
+                        >
+                            <div className="p-4">
+                                <h3 className="font-semibold">{link.label} Products</h3>
+                                <p className="text-sm text-muted-foreground mb-4">A glimpse of our collection.</p>
+                                {link.products && link.products.length > 0 ? (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {link.products.map((product) => (
+                                            <Link
+                                                key={product.id}
+                                                href={`/products/${product.id}`}
+                                                className="group block"
+                                                onClick={() => setHoveredCategory(null)}
+                                            >
+                                                <div className="aspect-[3/4] overflow-hidden rounded-md bg-secondary">
+                                                    <img
+                                                        src={product.variants[0]?.imageUrls[0] || `https://picsum.photos/seed/${product.id}/200/266`}
+                                                        alt={product.name}
+                                                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                        loading="lazy"
+                                                    />
+                                                </div>
+                                                <h4 className="mt-2 truncate text-sm font-medium text-foreground">{product.name}</h4>
+                                                <p className="text-xs text-muted-foreground">₹{product.price.toFixed(2)}</p>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-center text-sm text-muted-foreground py-8">No products to display.</p>
+                                )}
+                                <Button asChild variant="outline" className="w-full mt-4">
+                                    <Link href={link.href} onClick={() => setHoveredCategory(null)}>View all in {link.label}</Link>
+                                </Button>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                 ))}
             </nav>
             <form className="w-full max-w-xs" onSubmit={handleSearchSubmit}>

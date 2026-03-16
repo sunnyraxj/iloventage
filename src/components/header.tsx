@@ -1,5 +1,10 @@
-import { getCategories, getStoreSettings } from '@/lib/data';
+import { getCategories, getStoreSettings, getProductsByCollectionId } from '@/lib/data';
 import { HeaderClient } from './header-client';
+import type { Category, Product } from '@/lib/types';
+
+export interface CategoryWithProducts extends Category {
+    products: Product[];
+}
 
 export async function Header() {
   const [categories, settings] = await Promise.all([
@@ -7,5 +12,12 @@ export async function Header() {
     getStoreSettings(),
   ]);
 
-  return <HeaderClient categories={categories || []} settings={settings} />;
+  const categoriesWithProducts: CategoryWithProducts[] = await Promise.all(
+    (categories || []).map(async (category) => {
+        const products = await getProductsByCollectionId(category.id, { limit: 4 });
+        return { ...category, products };
+    })
+  );
+
+  return <HeaderClient categories={categoriesWithProducts} settings={settings} />;
 }
