@@ -48,6 +48,7 @@ import type { Category, StoreSettings, Product } from '@/lib/types';
 import { getConfirmedOrdersCount, getProducts } from '@/lib/data';
 import { NitecLogo } from '@/components/icons';
 import { useDebounce } from 'use-debounce';
+import { CartDrawer } from '@/components/CartDrawer';
 
 interface HeaderClientProps {
     categories: Category[];
@@ -307,23 +308,21 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                 </TooltipContent>
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link href="/cart">
-                  <Button variant="ghost" size="icon" aria-label="Shopping Cart" className="relative rounded-full">
-                    <ShoppingCart className="h-5 w-5" />
-                    {hasMounted && cartItemCount > 0 && (
-                      <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                        {cartItemCount}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>View Cart</p>
-              </TooltipContent>
-            </Tooltip>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Shopping Cart" className="relative rounded-full">
+                  <ShoppingCart className="h-5 w-5" />
+                  {hasMounted && cartItemCount > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-md">
+                <CartDrawer />
+              </SheetContent>
+            </Sheet>
 
             {hasMounted && (
               <>
