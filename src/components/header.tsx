@@ -14,7 +14,7 @@ export async function Header() {
 
   const categoriesWithProducts: CategoryWithProducts[] = await Promise.all(
     (categories || []).map(async (category) => {
-        const products = await getProductsByCollectionId(category.id, { limit: 4 });
+        const products = await getProductsByCollectionId(category.id, { limit: 6 });
         return { ...category, products };
     })
   );
