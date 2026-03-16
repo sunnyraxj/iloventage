@@ -52,15 +52,34 @@ const ImageColumn = ({
 export function HeroImageGrid({ products }: { products: Product[] }) {
   const uniqueImageUrls = useMemo(() => getUniqueImageUrls(products), [products]);
 
-  if (uniqueImageUrls.length < 6) return null; // Ensure we have enough images
+  // Prefer 3 columns if enough images
+  if (uniqueImageUrls.length >= 9) {
+    const col1_images = uniqueImageUrls.slice(0, 3);
+    const col2_images = uniqueImageUrls.slice(3, 6);
+    const col3_images = uniqueImageUrls.slice(6, 9);
+    
+    return (
+        <div className="relative hidden md:grid h-[80vh] grid-cols-3 gap-4 overflow-hidden [mask-image:linear-gradient(to_bottom,white_10%,transparent_90%)] md:h-[90vh]">
+            <ImageColumn imageUrls={col1_images} className="pt-8" animationClass="animate-scroll-up [animation-duration:35s]" />
+            <ImageColumn imageUrls={col2_images} className="pt-16" animationClass="animate-scroll-down [animation-duration:45s]" />
+            <ImageColumn imageUrls={col3_images} animationClass="animate-scroll-up [animation-duration:40s]" />
+        </div>
+      );
+  }
+  
+  // Fallback to 2 columns if not enough for 3, but enough for 2
+  if (uniqueImageUrls.length >= 6) {
+    const col1_images = uniqueImageUrls.slice(0, Math.ceil(uniqueImageUrls.length / 2));
+    const col2_images = uniqueImageUrls.slice(Math.ceil(uniqueImageUrls.length / 2));
 
-  const col1_images = uniqueImageUrls.slice(0, Math.ceil(uniqueImageUrls.length / 2));
-  const col2_images = uniqueImageUrls.slice(Math.ceil(uniqueImageUrls.length / 2));
+    return (
+        <div className="relative hidden md:grid h-[80vh] grid-cols-2 gap-4 overflow-hidden [mask-image:linear-gradient(to_bottom,white_10%,transparent_90%)] md:h-[90vh]">
+            <ImageColumn imageUrls={col1_images} animationClass="animate-scroll-up [animation-duration:35s]"/>
+            <ImageColumn imageUrls={col2_images} className="pt-16" animationClass="animate-scroll-down [animation-duration:45s]" />
+        </div>
+    );
+  }
 
-  return (
-    <div className="relative hidden md:grid h-[80vh] grid-cols-2 gap-4 overflow-hidden [mask-image:linear-gradient(to_bottom,white_10%,transparent_90%)] md:h-[90vh]">
-        <ImageColumn imageUrls={col1_images} animationClass="animate-scroll-up [animation-duration:35s]"/>
-        <ImageColumn imageUrls={col2_images} className="pt-16" animationClass="animate-scroll-down [animation-duration:45s]" />
-    </div>
-  );
+  // Render nothing if not enough images for even a 2-column grid
+  return null;
 }
