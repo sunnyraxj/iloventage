@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -14,6 +13,7 @@ import {
   User,
   Heart,
   Loader2,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +50,7 @@ import { getConfirmedOrdersCount, getProducts } from '@/lib/data';
 import { NitecLogo } from '@/components/icons';
 import { useDebounce } from 'use-debounce';
 import { CartDrawer } from '@/components/CartDrawer';
+import { cn } from '@/lib/utils';
 
 
 interface CategoryWithProducts extends Category {
@@ -213,9 +214,15 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                             <div className="py-4" onMouseEnter={() => handleMouseEnter(link.href)} onMouseLeave={handleMouseLeave}>
                                 <Link
                                     href={link.href}
-                                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                                    className="flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                                 >
                                     {link.label}
+                                    <ChevronDown 
+                                        className={cn(
+                                            "h-4 w-4 transition-transform duration-200",
+                                            hoveredCategory === link.href ? "rotate-180" : ""
+                                        )}
+                                    />
                                 </Link>
                             </div>
                         </PopoverTrigger>
