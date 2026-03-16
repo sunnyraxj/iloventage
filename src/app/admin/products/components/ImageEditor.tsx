@@ -117,7 +117,6 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
   const [editStates, setEditStates] = useState<EditState[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [viewedIndices, setViewedIndices] = useState(new Set([0]));
 
   useEffect(() => {
     const initialStates: EditState[] = files.map((file) => ({
@@ -131,7 +130,6 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
     }));
     setEditStates(initialStates);
     setCurrentIndex(0);
-    setViewedIndices(new Set([0]));
 
     return () => {
       initialStates.forEach(state => URL.revokeObjectURL(state.url));
@@ -229,7 +227,6 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
     const nextIndex = currentIndex + 1;
     if (nextIndex < editStates.length) {
       setCurrentIndex(nextIndex);
-      setViewedIndices(prev => new Set(prev).add(nextIndex));
     }
   };
 
@@ -255,8 +252,6 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
         return newStates;
     });
   }
-  
-  const allImagesViewed = viewedIndices.size === editStates.length;
 
   if (!currentEditState) return null;
 
@@ -355,12 +350,7 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
                 </Button>
             </div>
             <div className="flex items-center gap-4">
-                {!allImagesViewed && (
-                    <p className="text-sm text-muted-foreground whitespace-nowrap">
-                        Reviewed {viewedIndices.size} of {editStates.length}
-                    </p>
-                )}
-                <Button onClick={handleFinish} disabled={isProcessing || !allImagesViewed}>
+                <Button onClick={handleFinish} disabled={isProcessing}>
                     {isProcessing ? <Loader2 className="animate-spin mr-2"/> : null}
                     {isProcessing ? `Processing...` : `Finish & Upload ${editStates.length} Images`}
                 </Button>
