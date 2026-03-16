@@ -9,6 +9,7 @@ import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ProductCardProps {
   product: Product;
@@ -19,6 +20,8 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
   const { addItem } = useCart();
   const { toast } = useToast();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const isMobile = useIsMobile();
 
   const firstVariant = product.variants?.[0];
   const firstSize = firstVariant?.sizes?.[0];
@@ -66,7 +69,11 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
   return (
     <div className="group relative">
       <Link href={`/products/${product.id}`} className="block" onClick={handleNavigation}>
-        <div className="relative overflow-hidden rounded-md">
+        <div 
+            className="relative overflow-hidden rounded-md"
+            onMouseEnter={isMobile ? undefined : () => setIsHovered(true)}
+            onMouseLeave={isMobile ? undefined : () => setIsHovered(false)}
+        >
           {imageUrl ? (
             <>
               <img
@@ -148,6 +155,15 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
           )}
         </div>
       </Link>
+      {isHovered && !isMobile && (
+        <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in-50">
+            <img 
+                src={imageUrl} 
+                alt={product.name} 
+                className="max-h-[80vh] max-w-[80vw] object-contain rounded-lg shadow-2xl animate-in zoom-in-90"
+            />
+        </div>
+      )}
     </div>
   );
 });

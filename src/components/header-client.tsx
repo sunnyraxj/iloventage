@@ -181,95 +181,106 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
           </Link>
         </div>
 
-        {/* Center Section: Search */}
-        <div className="flex-1 justify-center hidden md:flex">
-          <form className="w-full max-w-md" onSubmit={handleSearchSubmit}>
-            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-              <PopoverTrigger asChild>
-                <div className="relative">
-                  <Input
-                    type="search"
-                    name="search"
-                    placeholder="Search products..."
-                    className="w-full rounded-full bg-secondary pl-4 pr-12 h-10"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setIsPopoverOpen(true)}
-                    autoComplete="off"
-                  />
-                  <Button type="submit" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
-                      <Search className="h-4 w-4" />
-                  </Button>
-                </div>
-              </PopoverTrigger>
-              <PopoverContent 
-                  className="w-[var(--radix-popover-trigger-width)] mt-1 p-2"
-                  align="start"
-                  onOpenAutoFocus={(e) => e.preventDefault()}
-              >
-                 {showSearchResults ? (
-                    <div>
-                      <h3 className="text-xs font-semibold text-muted-foreground px-2 mb-2">
-                        {isSearching ? 'Searching...' : `Showing results for "${searchQuery}"`}
-                      </h3>
-                      {isSearching ? (
-                        <div className="flex justify-center items-center py-4">
-                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        {/* Center Section: Nav & Search */}
+        <div className="flex-1 justify-center items-center hidden md:flex gap-x-6">
+            <nav className="flex items-center gap-x-4 lg:gap-x-6">
+                {navLinks.slice(0, 3).map((link) => (
+                <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                >
+                    {link.label}
+                </Link>
+                ))}
+            </nav>
+            <form className="w-full max-w-xs" onSubmit={handleSearchSubmit}>
+                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <PopoverTrigger asChild>
+                    <div className="relative">
+                    <Input
+                        type="search"
+                        name="search"
+                        placeholder="Search products..."
+                        className="w-full rounded-full bg-secondary pl-4 pr-12 h-10"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => setIsPopoverOpen(true)}
+                        autoComplete="off"
+                    />
+                    <Button type="submit" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+                        <Search className="h-4 w-4" />
+                    </Button>
+                    </div>
+                </PopoverTrigger>
+                <PopoverContent 
+                    className="w-[var(--radix-popover-trigger-width)] mt-1 p-2"
+                    align="start"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                    {showSearchResults ? (
+                        <div>
+                        <h3 className="text-xs font-semibold text-muted-foreground px-2 mb-2">
+                            {isSearching ? 'Searching...' : `Showing results for "${searchQuery}"`}
+                        </h3>
+                        {isSearching ? (
+                            <div className="flex justify-center items-center py-4">
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                            </div>
+                        ) : searchResults.length === 0 ? (
+                            <p className="text-sm text-muted-foreground text-center py-4">No products found.</p>
+                        ) : (
+                            <div className="space-y-1 max-h-96 overflow-y-auto">
+                            {searchResults.slice(0, 10).map(product => (
+                                <Link
+                                key={product.id}
+                                href={`/products/${product.id}`}
+                                onClick={handleSuggestionClick}
+                                className="flex items-center gap-4 p-2 rounded-md transition-all duration-200 hover:bg-accent hover:shadow-md hover:scale-105"
+                                >
+                                <img src={product.variants[0]?.imageUrls[0] || `https://picsum.photos/seed/${product.id}/50/50`} alt={product.name} className="h-10 w-10 object-cover rounded-md" />
+                                <div className="text-sm">
+                                    <p className="font-semibold">{product.name}</p>
+                                    <p className="text-muted-foreground">₹{product.price.toFixed(2)}</p>
+                                </div>
+                                </Link>
+                            ))}
+                            {searchResults.length > 10 && (
+                                <Button asChild variant="ghost" className="w-full mt-2">
+                                <Link href={`/products?search=${searchQuery}`} onClick={handleSuggestionClick}>
+                                    View all {searchResults.length} results
+                                </Link>
+                                </Button>
+                            )}
+                            </div>
+                        )}
                         </div>
-                      ) : searchResults.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-4">No products found.</p>
-                      ) : (
-                        <div className="space-y-1 max-h-96 overflow-y-auto">
-                          {searchResults.slice(0, 10).map(product => (
+                    ) : (
+                        <div>
+                        <h3 className="text-xs font-semibold text-muted-foreground px-2 mb-2">
+                            Featured Products
+                        </h3>
+                        <div className="space-y-1">
+                            {featuredProducts.map(product => (
                             <Link
-                              key={product.id}
-                              href={`/products/${product.id}`}
-                              onClick={handleSuggestionClick}
-                              className="flex items-center gap-4 p-2 rounded-md transition-all duration-200 hover:bg-accent hover:shadow-md hover:scale-105"
+                                key={product.id}
+                                href={`/products/${product.id}`}
+                                onClick={handleSuggestionClick}
+                                className="flex items-center gap-4 p-2 rounded-md transition-all duration-200 hover:bg-accent hover:shadow-md hover:scale-105"
                             >
-                              <img src={product.variants[0]?.imageUrls[0] || `https://picsum.photos/seed/${product.id}/50/50`} alt={product.name} className="h-10 w-10 object-cover rounded-md" />
-                              <div className="text-sm">
+                                <img src={product.variants[0]?.imageUrls[0] || `https://picsum.photos/seed/${product.id}/50/50`} alt={product.name} className="h-10 w-10 object-cover rounded-md" />
+                                <div className="text-sm">
                                 <p className="font-semibold">{product.name}</p>
                                 <p className="text-muted-foreground">₹{product.price.toFixed(2)}</p>
-                              </div>
+                                </div>
                             </Link>
-                          ))}
-                          {searchResults.length > 10 && (
-                            <Button asChild variant="ghost" className="w-full mt-2">
-                              <Link href={`/products?search=${searchQuery}`} onClick={handleSuggestionClick}>
-                                View all {searchResults.length} results
-                              </Link>
-                            </Button>
-                          )}
+                            ))}
                         </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className="text-xs font-semibold text-muted-foreground px-2 mb-2">
-                        Featured Products
-                      </h3>
-                      <div className="space-y-1">
-                        {featuredProducts.map(product => (
-                          <Link
-                            key={product.id}
-                            href={`/products/${product.id}`}
-                            onClick={handleSuggestionClick}
-                            className="flex items-center gap-4 p-2 rounded-md transition-all duration-200 hover:bg-accent hover:shadow-md hover:scale-105"
-                          >
-                            <img src={product.variants[0]?.imageUrls[0] || `https://picsum.photos/seed/${product.id}/50/50`} alt={product.name} className="h-10 w-10 object-cover rounded-md" />
-                            <div className="text-sm">
-                              <p className="font-semibold">{product.name}</p>
-                              <p className="text-muted-foreground">₹{product.price.toFixed(2)}</p>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-              </PopoverContent>
-            </Popover>
-          </form>
+                        </div>
+                    )}
+                </PopoverContent>
+                </Popover>
+            </form>
         </div>
 
         {/* Right Section: Actions */}
