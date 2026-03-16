@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
@@ -35,6 +33,7 @@ export function CinematicScroll({ children, products, entrySoundUrl }: Cinematic
   const [animationComplete, setAnimationComplete] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // This effect runs once on mount to handle session state and audio.
   useEffect(() => {
     // On mount, check if the intro has already been played in this session.
     if (sessionStorage.getItem('introPlayed') === 'true') {
@@ -44,7 +43,6 @@ export function CinematicScroll({ children, products, entrySoundUrl }: Cinematic
       audioRef.current = new Audio(entrySoundUrl);
       audioRef.current.play().catch(error => {
         // Autoplay was prevented. This is a browser policy.
-        // We can't do much here without user interaction.
         console.warn("Audio autoplay was prevented:", error);
       });
     }
@@ -56,16 +54,16 @@ export function CinematicScroll({ children, products, entrySoundUrl }: Cinematic
     offset: ['start start', 'end end']
   });
 
-  // This event listener tracks the scroll progress. When the end is reached,
-  // it marks the animation as complete and saves the state to sessionStorage.
+  // This hook listens to the scroll progress and triggers completion.
   useMotionValueEvent(scrollYProgress, 'change', (latest) => {
     if (latest >= 0.98) {
+      // Use a timeout to ensure the animation can finish gracefully
       setTimeout(() => {
         if (sessionStorage.getItem('introPlayed') !== 'true') {
           sessionStorage.setItem('introPlayed', 'true');
         }
         setAnimationComplete(true);
-      }, 200); // A small delay to ensure the animation finishes smoothly
+      }, 200);
     }
   });
   
@@ -78,15 +76,22 @@ export function CinematicScroll({ children, products, entrySoundUrl }: Cinematic
 
   // Define animation ranges based on scroll progress (0 to 1)
   const whiteScreenOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
-  const heroTextOpacity = useTransform(scrollYProgress, [0.1, 0.25], [0, 1]);
-  const heroTextY = useTransform(scrollYProgress, [0.1, 0.25], ['5%', '0%']);
+  
+  // Stage 1: Text reveal
+  const heroTextOpacity = useTransform(scrollYProgress, [0.2, 0.35], [0, 1]);
+  const heroTextY = useTransform(scrollYProgress, [0.2, 0.35], ['5%', '0%']);
+  
+  // Stage 2: Products reveal
+  const productsOpacity = useTransform(scrollYProgress, [0.4, 0.5], [0, 1]);
+  const productsScale = useTransform(scrollYProgress, [0.4, 0.6], [0.8, 1]);
+
   const backgroundColor = useTransform(
     scrollYProgress,
-    [0.25, 0.35, 0.8, 0.9],
+    [0.15, 0.25, 0.8, 0.9],
     ['hsl(var(--background))', '#000000', '#000000', 'hsl(var(--background))']
   );
-  const productsOpacity = useTransform(scrollYProgress, [0.35, 0.5], [0, 1]);
-  const productsScale = useTransform(scrollYProgress, [0.35, 0.55], [0.8, 1]);
+  
+  // Stage 3: Final content reveal
   const finalContentOpacity = useTransform(scrollYProgress, [0.9, 1], [0, 1]);
   
   // If the animation is complete, just render the homepage content.
@@ -112,12 +117,12 @@ export function CinematicScroll({ children, products, entrySoundUrl }: Cinematic
 
           {/* Layer 2: Hero headline text */}
           <motion.div style={{ opacity: heroTextOpacity, y: heroTextY }} className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
-             <div className="text-center text-white">
-                 <p className="mb-4 font-semibold tracking-widest uppercase text-orange-300">Premium Selection</p>
-                 <h1 className="mb-6 font-headline text-4xl font-bold md:text-6xl lg:text-7xl">
+            <div className="text-center text-white">
+                <p className="mb-4 font-semibold tracking-widest uppercase text-orange-300">Premium Selection</p>
+                <h1 className="mb-6 font-headline text-4xl font-bold md:text-6xl lg:text-7xl">
                     Timeless Vintage,<br /> Modern Style.
-                 </h1>
-             </div>
+                </h1>
+            </div>
           </motion.div>
           
           {/* Layer 3: Product images with glow effects */}
