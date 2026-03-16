@@ -164,7 +164,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
            <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden rounded-full">
-                  <Menu className="h-5 w-5" />
+                  <Menu className="h-6 w-6" />
                   <span className="sr-only">Toggle Menu</span>
                 </Button>
               </SheetTrigger>
@@ -362,7 +362,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full md:hidden">
-                  <Search className="h-5 w-5" />
+                  <Search className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="top" className="p-4">
@@ -385,7 +385,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-full" disabled>
-                        <Heart className="h-5 w-5" />
+                        <Heart className="h-6 w-6" />
                     </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -396,7 +396,7 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label="Shopping Cart" className="relative rounded-full">
-                  <ShoppingCart className="h-5 w-5" />
+                  <ShoppingCart className="h-6 w-6" />
                   {hasMounted && cartItemCount > 0 && (
                     <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                       {cartItemCount}
