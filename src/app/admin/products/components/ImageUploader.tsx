@@ -1,17 +1,20 @@
+
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Trash2, Loader2, ArrowLeft, ArrowRight, MoreVertical } from 'lucide-react';
+import { Upload, Trash2, Loader2, ArrowLeft, ArrowRight, MoreVertical, Cloud, Flame } from 'lucide-react';
 import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
 import heic2any from 'heic2any';
 import { ImageEditor } from './ImageEditor';
+import { getR2ConfigStatus, getR2SignedURL, deleteR2Object } from '@/app/actions/r2';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,8 +45,14 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
   const [filesToEdit, setFilesToEdit] = useState<File[]>([]);
+  const [r2Config, setR2Config] = useState<{ isConfigured: boolean, bucketName: string | null }>({ isConfigured: false, bucketName: null });
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const r2PublicUrlBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+
+  useEffect(() => {
+    getR2ConfigStatus().then(setR2Config);
+  }, []);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -84,6 +93,25 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
       fileInputRef.current.value = '';
     }
   };
+  
+  const uploadToR2 = async (file: File) => {
+    const fileExtension = file.name.split('.').pop() || 'file';
+    const signedUrlResult = await getR2SignedURL({ fileType: file.type, fileSize: file.size, extension: fileExtension });
+    if (signedUrlResult.failure) throw new Error(signedUrlResult.failure.message);
+
+    const { signedUrl, publicUrl } = signedUrlResult.success;
+    const response = await fetch(signedUrl, { method: 'PUT', body: file });
+    if (!response.ok) throw new Error('Failed to upload to R2.');
+    return publicUrl;
+  };
+
+  const uploadToFirebase = async (file: File) => {
+    const fileId = short.generate();
+    const newName = file.name;
+    const storageRef = ref(storage, `products/${fileId}-${newName}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    return getDownloadURL(snapshot.ref);
+  };
 
   const handleEditComplete = async (processedImages: {blob: Blob | null; originalFile: File}[]) => {
     setFilesToEdit([]);
@@ -91,22 +119,17 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
 
     const uploadPromises = processedImages.map(async (image) => {
         if (!image.blob) return null;
-        const blob = image.blob;
         
         try {
-            const fileId = short.generate();
-            const newName = image.originalFile.name.replace(/\.[^/.]+$/, ".webp");
-            const storageRef = ref(storage, `products/${fileId}-${newName}`);
-            const snapshot = await uploadBytes(storageRef, blob);
-            const downloadURL = await getDownloadURL(snapshot.ref);
-            
+            const file = new File([image.blob], image.originalFile.name, { type: image.blob.type });
+            const downloadURL = r2Config.isConfigured ? await uploadToR2(file) : await uploadToFirebase(file);
             return {
                 url: downloadURL,
                 originalFile: image.originalFile,
-                compressedSize: blob.size,
+                compressedSize: file.size,
             };
         } catch (error) {
-            console.error("Upload failed:", error);
+            console.error("Upload failed for one image:", error);
             return null;
         }
     });
@@ -122,7 +145,7 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
             });
             toast({ 
                 title: 'Image Uploaded & Optimized', 
-                description: `${result.originalFile.name} (${formatBytes(result.originalFile.size)}) → ${formatBytes(result.compressedSize)}` 
+                description: `${result.originalFile.name} (${formatBytes(result.originalFile.size)}) → ${formatBytes(result.compressedSize)} stored in ${r2Config.isConfigured ? 'R2' : 'Firebase'}.`
             });
             successCount++;
         } else {
@@ -143,10 +166,17 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
 
   const handleRemoveImage = async (index: number) => {
     const urlToRemove = getValues(`variants.${variantIndex}.imageUrls`)[index].value;
-
-    const isFirebaseUrl = urlToRemove.includes('firebasestorage.googleapis.com') || urlToRemove.includes('storage.googleapis.com');
-
-    if (isFirebaseUrl) {
+    
+    if (r2Config.isConfigured && r2PublicUrlBase && urlToRemove.startsWith(r2PublicUrlBase)) {
+        const key = urlToRemove.substring(r2PublicUrlBase.length + 1);
+        try {
+            await deleteR2Object(key);
+        } catch(error: any) {
+            console.error("Failed to delete image from R2:", error);
+            toast({ variant: 'destructive', title: 'Deletion failed', description: 'Could not remove image from cloud storage.' });
+            return;
+        }
+    } else if (urlToRemove.includes('firebasestorage.googleapis.com') || urlToRemove.includes('storage.googleapis.com')) {
       try {
         const imageRef = ref(storage, urlToRemove);
         await deleteObject(imageRef);
@@ -172,6 +202,12 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
   return (
     <div className="space-y-4">
       <FormLabel>Images</FormLabel>
+      {r2Config.bucketName && (
+        <FormDescription className="flex items-center gap-2 text-xs">
+            {r2Config.isConfigured ? <Cloud className="h-4 w-4 text-blue-500" /> : <Flame className="h-4 w-4 text-orange-500" />}
+            <span>Storage: {r2Config.isConfigured ? `Cloudflare R2 (Bucket: ${r2Config.bucketName})` : 'Firebase Storage'}</span>
+        </FormDescription>
+      )}
       <p className="text-sm text-muted-foreground">The first image is the main display image. Use the arrows to re-order.</p>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
         {fields.map((field, index) => {

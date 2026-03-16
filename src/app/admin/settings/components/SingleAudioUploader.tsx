@@ -1,15 +1,17 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Trash2, Loader2, Music } from 'lucide-react';
+import { Upload, Trash2, Loader2, Music, Flame, Cloud } from 'lucide-react';
 import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
 import { useToast } from '@/hooks/use-toast';
+import { getR2ConfigStatus, getR2SignedURL, deleteR2Object } from '@/app/actions/r2';
 
 interface SingleAudioUploaderProps {
   fieldName: string;
@@ -19,72 +21,56 @@ interface SingleAudioUploaderProps {
 export function SingleAudioUploader({ fieldName, label }: SingleAudioUploaderProps) {
   const { control, getValues, setValue, watch } = useFormContext();
   const [isUploading, setIsUploading] = useState(false);
+  const [r2Config, setR2Config] = useState<{ isConfigured: boolean, bucketName: string | null }>({ isConfigured: false, bucketName: null });
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   
   const audioUrl = watch(fieldName);
+  const r2PublicUrlBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    let file = event.target.files?.[0];
-    if (!file) return;
+  useEffect(() => {
+    getR2ConfigStatus().then(setR2Config);
+  }, []);
+  
+  const uploadToR2 = async (file: File) => {
+    const fileExtension = file.name.split('.').pop() || 'file';
+    const signedUrlResult = await getR2SignedURL({ fileType: file.type, fileSize: file.size, extension: fileExtension });
 
-    setIsUploading(true);
-    
-    try {
-      // First, attempt to delete the old audio if it exists
-      const currentAudioUrl = getValues(fieldName);
-      if (currentAudioUrl && (currentAudioUrl.includes('firebasestorage.googleapis.com') || currentAudioUrl.includes('storage.googleapis.com'))) {
-          try {
-              const audioRef = ref(storage, currentAudioUrl);
-              await deleteObject(audioRef);
-          } catch (error: any) {
-               if (error.code !== 'storage/object-not-found') {
-                  console.error("Old audio deletion failed, continuing with upload:", error);
-               }
-          }
-      }
-
-      // Now, upload the new audio
-      const fileId = short.generate();
-      const storageRef = ref(storage, `settings/${fileId}-${file.name}`);
-      const snapshot = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      
-      setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });
-      toast({ title: 'Audio Uploaded', description: `${file.name} has been uploaded successfully.` });
-
-    } catch (error: any) {
-      console.error("Audio upload failed:", error);
-      
-      let errorMessage = 'Could not upload audio.';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (error.code) {
-          switch (error.code) {
-              case 'storage/unauthorized': errorMessage = `Permission denied. Please check your storage rules.`; break;
-              case 'storage/canceled': errorMessage = 'Upload was canceled.'; break;
-              case 'storage/retry-limit-exceeded': errorMessage = 'Upload timed out. Please check your network connection.'; break;
-              case 'storage/unauthenticated': errorMessage = `You must be logged in to upload files.`; break;
-              default: errorMessage = error.message; break;
-          }
-      }
-
-      toast({ variant: 'destructive', title: 'Upload Failed', description: errorMessage, duration: 9000 });
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+    if (signedUrlResult.failure) {
+      throw new Error(signedUrlResult.failure.message);
     }
+
+    const { signedUrl, publicUrl } = signedUrlResult.success;
+    const response = await fetch(signedUrl, { method: 'PUT', body: file });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload to R2.');
+    }
+    
+    return publicUrl;
   };
 
+  const uploadToFirebase = async (file: File) => {
+    const fileId = short.generate();
+    const storageRef = ref(storage, `settings/${fileId}-${file.name}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    return getDownloadURL(snapshot.ref);
+  };
+  
   const handleRemoveAudio = async () => {
     const urlToRemove = getValues(fieldName);
     if (!urlToRemove) return;
 
-    const isFirebaseUrl = urlToRemove.includes('firebasestorage.googleapis.com') || urlToRemove.includes('storage.googleapis.com');
-
-    if (isFirebaseUrl) {
+    if (r2Config.isConfigured && r2PublicUrlBase && urlToRemove.startsWith(r2PublicUrlBase)) {
+        const key = urlToRemove.substring(r2PublicUrlBase.length + 1);
+        try {
+            await deleteR2Object(key);
+        } catch(error: any) {
+            console.error("Failed to delete audio from R2:", error);
+            toast({ variant: 'destructive', title: 'Deletion failed', description: 'Could not remove audio from cloud storage.' });
+            return;
+        }
+    } else if (urlToRemove.includes('firebasestorage.googleapis.com') || urlToRemove.includes('storage.googleapis.com')) {
       try {
           const audioRef = ref(storage, urlToRemove);
           await deleteObject(audioRef);
@@ -101,9 +87,45 @@ export function SingleAudioUploader({ fieldName, label }: SingleAudioUploaderPro
     toast({ title: 'Audio removed' });
   };
 
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    let file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    
+    await handleRemoveAudio();
+    
+    try {
+        let downloadURL: string;
+        if (r2Config.isConfigured) {
+            downloadURL = await uploadToR2(file);
+        } else {
+            downloadURL = await uploadToFirebase(file);
+        }
+      
+        setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });
+        toast({ title: 'Audio Uploaded', description: `${file.name} has been uploaded to ${r2Config.isConfigured ? 'R2' : 'Firebase'}.` });
+
+    } catch (error: any) {
+      console.error("Audio upload failed:", error);
+      toast({ variant: 'destructive', title: 'Upload Failed', description: error.message || 'Could not upload audio.', duration: 9000 });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <FormItem>
         <FormLabel>{label}</FormLabel>
+         {r2Config.bucketName && (
+            <FormDescription className="flex items-center gap-2 text-xs">
+                {r2Config.isConfigured ? <Cloud className="h-4 w-4 text-blue-500" /> : <Flame className="h-4 w-4 text-orange-500" />}
+                <span>Storage: {r2Config.isConfigured ? `Cloudflare R2 (Bucket: ${r2Config.bucketName})` : 'Firebase Storage'}</span>
+            </FormDescription>
+        )}
         <div className="flex items-center gap-4">
             {audioUrl ? (
                 <div className="relative group w-full">
