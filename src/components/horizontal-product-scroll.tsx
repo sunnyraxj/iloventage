@@ -90,7 +90,7 @@ export function HorizontalProductScroll({ products }: HorizontalProductScrollPro
             </div>
         </header>
 
-        <section ref={containerRef} className="relative h-[500vh]">
+        <section ref={containerRef} className="relative h-[200vh]">
             <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden">
                 <ul
                     ref={groupRef}
@@ -115,9 +115,11 @@ export function HorizontalProductScroll({ products }: HorizontalProductScrollPro
                                         height={533}
                                         loading="lazy"
                                     />
-                                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent p-4 text-left">
-                                        <h3 className="text-xl font-semibold text-white">{product.name}</h3>
-                                        <p className="text-sm text-white/80">{product.brand || 'ILV'}</p>
+                                    <div className="absolute bottom-4 left-4 right-4">
+                                        <div className="rounded-xl border border-white/20 bg-black/30 p-4 backdrop-blur-lg">
+                                            <h3 className="text-xl font-semibold text-white">{product.name}</h3>
+                                            <p className="text-sm text-white/80">{product.brand || 'ILV'}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </Link>
