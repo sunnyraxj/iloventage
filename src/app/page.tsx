@@ -1,5 +1,6 @@
 
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import { getCategories, getProducts, getStoreSettings } from '@/lib/data';
@@ -18,13 +19,15 @@ export default async function HomePage() {
     getStoreSettings(),
   ]);
 
+  const heroImageUrl = settings?.storeDetails?.heroImageUrl || 'https://picsum.photos/seed/hero/1600/900';
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
         <section className="container mx-auto px-4 pt-4 pb-12 md:pt-8">
-            <div className="grid grid-cols-1 items-center gap-16 md:grid-cols-2">
-                <div className="text-center md:text-left pt-0">
+            <div className="grid grid-cols-1 items-center gap-8 md:gap-16 md:grid-cols-2">
+                <div className="text-center md:text-left pt-0 order-2 md:order-1">
                       <p className="mb-4 font-semibold tracking-widest uppercase text-primary">Premium Selection</p>
                       <h1 className="mb-6 font-headline text-4xl font-bold md:text-6xl lg:text-7xl">
                         Timeless Vintage,<br /> Modern Style.
@@ -41,7 +44,17 @@ export default async function HomePage() {
                         </Button>
                       </div>
                 </div>
-                <div>
+                <div className="order-1 md:order-2">
+                    <div className="md:hidden aspect-video overflow-hidden rounded-lg">
+                         <Image
+                            src={heroImageUrl}
+                            alt="Timeless Vintage, Modern Style"
+                            width={1600}
+                            height={900}
+                            className="h-full w-full object-cover"
+                            priority
+                        />
+                    </div>
                     <HeroImageGrid products={productsForGrid} />
                 </div>
             </div>
