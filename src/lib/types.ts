@@ -120,7 +120,6 @@ export type StoreDetails = {
     heroImageUrl: string;
     instagramUrl?: string;
     whatsappGroupUrl?: string;
-    entrySoundUrl?: string;
 };
 
 export type ShippingSettings = {

@@ -20,13 +20,11 @@ import { updateStoreSettings } from "@/app/actions/settings";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { SingleImageUploader } from "./SingleImageUploader";
-import { SingleAudioUploader } from "./SingleAudioUploader";
 
 const formSchema = z.object({
     name: z.string().min(2, "Store name must be at least 2 characters."),
     logoUrl: z.string().url("Must be a valid URL.").or(z.literal('')),
     heroImageUrl: z.string().url("Must be a valid URL.").or(z.literal('')),
-    entrySoundUrl: z.string().url("Must be a valid URL.").or(z.literal('')).optional(),
     email: z.string().email("Please enter a valid email address."),
     phone: z.string().min(10, "Please enter a valid phone number."),
     phone2: z.string().optional(),
@@ -54,7 +52,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         name: settings?.storeDetails?.name || "",
         logoUrl: settings?.storeDetails?.logoUrl || "",
         heroImageUrl: settings?.storeDetails?.heroImageUrl || "",
-        entrySoundUrl: settings?.storeDetails?.entrySoundUrl || "",
         email: settings?.storeDetails?.email || "",
         phone: settings?.storeDetails?.phone || "",
         phone2: settings?.storeDetails?.phone2 || "",
@@ -81,7 +78,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                 name: data.name,
                 logoUrl: data.logoUrl,
                 heroImageUrl: data.heroImageUrl,
-                entrySoundUrl: data.entrySoundUrl,
                 email: data.email,
                 phone: data.phone,
                 phone2: data.phone2,
@@ -134,7 +130,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                         />
                         <SingleImageUploader fieldName="logoUrl" label="Store Logo" />
                         <SingleImageUploader fieldName="heroImageUrl" label="Homepage Hero Image" />
-                        <SingleAudioUploader fieldName="entrySoundUrl" label="Homepage Entry Sound" />
                     </CardContent>
                 </Card>
                 <Card>
