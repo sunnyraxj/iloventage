@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -221,14 +222,14 @@ export function HeaderClient({ categories, settings }: HeaderClientProps) {
                         <PopoverContent
                             onMouseEnter={() => handleMouseEnter(link.href)}
                             onMouseLeave={handleMouseLeave}
-                            className="w-screen max-w-lg p-0"
+                            className="w-screen max-w-4xl p-0"
                             align="start"
                         >
                             <div className="p-4">
                                 <h3 className="font-semibold">{link.label} Products</h3>
                                 <p className="text-sm text-muted-foreground mb-4">A glimpse of our collection.</p>
                                 {link.products && link.products.length > 0 ? (
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-4 gap-4">
                                         {link.products.map((product) => (
                                             <Link
                                                 key={product.id}
