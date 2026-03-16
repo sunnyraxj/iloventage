@@ -45,17 +45,7 @@ export default async function HomePage() {
                       </div>
                 </div>
                 <div className="order-1 md:order-2">
-                    <div className="md:hidden aspect-video overflow-hidden rounded-lg">
-                         <Image
-                            src={heroImageUrl}
-                            alt="Timeless Vintage, Modern Style"
-                            width={1600}
-                            height={900}
-                            className="h-full w-full object-cover"
-                            priority
-                        />
-                    </div>
-                    <HeroImageGrid products={productsForGrid} />
+                    <HeroImageGrid products={productsForGrid} fallbackImageUrl={heroImageUrl} />
                 </div>
             </div>
         </section>
