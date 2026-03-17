@@ -90,7 +90,7 @@ export function HorizontalProductScroll({ products }: HorizontalProductScrollPro
             </div>
         </header>
 
-        <section ref={containerRef} className="relative h-[200vh]">
+        <section ref={containerRef} className="relative h-[150vh]">
             <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden">
                 <ul
                     ref={groupRef}
