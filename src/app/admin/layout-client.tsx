@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LayoutGrid } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LayoutGrid, ShieldCheck } from 'lucide-react';
 import { getConfirmedOrdersCount } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -17,6 +17,7 @@ const navItems = [
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/users', label: 'Customers', icon: Users },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
+  { href: '/admin/status', label: 'System Status', icon: ShieldCheck },
 ];
 
 export function AdminLayoutClient({
@@ -60,7 +61,7 @@ export function AdminLayoutClient({
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <aside className="md:col-span-1">
-            <Skeleton className="h-72 w-full" />
+            <Skeleton className="h-80 w-full" />
           </aside>
           <div className="md:col-span-3">
             <Skeleton className="h-96 w-full" />
