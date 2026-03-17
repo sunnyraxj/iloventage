@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -7,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, CheckCircle2, Cloud, CreditCard, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type StatusState = {
     r2: ServiceStatus | null;
@@ -20,7 +22,7 @@ const StatusSkeleton = () => (
             <CardContent className="space-y-4">
                 <Skeleton className="h-5 w-40" />
                 <Skeleton className="h-5 w-48" />
-                <Skeleton className="h-5 w-36" />
+                <Skeleton className="h-20 w-full" />
             </CardContent>
         </Card>
         <Card>
@@ -28,6 +30,7 @@ const StatusSkeleton = () => (
             <CardContent className="space-y-4">
                 <Skeleton className="h-5 w-40" />
                 <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-12 w-full" />
             </CardContent>
         </Card>
     </div>
@@ -51,6 +54,7 @@ const ServiceStatusCard = ({ title, icon, status }: { title: string, icon: React
                         <Badge variant="destructive">Not Configured</Badge>
                     )}
                 </div>
+
                 {status?.isConfigured && (
                     <div className="flex items-center gap-2">
                         <p className="font-medium">Connection:</p>
@@ -67,23 +71,39 @@ const ServiceStatusCard = ({ title, icon, status }: { title: string, icon: React
                         )}
                     </div>
                 )}
-                 {status?.isConfigured === false && (
-                    <AlertDescription className="text-xs text-muted-foreground p-2 bg-secondary rounded-md">
-                        One or more environment variables for this service are missing on the server. Please check your hosting provider's settings.
-                    </AlertDescription>
+                
+                {status?.details && (
+                    <div>
+                        <p className="text-sm font-medium mb-2">Details:</p>
+                        <div className="text-xs space-y-1 rounded-md border p-3 bg-secondary/50">
+                            {Object.entries(status.details).map(([key, value]) => (
+                                <div key={key} className="flex justify-between gap-4">
+                                    <span className="text-muted-foreground">{key}:</span>
+                                    <span className="font-mono text-right break-all">{value ?? <span className="text-destructive font-sans font-medium">NOT SET</span>}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 )}
+
+                 {status?.isConfigured === false && (
+                    <Alert variant="destructive" className="text-xs">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Action Required</AlertTitle>
+                        <AlertDescription>
+                            One or more environment variables for this service are missing. Please add them in your hosting provider's settings.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 {status?.error && (
-                     <Card className="bg-destructive/10 border-destructive/20">
-                        <CardHeader className="p-3">
-                            <CardTitle className="flex items-center gap-2 text-sm text-destructive">
-                                <AlertCircle className="h-4 w-4" />
-                                Error Details
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-3 pt-0">
-                           <p className="text-sm text-destructive-foreground">{status.error}</p>
-                        </CardContent>
-                    </Card>
+                     <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Connection Error</AlertTitle>
+                        <AlertDescription>
+                           {status.error}
+                        </AlertDescription>
+                    </Alert>
                 )}
             </CardContent>
         </Card>
