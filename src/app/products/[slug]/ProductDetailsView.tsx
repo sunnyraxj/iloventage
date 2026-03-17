@@ -10,7 +10,7 @@ import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Minus, Plus, ShoppingBag } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Download } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,
@@ -196,7 +196,7 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
                     <CarouselContent>
                         {selectedVariant?.imageUrls.map((url, index) => (
                             <CarouselItem key={index}>
-                                <div className="aspect-[3/4] w-full overflow-hidden rounded-lg bg-secondary">
+                                <div className="group relative aspect-[3/4] w-full overflow-hidden rounded-lg bg-secondary">
                                     <img
                                         src={url || `https://picsum.photos/seed/${product.id}/600/800`}
                                         alt={`${product.name} - ${selectedVariant?.color} image ${index + 1}`}
@@ -206,6 +206,17 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
                                         loading={index === 0 ? "eager" : "lazy"}
                                         decoding="async"
                                     />
+                                    <Button
+                                        asChild
+                                        size="icon"
+                                        variant="secondary"
+                                        className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full opacity-0 transition-opacity group-hover:opacity-100"
+                                    >
+                                        <a href={url} download target="_blank" rel="noopener noreferrer">
+                                            <Download className="h-4 w-4" />
+                                            <span className="sr-only">Download image</span>
+                                        </a>
+                                    </Button>
                                 </div>
                             </CarouselItem>
                         ))}
