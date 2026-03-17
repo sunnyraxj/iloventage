@@ -236,6 +236,14 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
         {fields.map((field, index) => {
             const imageUrl = (field as any).value as string;
+            
+            let imageSource: 'R2' | 'Firebase' | 'Other' = 'Other';
+            if (r2Config.isConfigured && r2Config.publicUrlBase && imageUrl.startsWith(r2Config.publicUrlBase)) {
+                imageSource = 'R2';
+            } else if (imageUrl.includes('firebasestorage.googleapis.com')) {
+                imageSource = 'Firebase';
+            }
+            
           return (
             <div key={field.id} className="flex flex-col gap-2">
                 <div className="relative aspect-[3/4] group">
@@ -263,6 +271,12 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
                     {(field as any).compressedSize && (
                         <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1 py-0.5 rounded">
                             {formatBytes((field as any).compressedSize)}
+                        </div>
+                    )}
+                    {imageSource !== 'Other' && (
+                        <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1 py-0.5 rounded flex items-center gap-1">
+                            {imageSource === 'R2' ? <Cloud className="h-3 w-3" /> : <Flame className="h-3 w-3" />}
+                            <span>{imageSource}</span>
                         </div>
                     )}
                 </div>
@@ -343,5 +357,3 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     </div>
   );
 }
-
-    
