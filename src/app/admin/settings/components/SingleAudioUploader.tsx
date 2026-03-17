@@ -21,12 +21,11 @@ interface SingleAudioUploaderProps {
 export function SingleAudioUploader({ fieldName, label }: SingleAudioUploaderProps) {
   const { control, getValues, setValue, watch } = useFormContext();
   const [isUploading, setIsUploading] = useState(false);
-  const [r2Config, setR2Config] = useState<{ isConfigured: boolean, bucketName: string | null }>({ isConfigured: false, bucketName: null });
+  const [r2Config, setR2Config] = useState<{ isConfigured: boolean; bucketName: string | null; publicUrlBase: string | null }>({ isConfigured: false, bucketName: null, publicUrlBase: null });
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   
   const audioUrl = watch(fieldName);
-  const r2PublicUrlBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
 
   useEffect(() => {
     getR2ConfigStatus().then(setR2Config);
@@ -61,8 +60,8 @@ export function SingleAudioUploader({ fieldName, label }: SingleAudioUploaderPro
     const urlToRemove = getValues(fieldName);
     if (!urlToRemove) return;
 
-    if (r2Config.isConfigured && r2PublicUrlBase && urlToRemove.startsWith(r2PublicUrlBase)) {
-        const key = urlToRemove.substring(r2PublicUrlBase.length + 1);
+    if (r2Config.isConfigured && r2Config.publicUrlBase && urlToRemove.startsWith(r2Config.publicUrlBase)) {
+        const key = urlToRemove.substring(r2Config.publicUrlBase.length + 1);
         try {
             await deleteR2Object(key);
         } catch(error: any) {
@@ -96,15 +95,22 @@ export function SingleAudioUploader({ fieldName, label }: SingleAudioUploaderPro
     await handleRemoveAudio();
     
     try {
-        let downloadURL: string;
-        if (r2Config.isConfigured) {
-            downloadURL = await uploadToR2(file);
-        } else {
-            downloadURL = await uploadToFirebase(file);
+        if (!r2Config.isConfigured) {
+          toast({
+              variant: "destructive",
+              title: "Upload Failed",
+              description: "Cloudflare R2 is not configured. Please check server environment variables.",
+              duration: 9000,
+          });
+          setIsUploading(false);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          return;
         }
+
+        const downloadURL = await uploadToR2(file);
       
         setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });
-        toast({ title: 'Audio Uploaded', description: `${file.name} has been uploaded to ${r2Config.isConfigured ? 'R2' : 'Firebase'}.` });
+        toast({ title: 'Audio Uploaded', description: `${file.name} has been uploaded to R2.` });
 
     } catch (error: any) {
       console.error("Audio upload failed:", error);

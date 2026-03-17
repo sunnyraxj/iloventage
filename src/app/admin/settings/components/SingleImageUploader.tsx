@@ -33,12 +33,11 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
   const { control, getValues, setValue, watch } = useFormContext();
   const [isUploading, setIsUploading] = useState(false);
   const [compressedSize, setCompressedSize] = useState<number | null>(null);
-  const [r2Config, setR2Config] = useState<{ isConfigured: boolean, bucketName: string | null }>({ isConfigured: false, bucketName: null });
+  const [r2Config, setR2Config] = useState<{ isConfigured: boolean; bucketName: string | null; publicUrlBase: string | null }>({ isConfigured: false, bucketName: null, publicUrlBase: null });
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   
   const imageUrl = watch(fieldName);
-  const r2PublicUrlBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
   
   useEffect(() => {
     getR2ConfigStatus().then(setR2Config);
@@ -73,8 +72,8 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
     const urlToRemove = getValues(fieldName);
     if (!urlToRemove) return;
 
-    if (r2Config.isConfigured && r2PublicUrlBase && urlToRemove.startsWith(r2PublicUrlBase)) {
-        const key = urlToRemove.substring(r2PublicUrlBase.length + 1);
+    if (r2Config.isConfigured && r2Config.publicUrlBase && urlToRemove.startsWith(r2Config.publicUrlBase)) {
+        const key = urlToRemove.substring(r2Config.publicUrlBase.length + 1);
         try {
             await deleteR2Object(key);
         } catch(error: any) {

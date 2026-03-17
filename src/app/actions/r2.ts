@@ -65,5 +65,9 @@ export async function deleteR2Object(key: string) {
 }
 
 export async function getR2ConfigStatus() {
-    return { isConfigured: isR2Configured, bucketName: bucketName || null };
+    return { 
+        isConfigured: isR2Configured, 
+        bucketName: bucketName || null,
+        publicUrlBase: publicUrlBase || null,
+    };
 }

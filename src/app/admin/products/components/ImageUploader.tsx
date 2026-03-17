@@ -45,10 +45,9 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
   const [filesToEdit, setFilesToEdit] = useState<File[]>([]);
-  const [r2Config, setR2Config] = useState<{ isConfigured: boolean, bucketName: string | null }>({ isConfigured: false, bucketName: null });
+  const [r2Config, setR2Config] = useState<{ isConfigured: boolean; bucketName: string | null; publicUrlBase: string | null }>({ isConfigured: false, bucketName: null, publicUrlBase: null });
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const r2PublicUrlBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
 
   useEffect(() => {
     getR2ConfigStatus().then(setR2Config);
@@ -169,8 +168,8 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
   const handleRemoveImage = async (index: number) => {
     const urlToRemove = getValues(`variants.${variantIndex}.imageUrls`)[index].value;
     
-    if (r2Config.isConfigured && r2PublicUrlBase && urlToRemove.startsWith(r2PublicUrlBase)) {
-        const key = urlToRemove.substring(r2PublicUrlBase.length + 1);
+    if (r2Config.isConfigured && r2Config.publicUrlBase && urlToRemove.startsWith(r2Config.publicUrlBase)) {
+        const key = urlToRemove.substring(r2Config.publicUrlBase.length + 1);
         try {
             await deleteR2Object(key);
         } catch(error: any) {
