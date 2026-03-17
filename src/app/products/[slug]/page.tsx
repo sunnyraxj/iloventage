@@ -5,8 +5,8 @@ import { getProductById, getProducts } from '@/lib/data';
 import { ProductDetailsView } from './ProductDetailsView';
 import { ProductCard } from '@/components/product-card';
 
-// Revalidate this page every 10 minutes
-export const revalidate = 600;
+// Revalidate this page every 30 minutes
+export const revalidate = 1800;
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   // The "slug" param is now treated as the product ID
