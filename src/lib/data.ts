@@ -17,6 +17,7 @@ import {
   } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import type { Product, Category, User, Order, UserAddress, OrderItem, OrderAddress, StoreSettings } from './types';
+import { cache } from 'react';
   
 const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
@@ -65,7 +66,7 @@ function docToType<T>(doc: DocumentData): T {
 }
   
 // --- Product Functions ---
-export const getProducts = async (options?: { limit?: number }): Promise<Product[]> => {
+export const getProducts = cache(async (options?: { limit?: number }): Promise<Product[]> => {
     const productsCol = collection(db, 'products');
     let q = query(productsCol, orderBy('createdAt', 'desc'));
     if (options?.limit) {
@@ -75,27 +76,27 @@ export const getProducts = async (options?: { limit?: number }): Promise<Product
     const products = productsSnapshot.docs.map(doc => docToType<Product>(doc));
     
     return products;
-};
+});
   
-export const getProductBySlug = async (slug: string): Promise<Product | null> => {
+export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
     const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1));
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
         return null;
     }
     return docToType<Product>(snapshot.docs[0]);
-};
+});
 
-export const getProductById = async (id: string): Promise<Product | null> => {
+export const getProductById = cache(async (id: string): Promise<Product | null> => {
     const productRef = doc(db, 'products', id);
     const productSnap = await getDoc(productRef);
     if (!productSnap.exists()) {
         return null;
     }
     return docToType<Product>(productSnap);
-};
+});
 
-export const getProductsByCollectionId = async (collectionId: string, options?: { limit?: number }): Promise<Product[]> => {
+export const getProductsByCollectionId = cache(async (collectionId: string, options?: { limit?: number }): Promise<Product[]> => {
     let q = query(collection(db, 'products'), 
         where('collectionIds', 'array-contains', collectionId)
     );
@@ -106,10 +107,10 @@ export const getProductsByCollectionId = async (collectionId: string, options?: 
     const products = querySnapshot.docs.map(doc => docToType<Product>(doc));
 
     return products;
-};
+});
 
 // --- Category Functions ---
-export const getCategories = async (): Promise<Category[]> => {
+export const getCategories = cache(async (): Promise<Category[]> => {
     const categoriesCol = collection(db, 'collections');
     const categoriesSnapshot = await getDocs(categoriesCol);
     const categories = categoriesSnapshot.docs.map(doc => docToType<Category>(doc));
@@ -120,9 +121,9 @@ export const getCategories = async (): Promise<Category[]> => {
         ...category,
         imageUrl: category.imageUrl || `https://picsum.photos/seed/${category.id}/400/400`,
     }));
-};
+});
   
-export const getCategoryBySlug = async (slug: string): Promise<Category | null> => {
+export const getCategoryBySlug = cache(async (slug: string): Promise<Category | null> => {
     const q = query(collection(db, 'collections'), where('slug', '==', slug), limit(1));
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
@@ -134,19 +135,19 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
     category.imageUrl = category.imageUrl || `https://picsum.photos/seed/${category.id}/400/400`;
 
     return category;
-};
+});
 
-export const getCategoryById = async (id: string): Promise<Category | null> => {
+export const getCategoryById = cache(async (id: string): Promise<Category | null> => {
     const categoryRef = doc(db, 'collections', id);
     const categorySnap = await getDoc(categoryRef);
     if (!categorySnap.exists()) {
         return null;
     }
     return docToType<Category>(categorySnap);
-};
+});
   
 // --- User Functions ---
-export const getUserById = async (userId: string): Promise<User | null> => {
+export const getUserById = cache(async (userId: string): Promise<User | null> => {
     const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
     if (!userSnap.exists()) {
@@ -159,7 +160,7 @@ export const getUserById = async (userId: string): Promise<User | null> => {
     user.addresses = addressesSnapshot.docs.map(doc => docToType<UserAddress>(doc));
 
     return user;
-}
+})
 
 export const addAddress = async (userId: string, addressData: Omit<UserAddress, 'id' | 'userId'>): Promise<string> => {
     const addressesCol = collection(db, 'users', userId, 'addresses');
@@ -228,7 +229,7 @@ export const createOrder = async (orderPayload: OrderPayload): Promise<Order> =>
 };
 
 // --- Settings Functions ---
-export const getStoreSettings = async (): Promise<StoreSettings | null> => {
+export const getStoreSettings = cache(async (): Promise<StoreSettings | null> => {
     const settingsRef = doc(db, 'settings', 'details');
     const settingsSnap = await getDoc(settingsRef);
     if (!settingsSnap.exists()) {
@@ -253,25 +254,25 @@ export const getStoreSettings = async (): Promise<StoreSettings | null> => {
         };
     }
     return docToType<StoreSettings>(settingsSnap);
-};
+});
 
 
 // --- Admin Functions ---
 
-export const getAllProducts = async (): Promise<Product[]> => {
+export const getAllProducts = cache(async (): Promise<Product[]> => {
     const productsCol = collection(db, 'products');
     const productsSnapshot = await getDocs(productsCol);
     return productsSnapshot.docs.map(doc => docToType<Product>(doc));
-};
+});
 
-export const getAllOrders = async (): Promise<Order[]> => {
+export const getAllOrders = cache(async (): Promise<Order[]> => {
     const ordersCol = collection(db, 'orders');
     const ordersSnapshot = await getDocs(ordersCol);
     return ordersSnapshot.docs.map(doc => docToType<Order>(doc));
-}
+})
 
-export const getAllUsers = async (): Promise<User[]> => {
+export const getAllUsers = cache(async (): Promise<User[]> => {
     const usersCol = collection(db, 'users');
     const usersSnapshot = await getDocs(usersCol);
     return usersSnapshot.docs.map(doc => docToType<User>(doc));
-}
+})

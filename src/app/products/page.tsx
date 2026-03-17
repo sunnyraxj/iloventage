@@ -1,8 +1,11 @@
 
+
 import { getCategories, getProducts } from '@/lib/data';
 import { ProductsView } from './components/ProductsView';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+
+export const revalidate = 600; // Revalidate every 10 minutes
 
 const ProductsViewSkeleton = () => (
     <main className="flex-1 bg-secondary py-8 md:py-12">

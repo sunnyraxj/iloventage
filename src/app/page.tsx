@@ -10,6 +10,8 @@ import { HeroImageGrid } from '@/components/hero-image-grid';
 import { HorizontalProductScroll } from '@/components/horizontal-product-scroll';
 import { RealtimeProductSearch } from '@/components/realtime-product-search';
 
+export const revalidate = 600; // Revalidate every 10 minutes
+
 export default async function HomePage() {
   const [productsForGrid, searchableProducts, categories, horizontalScrollProducts, settings] = await Promise.all([
     getProducts({ limit: 12 }),
