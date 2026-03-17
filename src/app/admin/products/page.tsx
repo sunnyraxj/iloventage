@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -21,7 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, PlusCircle, Search, Loader2 } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, Loader2, Cloud, Flame } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
     DropdownMenu,
@@ -35,6 +36,7 @@ import type { Product } from '@/lib/types';
 import { DeleteProductButton } from './components/DeleteProductButton';
 import { collection, query, orderBy, DocumentData, getDocs, limit, startAfter } from 'firebase/firestore';
 import { db } from '@/firebase/config';
+import { getR2ConfigStatus } from '@/app/actions/r2';
 
 function docToProduct(doc: DocumentData): Product {
     const data = doc.data();
@@ -56,6 +58,8 @@ export default function AdminProductsPage() {
     const [lastVisible, setLastVisible] = useState<DocumentData | null>(null);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [r2Config, setR2Config] = useState<{ isConfigured: boolean; bucketName: string | null; publicUrlBase: string | null }>({ isConfigured: false, bucketName: null, publicUrlBase: null });
+
 
     const fetchInitialProducts = useCallback(async () => {
         setLoading(true);
@@ -80,6 +84,7 @@ export default function AdminProductsPage() {
 
     useEffect(() => {
         fetchInitialProducts();
+        getR2ConfigStatus().then(setR2Config);
     }, [fetchInitialProducts]);
 
      const loadMoreProducts = async () => {
@@ -191,43 +196,54 @@ export default function AdminProductsPage() {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Sr. No.</TableHead>
-                        <TableHead className="hidden w-[100px] sm:table-cell">
-                            <span className="sr-only">Image</span>
-                        </TableHead>
+                        <TableHead className="w-[80px]">Image</TableHead>
                         <TableHead>Name</TableHead>
-                        <TableHead>Stock Status</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead className="hidden md:table-cell">Total Stock</TableHead>
+                        <TableHead className="hidden sm:table-cell">Stock Status</TableHead>
+                        <TableHead className="hidden md:table-cell">Price</TableHead>
+                        <TableHead className="hidden lg:table-cell">Total Stock</TableHead>
                         <TableHead>
                             <span className="sr-only">Actions</span>
                         </TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredProducts.map((product, index) => {
+                    {filteredProducts.map((product) => {
                         const firstVariant = product.variants?.[0];
                         const imageUrl = firstVariant?.imageUrls?.[0] || `https://picsum.photos/seed/${product.id}/64/64`;
                         const stockStatus = getStockStatus(product);
+                        
+                        let imageSource: 'R2' | 'Firebase' | 'Other' = 'Other';
+                        if (imageUrl && r2Config.isConfigured && r2Config.publicUrlBase && imageUrl.startsWith(r2Config.publicUrlBase)) {
+                            imageSource = 'R2';
+                        } else if (imageUrl && (imageUrl.includes('firebasestorage.googleapis.com') || imageUrl.includes('storage.googleapis.com'))) {
+                            imageSource = 'Firebase';
+                        }
+
                         return (
                         <TableRow key={product.id}>
-                            <TableCell className="font-medium">{index + 1}</TableCell>
-                            <TableCell className="hidden sm:table-cell">
-                                <img
-                                    alt={product.name}
-                                    className="aspect-square rounded-md object-cover"
-                                    height="64"
-                                    src={imageUrl}
-                                    width="64"
-                                    loading="lazy"
-                                />
+                           <TableCell>
+                                <div className="relative h-16 w-16">
+                                    <img
+                                        alt={product.name}
+                                        className="aspect-square rounded-md object-cover"
+                                        height="64"
+                                        src={imageUrl}
+                                        width="64"
+                                        loading="lazy"
+                                    />
+                                    {imageSource !== 'Other' && (
+                                        <div className="absolute bottom-0 right-0 bg-black/50 text-white p-0.5 rounded-sm flex items-center">
+                                            {imageSource === 'R2' ? <Cloud className="h-3 w-3" /> : <Flame className="h-3 w-3" />}
+                                        </div>
+                                    )}
+                                </div>
                             </TableCell>
                             <TableCell className="font-medium">{product.name}</TableCell>
-                            <TableCell>
+                            <TableCell className="hidden sm:table-cell">
                                 <Badge variant={stockStatus.variant}>{stockStatus.text}</Badge>
                             </TableCell>
-                            <TableCell>₹{product.price.toFixed(2)}</TableCell>
-                            <TableCell className="hidden md:table-cell">{calculateTotalStock(product)}</TableCell>
+                            <TableCell className="hidden md:table-cell">₹{product.price.toFixed(2)}</TableCell>
+                            <TableCell className="hidden lg:table-cell">{calculateTotalStock(product)}</TableCell>
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
