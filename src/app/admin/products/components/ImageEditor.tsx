@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -182,10 +183,10 @@ export function ImageEditor({ files, onCancel, onComplete }: ImageEditorProps) {
         const editedBlobs = await Promise.all(editedBlobPromises);
 
         const compressionOptions = {
-            maxSizeMB: 0.19,
+            maxSizeMB: 0.5,
             maxWidthOrHeight: 1920,
             useWebWorker: true,
-            initialQuality: 0.7,
+            initialQuality: 0.8,
             fileType: 'image/webp',
             alwaysKeepOrientation: true,
         };
