@@ -54,7 +54,7 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
     const fileExtension = file.name.split('.').pop() || 'file';
     let signedUrlResult;
     try {
-        signedUrlResult = await getR2SignedURL({ fileType: file.type, fileSize: file.size, extension: fileExtension });
+        signedUrlResult = await getR2SignedURL({ fileType: file.type, extension: fileExtension });
         if (signedUrlResult.failure) {
           throw new Error(signedUrlResult.failure.message);
         }

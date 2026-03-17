@@ -1,4 +1,3 @@
-
 'use server';
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
@@ -27,7 +26,7 @@ if (isR2Configured) {
 
 const generateFileName = (bytes = 16) => crypto.randomBytes(bytes).toString("hex");
 
-export async function getR2SignedURL({ fileType, fileSize, extension }: { fileType: string; fileSize: number, extension: string }) {
+export async function getR2SignedURL({ fileType, extension }: { fileType: string; extension: string }) {
     if (!S3 || !isR2Configured) {
         return { failure: { message: "Cloudflare R2 is not configured on the server." } };
     }
@@ -37,7 +36,7 @@ export async function getR2SignedURL({ fileType, fileSize, extension }: { fileTy
     try {
         const signedUrl = await getSignedUrl(
             S3,
-            new PutObjectCommand({ Bucket: bucketName, Key: key, ContentType: fileType, ContentLength: fileSize }),
+            new PutObjectCommand({ Bucket: bucketName, Key: key, ContentType: fileType }),
             { expiresIn: 60 * 5 } // 5 minutes
         );
 

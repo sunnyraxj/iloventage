@@ -97,7 +97,7 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     const fileExtension = file.name.split('.').pop() || 'file';
     let signedUrlResult;
     try {
-        signedUrlResult = await getR2SignedURL({ fileType: file.type, fileSize: file.size, extension: fileExtension });
+        signedUrlResult = await getR2SignedURL({ fileType: file.type, extension: fileExtension });
         if (signedUrlResult.failure) throw new Error(signedUrlResult.failure.message);
     } catch (serverError: any) {
         throw new Error(`Failed to get upload URL: ${serverError.message}`);
