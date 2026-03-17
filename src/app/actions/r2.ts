@@ -34,10 +34,19 @@ export async function getR2SignedURL({ fileType, extension }: { fileType: string
     const key = `${generateFileName()}.${extension}`;
 
     try {
+        const command = new PutObjectCommand({ 
+            Bucket: bucketName, 
+            Key: key, 
+            ContentType: fileType,
+        });
+
         const signedUrl = await getSignedUrl(
             S3,
-            new PutObjectCommand({ Bucket: bucketName, Key: key, ContentType: fileType }),
-            { expiresIn: 60 * 5 } // 5 minutes
+            command,
+            { 
+                expiresIn: 60 * 5, // 5 minutes
+                unsignableHeaders: new Set(['content-length']),
+            }
         );
 
         const publicUrl = `${publicUrlBase}/${key}`;
