@@ -68,14 +68,6 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
     
     return { publicUrl, key };
   };
-
-  const uploadToFirebase = async (file: File) => {
-    const fileId = short.generate();
-    const newName = file.name;
-    const storageRef = ref(storage, `settings/${fileId}-${newName}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    return getDownloadURL(snapshot.ref);
-  };
   
   const handleRemoveImage = async () => {
     const urlToRemove = getValues(fieldName);
@@ -137,6 +129,18 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
     }
     
     try {
+      if (!r2Config.isConfigured) {
+        toast({
+            variant: "destructive",
+            title: "Upload Failed",
+            description: "Cloudflare R2 is not configured. Please check server environment variables.",
+            duration: 9000,
+        });
+        setIsUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+      
       const originalSize = processedFile.size;
       const originalName = processedFile.name;
       
@@ -153,17 +157,11 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
       const compressedSizeVal = compressedFile.size;
       const newName = compressedFile.name;
 
-      let downloadURL: string;
-      if (r2Config.isConfigured) {
-          const { publicUrl } = await uploadToR2(compressedFile);
-          downloadURL = publicUrl;
-      } else {
-          downloadURL = await uploadToFirebase(compressedFile);
-      }
+      const { publicUrl: downloadURL } = await uploadToR2(compressedFile);
       
       setValue(fieldName, downloadURL, { shouldValidate: true, shouldDirty: true });
       setCompressedSize(compressedSizeVal);
-      toast({ title: 'Image Optimized & Uploaded', description: `${originalName} (${formatBytes(originalSize)}) → ${newName} (${formatBytes(compressedSizeVal)}) stored in ${r2Config.isConfigured ? 'R2' : 'Firebase'}.` });
+      toast({ title: 'Image Optimized & Uploaded', description: `${originalName} (${formatBytes(originalSize)}) → ${newName} (${formatBytes(compressedSizeVal)}) stored in R2.` });
 
     } catch (error: any) {
       console.error("Image upload failed:", error);
@@ -251,3 +249,5 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
     </FormItem>
   );
 }
+
+    

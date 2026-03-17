@@ -105,31 +105,35 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     return publicUrl;
   };
 
-  const uploadToFirebase = async (file: File) => {
-    const fileId = short.generate();
-    const newName = file.name;
-    const storageRef = ref(storage, `products/${fileId}-${newName}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    return getDownloadURL(snapshot.ref);
-  };
-
   const handleEditComplete = async (processedImages: {blob: Blob | null; originalFile: File}[]) => {
     setFilesToEdit([]);
     setIsUploading(true);
+
+    if (!r2Config.isConfigured) {
+        toast({
+            variant: "destructive",
+            title: "Upload Failed",
+            description: "Cloudflare R2 is not configured. Please check server environment variables.",
+            duration: 9000,
+        });
+        setIsUploading(false);
+        return;
+    }
 
     const uploadPromises = processedImages.map(async (image) => {
         if (!image.blob) return null;
         
         try {
             const file = new File([image.blob], image.originalFile.name, { type: image.blob.type });
-            const downloadURL = r2Config.isConfigured ? await uploadToR2(file) : await uploadToFirebase(file);
+            const downloadURL = await uploadToR2(file);
             return {
                 url: downloadURL,
                 originalFile: image.originalFile,
                 compressedSize: file.size,
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error("Upload failed for one image:", error);
+            toast({ variant: 'destructive', title: 'Upload Error', description: `Failed to upload ${image.originalFile.name}: ${error.message}` });
             return null;
         }
     });
@@ -145,11 +149,9 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
             });
             toast({ 
                 title: 'Image Uploaded & Optimized', 
-                description: `${result.originalFile.name} (${formatBytes(result.originalFile.size)}) → ${formatBytes(result.compressedSize)} stored in ${r2Config.isConfigured ? 'R2' : 'Firebase'}.`
+                description: `${result.originalFile.name} (${formatBytes(result.originalFile.size)}) → ${formatBytes(result.compressedSize)} stored in R2.`
             });
             successCount++;
-        } else {
-            toast({ variant: 'destructive', title: 'Upload Failed', description: 'One or more images failed to upload.', duration: 9000 });
         }
     });
 
@@ -308,3 +310,5 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     </div>
   );
 }
+
+    
