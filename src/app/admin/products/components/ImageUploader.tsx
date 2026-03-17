@@ -6,7 +6,7 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Trash2, Loader2, ArrowLeft, ArrowRight, MoreVertical, Cloud, Flame } from 'lucide-react';
+import { Upload, Trash2, Loader2, ArrowLeft, ArrowRight, MoreVertical, Cloud, Flame, Download } from 'lucide-react';
 import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import short from 'short-uuid';
@@ -238,7 +238,7 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
             const imageUrl = (field as any).value as string;
           return (
             <div key={field.id} className="flex flex-col gap-2">
-                <div className="relative aspect-[3/4]">
+                <div className="relative aspect-[3/4] group">
                     <img
                         src={imageUrl}
                         alt={`Product image ${index + 1}`}
@@ -249,6 +249,17 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
                             MAIN
                         </div>
                     )}
+                    <Button
+                        asChild
+                        size="icon"
+                        variant="secondary"
+                        className="absolute top-1 right-1 z-10 h-7 w-7 rounded-full opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                        <a href={imageUrl} download target="_blank" rel="noopener noreferrer">
+                            <Download className="h-4 w-4" />
+                            <span className="sr-only">Download image</span>
+                        </a>
+                    </Button>
                     {(field as any).compressedSize && (
                         <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1 py-0.5 rounded">
                             {formatBytes((field as any).compressedSize)}
