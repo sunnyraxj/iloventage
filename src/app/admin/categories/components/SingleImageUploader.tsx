@@ -52,24 +52,36 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
 
   const uploadToR2 = async (file: File) => {
     const fileExtension = file.name.split('.').pop() || 'file';
-    const signedUrlResult = await getR2SignedURL({ fileType: file.type, fileSize: file.size, extension: fileExtension });
-
-    if (signedUrlResult.failure) {
-      throw new Error(signedUrlResult.failure.message);
+    let signedUrlResult;
+    try {
+        signedUrlResult = await getR2SignedURL({ fileType: file.type, fileSize: file.size, extension: fileExtension });
+        if (signedUrlResult.failure) {
+          throw new Error(signedUrlResult.failure.message);
+        }
+    } catch (serverError: any) {
+        throw new Error(`Failed to get upload URL: ${serverError.message}`);
     }
-
+    
     const { signedUrl, publicUrl, key } = signedUrlResult.success;
 
-    const response = await fetch(signedUrl, {
-      method: 'PUT',
-      body: file,
-      headers: {
-        'Content-Type': file.type,
-      },
-    });
+    let response;
+    try {
+        response = await fetch(signedUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'Content-Type': file.type,
+            },
+        });
+    } catch (networkError: any) {
+        console.error("Network error during R2 upload:", networkError);
+        throw new Error(`Upload failed due to a network issue. This could be a CORS configuration problem on your R2 bucket. Please ensure your bucket allows PUT requests from this website's origin. Error: ${networkError.message}`);
+    }
 
     if (!response.ok) {
-      throw new Error('Failed to upload to R2.');
+      const errorBody = await response.text();
+      console.error("R2 Upload HTTP Error Response:", errorBody);
+      throw new Error(`Upload failed with status ${response.status}. R2 response: ${errorBody}`);
     }
     
     return { publicUrl, key };
@@ -139,8 +151,8 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
       if (!r2Config.isConfigured) {
         toast({
             variant: "destructive",
-            title: "Upload Failed",
-            description: "Cloudflare R2 is not configured. Please check server environment variables.",
+            title: "Upload Blocked",
+            description: "Cloudflare R2 is not configured on the server. Cannot upload new images.",
             duration: 9000,
         });
         setIsUploading(false);
@@ -188,7 +200,7 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
         {r2Config.bucketName && (
             <FormDescription className="flex items-center gap-2 text-xs">
                 {r2Config.isConfigured ? <Cloud className="h-4 w-4 text-blue-500" /> : <Flame className="h-4 w-4 text-orange-500" />}
-                <span>Storage: {r2Config.isConfigured ? `Cloudflare R2 (Bucket: ${r2Config.bucketName})` : 'Firebase Storage'}</span>
+                <span>Storage: Cloudflare R2 (Bucket: {r2Config.bucketName})</span>
             </FormDescription>
         )}
         <div className="flex items-center gap-4">
