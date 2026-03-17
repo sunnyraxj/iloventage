@@ -191,16 +191,16 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
     }
   };
 
+  let imageSource: 'R2' | 'Firebase' | 'Other' = 'Other';
+  if (imageUrl && r2Config.isConfigured && r2Config.publicUrlBase && imageUrl.startsWith(r2Config.publicUrlBase)) {
+      imageSource = 'R2';
+  } else if (imageUrl && (imageUrl.includes('firebasestorage.googleapis.com') || imageUrl.includes('storage.googleapis.com'))) {
+      imageSource = 'Firebase';
+  }
 
   return (
     <FormItem>
         <FormLabel>{label}</FormLabel>
-        {r2Config.bucketName && (
-            <FormDescription className="flex items-center gap-2 text-xs">
-                {r2Config.isConfigured ? <Cloud className="h-4 w-4 text-blue-500" /> : <Flame className="h-4 w-4 text-orange-500" />}
-                <span>Storage: Cloudflare R2 (Bucket: {r2Config.bucketName})</span>
-            </FormDescription>
-        )}
         <div className="flex items-center gap-4">
             {imageUrl ? (
             <div className="relative aspect-video group w-48">
@@ -212,6 +212,11 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
                 {compressedSize && (
                     <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1 py-0.5 rounded">
                         {formatBytes(compressedSize)}
+                    </div>
+                )}
+                {imageSource !== 'Other' && (
+                    <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] p-0.5 rounded flex items-center">
+                        {imageSource === 'R2' ? <Cloud className="h-3 w-3" /> : <Flame className="h-3 w-3" />}
                     </div>
                 )}
                 <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">

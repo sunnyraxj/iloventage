@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -226,12 +225,6 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
   return (
     <div className="space-y-4">
       <FormLabel>Images</FormLabel>
-      {r2Config.bucketName && (
-        <FormDescription className="flex items-center gap-2 text-xs">
-            {r2Config.isConfigured ? <Cloud className="h-4 w-4 text-blue-500" /> : <Flame className="h-4 w-4 text-orange-500" />}
-            <span>Storage: Cloudflare R2 (Bucket: {r2Config.bucketName})</span>
-        </FormDescription>
-      )}
       <p className="text-sm text-muted-foreground">The first image is the main display image. Use the arrows to re-order.</p>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
         {fields.map((field, index) => {
@@ -274,9 +267,8 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
                         </div>
                     )}
                     {imageSource !== 'Other' && (
-                        <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1 py-0.5 rounded flex items-center gap-1">
+                        <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] p-0.5 rounded flex items-center">
                             {imageSource === 'R2' ? <Cloud className="h-3 w-3" /> : <Flame className="h-3 w-3" />}
-                            <span>{imageSource}</span>
                         </div>
                     )}
                 </div>
