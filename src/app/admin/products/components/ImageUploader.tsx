@@ -99,7 +99,13 @@ export function ImageUploader({ variantIndex }: ImageUploaderProps) {
     if (signedUrlResult.failure) throw new Error(signedUrlResult.failure.message);
 
     const { signedUrl, publicUrl } = signedUrlResult.success;
-    const response = await fetch(signedUrl, { method: 'PUT', body: file });
+    const response = await fetch(signedUrl, {
+      method: 'PUT',
+      body: file,
+      headers: {
+        'Content-Type': file.type,
+      },
+    });
     if (!response.ok) throw new Error('Failed to upload to R2.');
     return publicUrl;
   };
