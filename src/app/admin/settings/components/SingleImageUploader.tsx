@@ -150,10 +150,10 @@ export function SingleImageUploader({ fieldName, label }: SingleImageUploaderPro
       const originalName = processedFile.name;
       
       const options = {
-        maxSizeMB: 0.5,
+        maxSizeMB: 0.2,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
-        initialQuality: 0.8,
+        initialQuality: 0.75,
         fileType: 'image/webp',
         alwaysKeepOrientation: true,
       };
