@@ -27,7 +27,7 @@ export default async function HomePage() {
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <section className="container mx-auto px-4 pt-4 pb-12 md:pt-8">
+        <section className="container mx-auto px-4 pb-12 -mt-20 pt-24 md:-mt-[5.5rem] md:pt-32">
             <div className="grid grid-cols-1 items-center gap-8 md:gap-16 md:grid-cols-2">
                 <div className="text-center md:text-left pt-0 order-2 md:order-1">
                       <p className="mb-4 font-semibold tracking-widest uppercase text-primary">Premium Selection</p>
