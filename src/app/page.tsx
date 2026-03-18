@@ -37,7 +37,7 @@ export default async function HomePage() {
                 <div className="grid grid-cols-1 items-center gap-8 md:gap-16 md:grid-cols-2">
                     <div className="text-center md:text-left order-2 md:order-1">
                           
-                          <h1 className="mb-6 font-headline text-4xl font-bold md:text-6xl lg:text-7xl">
+                          <h1 className="mb-6 font-headline text-2xl font-bold md:text-3xl lg:text-4xl">
                             Timeless Vintage,<br /> Modern Style.
                           </h1>
 
