@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -370,30 +369,38 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
                 </div>
 
                 {hasMounted ? (
-                    <Accordion type="single" collapsible className="w-full mt-2">
-                        <AccordionItem value="description">
-                            <AccordionTrigger>Description</AccordionTrigger>
-                            <AccordionContent>
-                                <p className="text-muted-foreground">{product.description}</p>
-                            </AccordionContent>
-                        </AccordionItem>
+                    <div className="space-y-6 pt-4">
+                        {selectedSize && (
+                            <div>
+                                <p className="text-lg">Size {selectedSize.size}</p>
+                            </div>
+                        )}
+                
+                        <div>
+                            <p className="text-sm text-muted-foreground">
+                                <span className="font-semibold text-foreground">Note:</span> Sizes are mentioned as Waist × Length (in inches). Colour may vary slightly due to lighting and screen settings.
+                            </p>
+                        </div>
+                
+                        <div className="space-y-2">
+                            <h3 className="text-base font-semibold">Description</h3>
+                            <p className="text-sm text-muted-foreground whitespace-pre-line">{product.description}</p>
+                        </div>
+                
                         {product.additionalDetails && product.additionalDetails.length > 0 && (
-                            <AccordionItem value="details">
-                                <AccordionTrigger>Additional Details</AccordionTrigger>
-                                <AccordionContent>
-                                    <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                                        {product.additionalDetails.map((detail, index) => <li key={index}>{detail}</li>)}
-                                    </ul>
-                                </AccordionContent>
-                            </AccordionItem>
+                            <div className="space-y-2">
+                                <h3 className="text-base font-semibold">Additional Details</h3>
+                                <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                                    {product.additionalDetails.map((detail, index) => <li key={index}>{detail}</li>)}
+                                </ul>
+                            </div>
                         )}
-                    </Accordion>
+                    </div>
                 ) : (
-                    <div className="w-full mt-2 space-y-2">
+                    <div className="w-full mt-4 space-y-6">
+                        <Skeleton className="h-6 w-24" />
                         <Skeleton className="h-12 w-full" />
-                        {(product.additionalDetails && product.additionalDetails.length > 0) && (
-                            <Skeleton className="h-12 w-full" />
-                        )}
+                        <Skeleton className="h-12 w-full" />
                     </div>
                 )}
             </div>
