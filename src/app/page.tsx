@@ -1,6 +1,5 @@
 
 
-
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -31,19 +30,16 @@ export default async function HomePage() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <section className="container mx-auto px-4 pb-12 md:-mt-20 pt-32 md:pt-36">
+        <section className="container mx-auto px-4 pb-12 pt-32 md:pt-36">
             <div className="grid grid-cols-1 items-center gap-8 md:gap-16 md:grid-cols-2">
                 <div className="text-center md:text-left order-2 md:order-1">
                       <p className="mb-4 font-semibold tracking-widest uppercase text-primary">Premium Selection</p>
                       <h1 className="mb-6 font-headline text-4xl font-bold md:text-6xl lg:text-7xl">
                         Timeless Vintage,<br /> Modern Style.
                       </h1>
-                      <p className="max-w-md mx-auto md:mx-0 text-muted-foreground mb-8 text-lg">
-                        Discover curated collections of high-quality apparel that blend classic designs with a modern twist.
-                      </p>
                       <div className="flex justify-center md:justify-start gap-4">
                         <Button asChild size="lg" className="rounded-full font-semibold tracking-wider">
                             <Link href="/products">Shop Now</Link>
@@ -82,7 +78,7 @@ export default async function HomePage() {
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                       <h3 className="font-bold text-lg drop-shadow-sm">{category.name}</h3>
                       <p className="text-sm drop-shadow-sm">{categoryProductCounts[category.id] || 0} Products</p>
