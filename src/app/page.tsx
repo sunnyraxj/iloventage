@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
-import { getCategories, getProducts, getStoreSettings } from '@/lib/data';
+import { getCategories, getProducts, getStoreSettings, getAllProducts } from '@/lib/data';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { HeroImageGrid } from '@/components/hero-image-grid';
@@ -13,17 +13,19 @@ import { RealtimeProductSearch } from '@/components/realtime-product-search';
 export const revalidate = 600; // Revalidate every 10 minutes
 
 export default async function HomePage() {
-  const [productsForGrid, searchableProducts, categories, settings] = await Promise.all([
+  const [productsForGrid, searchableProducts, categories, settings, allProducts] = await Promise.all([
     getProducts({ limit: 12 }),
     getProducts({ limit: 24 }),
     getCategories(),
     getStoreSettings(),
+    getAllProducts(),
   ]);
 
   const heroImageUrl = settings?.storeDetails?.heroImageUrl || 'https://picsum.photos/seed/hero/1600/900';
+  const totalProductCount = allProducts.length;
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-1">
         <section className="container mx-auto px-4 pb-12 -mt-16 pt-32 md:-mt-20 md:pt-36">
@@ -85,7 +87,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <RealtimeProductSearch initialProducts={searchableProducts} />
+        <RealtimeProductSearch initialProducts={searchableProducts} totalProductCount={totalProductCount} />
         
       </main>
       <Footer />

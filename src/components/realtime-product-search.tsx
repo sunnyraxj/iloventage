@@ -11,9 +11,10 @@ import { Button } from '@/components/ui/button';
 
 interface RealtimeProductSearchProps {
   initialProducts: Product[];
+  totalProductCount: number;
 }
 
-export function RealtimeProductSearch({ initialProducts }: RealtimeProductSearchProps) {
+export function RealtimeProductSearch({ initialProducts, totalProductCount }: RealtimeProductSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredProducts = useMemo(() => {
@@ -24,6 +25,8 @@ export function RealtimeProductSearch({ initialProducts }: RealtimeProductSearch
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, initialProducts]);
+
+  const moreProductsCount = totalProductCount - initialProducts.length;
 
   return (
     <section className="bg-secondary py-12 md:py-20">
@@ -67,9 +70,15 @@ export function RealtimeProductSearch({ initialProducts }: RealtimeProductSearch
         )}
 
         <div className="mt-12 text-center">
-            <Button asChild size="lg" className="rounded-full font-semibold tracking-wider shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/50 hover:scale-105">
-                <Link href="/categories">View All Collections</Link>
-            </Button>
+            {moreProductsCount > 0 ? (
+                 <Button asChild size="lg" className="rounded-full font-semibold tracking-wider shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/50 hover:scale-105">
+                    <Link href="/products">Explore {moreProductsCount.toLocaleString()} More Products</Link>
+                </Button>
+            ) : (
+                 <Button asChild size="lg" className="rounded-full font-semibold tracking-wider shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/50 hover:scale-105">
+                    <Link href="/products">View All Products</Link>
+                </Button>
+            )}
         </div>
       </div>
     </section>
