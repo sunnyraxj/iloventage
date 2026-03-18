@@ -7,27 +7,25 @@ import { getCategories, getProducts, getStoreSettings } from '@/lib/data';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { HeroImageGrid } from '@/components/hero-image-grid';
-import { HorizontalProductScroll } from '@/components/horizontal-product-scroll';
 import { RealtimeProductSearch } from '@/components/realtime-product-search';
 
 export const revalidate = 600; // Revalidate every 10 minutes
 
 export default async function HomePage() {
-  const [productsForGrid, searchableProducts, categories, horizontalScrollProducts, settings] = await Promise.all([
+  const [productsForGrid, searchableProducts, categories, settings] = await Promise.all([
     getProducts({ limit: 12 }),
     getProducts({ limit: 24 }),
     getCategories(),
-    getProducts({ limit: 6 }),
     getStoreSettings(),
   ]);
 
   const heroImageUrl = settings?.storeDetails?.heroImageUrl || 'https://picsum.photos/seed/hero/1600/900';
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-1">
-        <section className="container mx-auto px-4 pb-12 -mt-20 pt-28 md:-mt-[5.5rem] md:pt-32">
+        <section className="container mx-auto px-4 pb-12 -mt-20 pt-32 md:-mt-[5.5rem] md:pt-36">
             <div className="grid grid-cols-1 items-center gap-8 md:gap-16 md:grid-cols-2">
                 <div className="text-center md:text-left order-2 md:order-1">
                       <p className="mb-4 font-semibold tracking-widest uppercase text-primary">Premium Selection</p>
@@ -51,8 +49,6 @@ export default async function HomePage() {
                 </div>
             </div>
         </section>
-
-        <HorizontalProductScroll products={horizontalScrollProducts} />
 
         <section className="py-12 md:py-16">
           <div className="container mx-auto px-4">
