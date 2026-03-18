@@ -1,5 +1,6 @@
 
 
+
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -24,11 +25,16 @@ export default async function HomePage() {
   const heroImageUrl = settings?.storeDetails?.heroImageUrl || 'https://picsum.photos/seed/hero/1600/900';
   const totalProductCount = allProducts.length;
 
+  const categoryProductCounts = (categories || []).reduce((acc, category) => {
+    acc[category.id] = (allProducts || []).filter(p => p.collectionIds?.includes(category.id)).length;
+    return acc;
+  }, {} as Record<string, number>);
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-1">
-        <section className="container mx-auto px-4 pb-12 -mt-16 pt-32 md:-mt-20 md:pt-36">
+        <section className="container mx-auto px-4 pb-12 md:-mt-20 pt-32 md:pt-36">
             <div className="grid grid-cols-1 items-center gap-8 md:gap-16 md:grid-cols-2">
                 <div className="text-center md:text-left order-2 md:order-1">
                       <p className="mb-4 font-semibold tracking-widest uppercase text-primary">Premium Selection</p>
@@ -64,23 +70,23 @@ export default async function HomePage() {
                 </p>
             </div>
             <div className="flex gap-4 overflow-x-auto pb-4 -mb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {categories.slice(0, 6).map((category) => (
+              {(categories || []).slice(0, 6).map((category) => (
                 <Link
                   key={category.id}
                   href={`/categories/${category.slug}`}
-                  className={'group block w-3/5 flex-shrink-0 md:w-[calc(100%/3.5)] lg:w-[calc(100%/4.5)]'}
+                  className={'group relative block w-3/5 flex-shrink-0 overflow-hidden rounded-lg aspect-[3/4] md:w-[calc(100%/3.5)] lg:w-[calc(100%/4.5)]'}
                 >
-                  <div className="overflow-hidden rounded-lg aspect-[3/4]">
-                    <img
+                  <img
                       src={category.imageUrl || `https://picsum.photos/seed/${category.id}/400/533`}
                       alt={category.name}
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
-                    />
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                      <h3 className="font-bold text-lg drop-shadow-sm">{category.name}</h3>
+                      <p className="text-sm drop-shadow-sm">{categoryProductCounts[category.id] || 0} Products</p>
                   </div>
-                  <h3 className="mt-2 truncate text-xs font-semibold text-foreground">
-                    {category.name}
-                  </h3>
                 </Link>
               ))}
             </div>
