@@ -110,8 +110,7 @@ export function ProductsView({ categories, initialProducts, searchParams: server
     // Search filter
     if (searchTerm) {
         tempProducts = tempProducts.filter(p =>
-            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (p.brand && p.brand.toLowerCase().includes(searchTerm.toLowerCase()))
+            p.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }
 

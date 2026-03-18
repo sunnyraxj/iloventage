@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -254,7 +255,6 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
 
             {/* Product Details */}
             <div className="flex flex-col space-y-4 md:col-span-2 md:space-y-6">
-                <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{product.brand}</p>
                 <h1 className="font-headline text-2xl font-bold md:text-3xl">{product.name}</h1>
                 <div className="flex items-baseline gap-2">
                     <p className="text-2xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>

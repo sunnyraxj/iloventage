@@ -19,8 +19,7 @@ export function RealtimeProductSearch({ initialProducts }: RealtimeProductSearch
       return initialProducts;
     }
     return initialProducts.filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.brand?.toLowerCase().includes(searchTerm.toLowerCase())
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, initialProducts]);
 
@@ -38,7 +37,7 @@ export function RealtimeProductSearch({ initialProducts }: RealtimeProductSearch
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search by product name or brand..."
+              placeholder="Search by product name..."
               className="w-full rounded-full bg-background pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

@@ -38,7 +38,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   description: z.string().min(10, "Description must be at least 10 characters."),
-  brand: z.string().optional(),
   gender: z.enum(["male", "female", "unisex"]),
   collectionId: z.string().min(1, "A primary category is required."),
   additionalCollectionIds: z.array(z.string()).optional(),
@@ -87,7 +86,6 @@ export function ProductForm({ product, categories }: ProductFormProps) {
     } : {
         name: "",
         description: "",
-        brand: "",
         gender: "unisex",
         collectionId: "",
         additionalCollectionIds: [],
@@ -189,8 +187,6 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                         <Card>
                             <CardHeader><CardTitle>Organization</CardTitle></CardHeader>
                             <CardContent className="space-y-4">
-                                <FormField control={form.control} name="brand" render={({ field }) => (<FormItem><FormLabel>Brand (Optional)</FormLabel><FormControl><Input placeholder="Defaults to ILV if empty" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
-                                
                                 <FormField
                                     control={form.control}
                                     name="collectionId"
