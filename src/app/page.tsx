@@ -29,21 +29,21 @@ export default async function HomePage() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-1">
-        <section className="-mt-20 md:-mt-24">
-            <div className="container mx-auto px-4 pb-12 pt-32 md:pt-36">
+        <section className="-mt-24 pt-24">
+            <div className="container mx-auto px-4 pb-12 pt-12 md:pt-12">
                 <div className="grid grid-cols-1 items-center gap-8 md:gap-16 md:grid-cols-2">
                     <div className="text-center md:text-left order-2 md:order-1">
-                          <p className="mb-4 font-semibold tracking-widest uppercase text-primary">Premium Selection</p>
                           
-                          <div className="flex justify-center md:justify-start gap-4">
+                          <h1 className="mb-6 font-headline text-4xl font-bold md:text-6xl lg:text-7xl">
+                            Timeless Vintage,<br /> Modern Style.
+                          </h1>
+
+                          <div className="mt-8 flex justify-center md:justify-start">
                             <Button asChild size="lg" className="rounded-full font-semibold tracking-wider">
-                                <Link href="/products">Shop Now</Link>
-                            </Button>
-                              <Button asChild size="lg" variant="outline" className="rounded-full font-semibold tracking-wider">
-                                <Link href="/categories">View Collections</Link>
+                                <Link href="/products">Start Shopping</Link>
                             </Button>
                           </div>
                     </div>
