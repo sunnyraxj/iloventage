@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/select";
 import type { Product, Category } from '@/lib/types';
 import { DeleteProductButton } from './components/DeleteProductButton';
-import { collection, query, orderBy, DocumentData, getDocs, limit, startAfter } from 'firebase/firestore';
+import { collection, query, orderBy, DocumentData, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { getR2ConfigStatus } from '@/app/actions/r2';
 import { getCategories } from '@/lib/data';
@@ -56,8 +56,6 @@ function docToProduct(doc: DocumentData): Product {
     } as Product;
 }
 
-const PAGE_SIZE = 10;
-
 export default function AdminProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
@@ -65,18 +63,15 @@ export default function AdminProductsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [categories, setCategories] = useState<Category[]>([]);
     const [categoryFilter, setCategoryFilter] = useState('all');
-    const [lastVisible, setLastVisible] = useState<DocumentData | null>(null);
-    const [loadingMore, setLoadingMore] = useState(false);
-    const [hasMore, setHasMore] = useState(true);
     const [r2Config, setR2Config] = useState<{ isConfigured: boolean; bucketName: string | null; publicUrlBase: string | null }>({ isConfigured: false, bucketName: null, publicUrlBase: null });
 
 
-    const fetchInitialData = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
             const productsPromise = (async () => {
                 const productsRef = collection(db, 'products');
-                const q = query(productsRef, orderBy('createdAt', 'desc'), limit(PAGE_SIZE));
+                const q = query(productsRef, orderBy('createdAt', 'desc'));
                 return await getDocs(q);
             })();
 
@@ -90,11 +85,6 @@ export default function AdminProductsPage() {
             const fetchedProducts = productsSnapshot.docs.map(docToProduct);
             setProducts(fetchedProducts);
             setCategories(fetchedCategories);
-            
-            const lastDoc = productsSnapshot.docs[productsSnapshot.docs.length - 1];
-            setLastVisible(lastDoc);
-            setHasMore(productsSnapshot.size === PAGE_SIZE);
-
         } catch (error) {
             console.error("Failed to fetch products or categories:", error);
         } finally {
@@ -103,31 +93,9 @@ export default function AdminProductsPage() {
     }, []);
 
     useEffect(() => {
-        fetchInitialData();
+        fetchData();
         getR2ConfigStatus().then(setR2Config);
-    }, [fetchInitialData]);
-
-     const loadMoreProducts = async () => {
-        if (!hasMore || loadingMore || !lastVisible) return;
-
-        setLoadingMore(true);
-        try {
-            const productsRef = collection(db, 'products');
-            const q = query(productsRef, orderBy('createdAt', 'desc'), startAfter(lastVisible), limit(PAGE_SIZE));
-            const documentSnapshots = await getDocs(q);
-
-            const newProducts = documentSnapshots.docs.map(docToProduct);
-            setProducts(prevProducts => [...prevProducts, ...newProducts]);
-
-            const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
-            setLastVisible(lastDoc);
-            setHasMore(documentSnapshots.size === PAGE_SIZE);
-        } catch (error) {
-            console.error("Failed to load more products:", error);
-        } finally {
-            setLoadingMore(false);
-        }
-    };
+    }, [fetchData]);
     
     const handleProductDelete = (deletedProductId: string) => {
         setProducts(prevProducts => prevProducts.filter(p => p.id !== deletedProductId));
@@ -317,20 +285,6 @@ export default function AdminProductsPage() {
         {!loading && filteredProducts.length === 0 && (
             <div className="text-center text-muted-foreground py-8 border-2 border-dashed rounded-lg">
                 <p>No products found for the current filters.</p>
-            </div>
-        )}
-        {hasMore && !loading && (
-            <div className="mt-8 flex justify-center">
-                <Button onClick={loadMoreProducts} disabled={loadingMore}>
-                    {loadingMore ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Loading...
-                        </>
-                    ) : (
-                        'Load More'
-                    )}
-                </Button>
             </div>
         )}
       </CardContent>
