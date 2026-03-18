@@ -38,7 +38,7 @@ export default async function HomePage() {
                     <div className="text-center md:text-left order-2 md:order-1">
                           
                           <h1 className="mb-6 font-headline text-2xl font-bold md:text-3xl lg:text-4xl">
-                            Timeless Vintage,<br /> Modern Style.
+                            Where Classic<br /> Meets Contemporary.
                           </h1>
 
                           <div className="mt-8 flex justify-center md:justify-start">
