@@ -1,4 +1,5 @@
 
+
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -22,10 +23,10 @@ export default async function HomePage() {
   const heroImageUrl = settings?.storeDetails?.heroImageUrl || 'https://picsum.photos/seed/hero/1600/900';
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <section className="container mx-auto px-4 pb-12 -mt-20 pt-32 md:-mt-[5.5rem] md:pt-36">
+        <section className="container mx-auto px-4 pb-12 -mt-16 pt-32 md:-mt-20 md:pt-36">
             <div className="grid grid-cols-1 items-center gap-8 md:gap-16 md:grid-cols-2">
                 <div className="text-center md:text-left order-2 md:order-1">
                       <p className="mb-4 font-semibold tracking-widest uppercase text-primary">Premium Selection</p>
@@ -60,12 +61,12 @@ export default async function HomePage() {
                     Curated Collections
                 </p>
             </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+            <div className="flex gap-4 overflow-x-auto pb-4 -mb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {categories.slice(0, 6).map((category) => (
                 <Link
                   key={category.id}
                   href={`/categories/${category.slug}`}
-                  className={'group block'}
+                  className={'group block w-3/5 flex-shrink-0 md:w-[calc(100%/3.5)] lg:w-[calc(100%/4.5)]'}
                 >
                   <div className="overflow-hidden rounded-lg aspect-[3/4]">
                     <img
