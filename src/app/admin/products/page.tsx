@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -32,11 +31,20 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { Product } from '@/lib/types';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import type { Product, Category } from '@/lib/types';
 import { DeleteProductButton } from './components/DeleteProductButton';
 import { collection, query, orderBy, DocumentData, getDocs, limit, startAfter } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { getR2ConfigStatus } from '@/app/actions/r2';
+import { getCategories } from '@/lib/data';
+
 
 function docToProduct(doc: DocumentData): Product {
     const data = doc.data();
@@ -55,37 +63,49 @@ export default function AdminProductsPage() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // 'all', 'in-stock', 'out-of-stock'
     const [searchTerm, setSearchTerm] = useState('');
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [categoryFilter, setCategoryFilter] = useState('all');
     const [lastVisible, setLastVisible] = useState<DocumentData | null>(null);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [r2Config, setR2Config] = useState<{ isConfigured: boolean; bucketName: string | null; publicUrlBase: string | null }>({ isConfigured: false, bucketName: null, publicUrlBase: null });
 
 
-    const fetchInitialProducts = useCallback(async () => {
+    const fetchInitialData = useCallback(async () => {
         setLoading(true);
         try {
-            const productsRef = collection(db, 'products');
-            const q = query(productsRef, orderBy('createdAt', 'desc'), limit(PAGE_SIZE));
-            const documentSnapshots = await getDocs(q);
-            
-            const fetchedProducts = documentSnapshots.docs.map(docToProduct);
+            const productsPromise = (async () => {
+                const productsRef = collection(db, 'products');
+                const q = query(productsRef, orderBy('createdAt', 'desc'), limit(PAGE_SIZE));
+                return await getDocs(q);
+            })();
+
+            const categoriesPromise = getCategories();
+
+            const [productsSnapshot, fetchedCategories] = await Promise.all([
+                productsPromise,
+                categoriesPromise
+            ]);
+
+            const fetchedProducts = productsSnapshot.docs.map(docToProduct);
             setProducts(fetchedProducts);
+            setCategories(fetchedCategories);
             
-            const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+            const lastDoc = productsSnapshot.docs[productsSnapshot.docs.length - 1];
             setLastVisible(lastDoc);
-            setHasMore(documentSnapshots.size === PAGE_SIZE);
+            setHasMore(productsSnapshot.size === PAGE_SIZE);
 
         } catch (error) {
-            console.error("Failed to fetch products:", error);
+            console.error("Failed to fetch products or categories:", error);
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        fetchInitialProducts();
+        fetchInitialData();
         getR2ConfigStatus().then(setR2Config);
-    }, [fetchInitialProducts]);
+    }, [fetchInitialData]);
 
      const loadMoreProducts = async () => {
         if (!hasMore || loadingMore || !lastVisible) return;
@@ -130,6 +150,12 @@ export default function AdminProductsPage() {
             );
         }
         
+        if (categoryFilter !== 'all') {
+            tempProducts = tempProducts.filter(p => 
+                p.collectionIds && p.collectionIds.includes(categoryFilter)
+            );
+        }
+        
         if (filter === 'in-stock') {
             return tempProducts.filter(p => calculateTotalStock(p) > 0);
         }
@@ -138,7 +164,7 @@ export default function AdminProductsPage() {
         }
         
         return tempProducts;
-    }, [products, filter, searchTerm]);
+    }, [products, filter, searchTerm, categoryFilter]);
 
     const getStockStatus = (product: Product) => {
         const stock = calculateTotalStock(product);
@@ -164,7 +190,7 @@ export default function AdminProductsPage() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
             <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -175,6 +201,19 @@ export default function AdminProductsPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
+             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full sm:w-[240px]">
+                    <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
 
         <Tabs defaultValue="all" onValueChange={setFilter} className="mb-4">
