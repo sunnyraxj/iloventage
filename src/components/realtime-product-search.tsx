@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -46,9 +47,6 @@ export function RealtimeProductSearch({ initialProducts }: RealtimeProductSearch
               />
             </div>
           </div>
-          <Button asChild variant="outline" className="flex-shrink-0">
-            <Link href="/categories">View All Collections</Link>
-          </Button>
         </div>
 
         {filteredProducts.length > 0 ? (
@@ -67,6 +65,12 @@ export function RealtimeProductSearch({ initialProducts }: RealtimeProductSearch
             <p>Try searching for something else.</p>
           </div>
         )}
+
+        <div className="mt-12 text-center">
+            <Button asChild size="lg" className="rounded-full font-semibold tracking-wider shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/50 hover:scale-105">
+                <Link href="/categories">View All Collections</Link>
+            </Button>
+        </div>
       </div>
     </section>
   );
