@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { StoreSettings, StoreDetails, ShippingSettings } from "@/lib/types";
 import { updateStoreSettings } from "@/app/actions/settings";
@@ -25,6 +26,8 @@ const formSchema = z.object({
     name: z.string().min(2, "Store name must be at least 2 characters."),
     logoUrl: z.string().url("Must be a valid URL.").or(z.literal('')),
     heroImageUrl: z.string().url("Must be a valid URL.").or(z.literal('')),
+    heroSubtitle: z.string().optional(),
+    heroTitle: z.string().optional(),
     email: z.string().email("Please enter a valid email address."),
     phone: z.string().min(10, "Please enter a valid phone number."),
     phone2: z.string().optional(),
@@ -52,6 +55,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         name: settings?.storeDetails?.name || "",
         logoUrl: settings?.storeDetails?.logoUrl || "",
         heroImageUrl: settings?.storeDetails?.heroImageUrl || "",
+        heroSubtitle: settings?.storeDetails?.heroSubtitle || "",
+        heroTitle: settings?.storeDetails?.heroTitle?.replace(/<br \/>/g, '\n').replace(/<br>/g, '\n') || "",
         email: settings?.storeDetails?.email || "",
         phone: settings?.storeDetails?.phone || "",
         phone2: settings?.storeDetails?.phone2 || "",
@@ -78,6 +83,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                 name: data.name,
                 logoUrl: data.logoUrl,
                 heroImageUrl: data.heroImageUrl,
+                heroSubtitle: data.heroSubtitle,
+                heroTitle: data.heroTitle?.replace(/\n/g, '<br />'),
                 email: data.email,
                 phone: data.phone,
                 phone2: data.phone2,
@@ -130,6 +137,30 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                         />
                         <SingleImageUploader fieldName="logoUrl" label="Store Logo" />
                         <SingleImageUploader fieldName="heroImageUrl" label="Homepage Hero Image" />
+                        <FormField
+                            control={form.control}
+                            name="heroSubtitle"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Hero Subtitle</FormLabel>
+                                    <FormControl><Input placeholder="e.g. Latest Collection" {...field} /></FormControl>
+                                    <FormDescription>The smaller text above the main hero title.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="heroTitle"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Hero Title</FormLabel>
+                                    <FormControl><Textarea placeholder={"Timeless Vintage,\nModern Style."} {...field} /></FormControl>
+                                    <FormDescription>The main, larger text in the hero section. Use a new line for a line break.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </CardContent>
                 </Card>
                 <Card>

@@ -120,6 +120,8 @@ export type StoreDetails = {
     heroImageUrl: string;
     instagramUrl?: string;
     whatsappGroupUrl?: string;
+    heroTitle?: string;
+    heroSubtitle?: string;
 };
 
 export type ShippingSettings = {

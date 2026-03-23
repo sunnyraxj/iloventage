@@ -1,4 +1,5 @@
 
+
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -19,6 +20,8 @@ export default async function HomePage() {
   ]);
 
   const heroImageUrl = settings?.storeDetails?.heroImageUrl || 'https://picsum.photos/seed/hero/1600/900';
+  const heroSubtitle = settings?.storeDetails?.heroSubtitle || 'Latest Collection';
+  const heroTitle = settings?.storeDetails?.heroTitle || 'Timeless Vintage,<br /> Modern Style.';
   const totalProductCount = allProducts.length;
 
   const categoryProductCounts = (categories || []).reduce((acc, category) => {
@@ -42,11 +45,12 @@ export default async function HomePage() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="container mx-auto px-4 text-center text-white">
               <p className="mb-2 font-semibold tracking-widest uppercase text-white/80">
-                Latest Collection
+                {heroSubtitle}
               </p>
-              <h1 className="mb-6 font-headline text-4xl font-bold md:text-6xl lg:text-7xl drop-shadow-md">
-                Timeless Vintage,<br /> Modern Style.
-              </h1>
+              <h1
+                className="mb-6 font-headline text-4xl font-bold md:text-6xl lg:text-7xl drop-shadow-md"
+                dangerouslySetInnerHTML={{ __html: heroTitle.replace(/\n/g, '<br />') }}
+              />
               <Button asChild size="lg" className="rounded-full font-semibold tracking-wider">
                 <Link href="/products">Start Shopping</Link>
               </Button>

@@ -246,6 +246,8 @@ export const getStoreSettings = cache(async (): Promise<StoreSettings | null> =>
                 city: 'Mumbai',
                 state: 'Maharashtra',
                 pincode: '400001',
+                heroSubtitle: 'Latest Collection',
+                heroTitle: 'Timeless Vintage,<br /> Modern Style.',
             },
             shippingSettings: {
                 belowThresholdRate: 50,
@@ -253,7 +255,19 @@ export const getStoreSettings = cache(async (): Promise<StoreSettings | null> =>
             }
         };
     }
-    return docToType<StoreSettings>(settingsSnap);
+    const settingsData = docToType<StoreSettings>(settingsSnap);
+    
+    // Also provide defaults if the settings doc exists but the fields don't
+    if (settingsData.storeDetails) {
+        if (!settingsData.storeDetails.heroSubtitle) {
+            settingsData.storeDetails.heroSubtitle = 'Latest Collection';
+        }
+        if (!settingsData.storeDetails.heroTitle) {
+            settingsData.storeDetails.heroTitle = 'Timeless Vintage,<br /> Modern Style.';
+        }
+    }
+
+    return settingsData;
 });
 
 
