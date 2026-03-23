@@ -20,6 +20,7 @@ export default async function HomePage() {
   ]);
 
   const heroImageUrl = settings?.storeDetails?.heroImageUrl || 'https://picsum.photos/seed/hero/1600/900';
+  const heroVideoUrl = settings?.storeDetails?.heroVideoUrl;
   const heroSubtitle = settings?.storeDetails?.heroSubtitle || 'Latest Collection';
   const heroTitle = settings?.storeDetails?.heroTitle || 'Timeless Vintage,<br /> Modern Style.';
   const totalProductCount = allProducts.length;
@@ -34,13 +35,24 @@ export default async function HomePage() {
       <Header />
       <main className="flex-1">
         <section className="relative h-[60vh] w-full md:h-[80vh]">
-          <Image
-            src={heroImageUrl}
-            alt="Latest Collection"
-            fill
-            className="object-cover"
-            priority
-          />
+          {heroVideoUrl ? (
+            <video
+              src={heroVideoUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <Image
+              src={heroImageUrl}
+              alt="Latest Collection"
+              fill
+              className="object-cover"
+              priority
+            />
+          )}
           <div className="absolute inset-0 bg-black/40" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="container mx-auto px-4 text-center text-white">

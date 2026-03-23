@@ -239,6 +239,7 @@ export const getStoreSettings = cache(async (): Promise<StoreSettings | null> =>
             storeDetails: {
                 name: 'My Store',
                 heroImageUrl: 'https://picsum.photos/seed/hero/1920/1080',
+                heroVideoUrl: '',
                 logoUrl: 'https://picsum.photos/seed/logo/200/200',
                 email: 'contact@example.com',
                 phone: '123-456-7890',

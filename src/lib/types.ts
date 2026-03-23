@@ -117,7 +117,8 @@ export type StoreDetails = {
     state: string;
     pincode: string;
     logoUrl: string;
-    heroImageUrl: string;
+    heroImageUrl?: string;
+    heroVideoUrl?: string;
     instagramUrl?: string;
     whatsappGroupUrl?: string;
     heroTitle?: string;

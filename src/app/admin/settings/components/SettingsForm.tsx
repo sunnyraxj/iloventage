@@ -21,11 +21,13 @@ import { updateStoreSettings } from "@/app/actions/settings";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { SingleImageUploader } from "./SingleImageUploader";
+import { SingleVideoUploader } from "./SingleVideoUploader";
 
 const formSchema = z.object({
     name: z.string().min(2, "Store name must be at least 2 characters."),
     logoUrl: z.string().url("Must be a valid URL.").or(z.literal('')),
-    heroImageUrl: z.string().url("Must be a valid URL.").or(z.literal('')),
+    heroImageUrl: z.string().url("Must be a valid URL.").or(z.literal('')).optional(),
+    heroVideoUrl: z.string().url("Must be a valid URL.").or(z.literal('')).optional(),
     heroSubtitle: z.string().optional(),
     heroTitle: z.string().optional(),
     email: z.string().email("Please enter a valid email address."),
@@ -55,6 +57,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         name: settings?.storeDetails?.name || "",
         logoUrl: settings?.storeDetails?.logoUrl || "",
         heroImageUrl: settings?.storeDetails?.heroImageUrl || "",
+        heroVideoUrl: settings?.storeDetails?.heroVideoUrl || "",
         heroSubtitle: settings?.storeDetails?.heroSubtitle || "",
         heroTitle: settings?.storeDetails?.heroTitle?.replace(/<br \/>/g, '\n').replace(/<br>/g, '\n') || "",
         email: settings?.storeDetails?.email || "",
@@ -83,6 +86,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                 name: data.name,
                 logoUrl: data.logoUrl,
                 heroImageUrl: data.heroImageUrl,
+                heroVideoUrl: data.heroVideoUrl,
                 heroSubtitle: data.heroSubtitle,
                 heroTitle: data.heroTitle?.replace(/\n/g, '<br />'),
                 email: data.email,
@@ -137,6 +141,9 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                         />
                         <SingleImageUploader fieldName="logoUrl" label="Store Logo" />
                         <SingleImageUploader fieldName="heroImageUrl" label="Homepage Hero Image" />
+                        <FormDescription>The image will be used if no video is provided, or on browsers that don't support video autoplay.</FormDescription>
+                        <SingleVideoUploader fieldName="heroVideoUrl" label="Homepage Hero Video (Optional)" />
+                        <FormDescription>If a video is uploaded, it will be used instead of the hero image.</FormDescription>
                         <FormField
                             control={form.control}
                             name="heroSubtitle"
