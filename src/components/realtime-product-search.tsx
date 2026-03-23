@@ -1,12 +1,9 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Input } from '@/components/ui/input';
 import { ProductCard } from '@/components/product-card';
 import type { Product } from '@/lib/types';
-import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface RealtimeProductSearchProps {
@@ -15,17 +12,6 @@ interface RealtimeProductSearchProps {
 }
 
 export function RealtimeProductSearch({ initialProducts, totalProductCount }: RealtimeProductSearchProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm) {
-      return initialProducts;
-    }
-    return initialProducts.filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, initialProducts]);
-
   const moreProductsCount = totalProductCount - initialProducts.length;
 
   return (
@@ -34,27 +20,17 @@ export function RealtimeProductSearch({ initialProducts, totalProductCount }: Re
         <div className="flex flex-col items-start gap-4 md:flex-row md:items-end md:justify-between mb-8">
           <div className="w-full md:max-w-lg">
             <h2 className="font-headline text-xl font-bold uppercase tracking-wider">
-              Search Our Products
+              Featured Products
             </h2>
             <p className="-mt-1 text-xs uppercase tracking-widest text-muted-foreground">
-              Find what you're looking for
+              A Glimpse of Our Collection
             </p>
-            <div className="relative mt-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search by product name..."
-                className="w-full rounded-full bg-background pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
           </div>
         </div>
 
-        {filteredProducts.length > 0 ? (
+        {initialProducts.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
-            {filteredProducts.map((product, index) => (
+            {initialProducts.map((product, index) => (
               <ProductCard 
                 key={product.id} 
                 product={product} 
@@ -64,8 +40,7 @@ export function RealtimeProductSearch({ initialProducts, totalProductCount }: Re
           </div>
         ) : (
           <div className="text-center text-muted-foreground py-16">
-            <p className="text-lg font-semibold">No products found for &quot;{searchTerm}&quot;</p>
-            <p>Try searching for something else.</p>
+            <p className="text-lg font-semibold">No featured products to display.</p>
           </div>
         )}
 
