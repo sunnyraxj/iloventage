@@ -4,20 +4,69 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
-import { getCategories, getProducts, getStoreSettings, getAllProducts } from '@/lib/data';
+import { getCategories, getStoreSettings, getAllProducts } from '@/lib/data';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { RealtimeProductSearch } from '@/components/realtime-product-search';
+import type { Product } from '@/lib/types';
 
 export const revalidate = 600; // Revalidate every 10 minutes
 
+// Helper function to shuffle an array deterministically based on a seed
+const shuffle = <T,>(array: T[], seed: number): T[] => {
+    // This is a simple pseudo-random number generator.
+    const seededRandom = (s: number) => {
+        const x = Math.sin(s) * 10000;
+        return x - Math.floor(x);
+    };
+
+    let currentIndex = array.length;
+    let temporaryValue;
+    let randomIndex;
+    // We create a mutable copy of the seed to ensure the function is pure
+    let currentSeed = seed; 
+
+    const random = () => {
+        currentSeed++; // Increment seed to get a new number for each shuffle step
+        return seededRandom(currentSeed);
+    };
+
+    // Create a new array to avoid mutating the original
+    const newArray = [...array];
+
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+        // Pick a remaining element...
+        randomIndex = Math.floor(random() * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = newArray[currentIndex];
+        newArray[currentIndex] = newArray[randomIndex];
+        newArray[randomIndex] = temporaryValue;
+    }
+
+    return newArray;
+};
+
+
 export default async function HomePage() {
-  const [searchableProducts, categories, settings, allProducts] = await Promise.all([
-    getProducts({ limit: 24 }),
+  // We fetch all products once, then derive the featured list from that.
+  const [categories, settings, allProducts] = await Promise.all([
     getCategories(),
     getStoreSettings(),
     getAllProducts(),
   ]);
+
+  // Use the current date as a seed for daily shuffling.
+  // This ensures that every user sees the same "random" list for a given day,
+  // which is great for caching and performance.
+  const today = new Date();
+  const dailySeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  
+  // Shuffle all products and take the first 24 for the featured section.
+  const shuffledProducts = shuffle(allProducts || [], dailySeed);
+  const searchableProducts = shuffledProducts.slice(0, 24);
 
   const heroImageUrl = settings?.storeDetails?.heroImageUrl || 'https://picsum.photos/seed/hero/1600/900';
   const heroVideoUrl = settings?.storeDetails?.heroVideoUrl;
