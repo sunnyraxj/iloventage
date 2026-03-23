@@ -6,14 +6,12 @@ import { Button } from '@/components/ui/button';
 import { getCategories, getProducts, getStoreSettings, getAllProducts } from '@/lib/data';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
-import { HeroImageGrid } from '@/components/hero-image-grid';
 import { RealtimeProductSearch } from '@/components/realtime-product-search';
 
 export const revalidate = 600; // Revalidate every 10 minutes
 
 export default async function HomePage() {
-  const [productsForGrid, searchableProducts, categories, settings, allProducts] = await Promise.all([
-    getProducts({ limit: 12 }),
+  const [searchableProducts, categories, settings, allProducts] = await Promise.all([
     getProducts({ limit: 24 }),
     getCategories(),
     getStoreSettings(),
@@ -32,26 +30,28 @@ export default async function HomePage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-1">
-        <section className="-mt-24 pt-24">
-            <div className="container mx-auto px-4 pb-12 pt-12 md:pt-12">
-                <div className="grid grid-cols-1 items-center gap-8 md:gap-16 md:grid-cols-2">
-                    <div className="text-center md:text-left order-2 md:order-1">
-                          
-                          <h1 className="mb-6 font-headline text-2xl font-bold md:text-3xl lg:text-4xl">
-                            Where Classic<br /> Meets Contemporary.
-                          </h1>
-
-                          <div className="mt-8 flex justify-center md:justify-start">
-                            <Button asChild size="lg" className="rounded-full font-semibold tracking-wider">
-                                <Link href="/products">Start Shopping</Link>
-                            </Button>
-                          </div>
-                    </div>
-                    <div className="order-1 md:order-2">
-                        <HeroImageGrid products={productsForGrid} fallbackImageUrl={heroImageUrl} />
-                    </div>
-                </div>
+        <section className="relative h-[60vh] w-full md:h-[80vh]">
+          <Image
+            src={heroImageUrl}
+            alt="Latest Collection"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="container mx-auto px-4 text-center text-white">
+              <p className="mb-2 font-semibold tracking-widest uppercase text-white/80">
+                Latest Collection
+              </p>
+              <h1 className="mb-6 font-headline text-4xl font-bold md:text-6xl lg:text-7xl drop-shadow-md">
+                Timeless Vintage,<br /> Modern Style.
+              </h1>
+              <Button asChild size="lg" className="rounded-full font-semibold tracking-wider">
+                <Link href="/products">Start Shopping</Link>
+              </Button>
             </div>
+          </div>
         </section>
 
         <section className="py-12 md:py-16">
