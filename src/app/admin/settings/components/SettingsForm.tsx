@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { SingleImageUploader } from "./SingleImageUploader";
 import { SingleVideoUploader } from "./SingleVideoUploader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formSchema = z.object({
     name: z.string().min(2, "Store name must be at least 2 characters."),
@@ -125,105 +126,131 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <Card>
-                    <CardHeader><CardTitle>Store Display</CardTitle></CardHeader>
-                    <CardContent className="space-y-6">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Store Name</FormLabel>
-                                    <FormControl><Input placeholder="e.g. My Awesome Store" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <SingleImageUploader fieldName="logoUrl" label="Store Logo" />
-                        <SingleImageUploader fieldName="heroImageUrl" label="Homepage Hero Image" />
-                        <FormDescription>The image will be used if no video is provided, or on browsers that don't support video autoplay.</FormDescription>
-                        <SingleVideoUploader fieldName="heroVideoUrl" label="Homepage Hero Video (Optional)" />
-                        <FormDescription>If a video is uploaded, it will be used instead of the hero image.</FormDescription>
-                        <FormField
-                            control={form.control}
-                            name="heroSubtitle"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Hero Subtitle</FormLabel>
-                                    <FormControl><Input placeholder="e.g. Latest Collection" {...field} /></FormControl>
-                                    <FormDescription>The smaller text above the main hero title.</FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="heroTitle"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Hero Title</FormLabel>
-                                    <FormControl><Textarea placeholder={"Timeless Vintage,\nModern Style."} {...field} /></FormControl>
-                                    <FormDescription>The main, larger text in the hero section. Use a new line for a line break.</FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader><CardTitle>Contact Information</CardTitle></CardHeader>
-                    <CardContent className="space-y-6">
-                         <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="contact@example.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Primary Phone</FormLabel><FormControl><Input placeholder="e.g. 9876543210" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={form.control} name="phone2" render={({ field }) => (<FormItem><FormLabel>Secondary Phone (Optional)</FormLabel><FormControl><Input placeholder="e.g. 8765432109" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                         </div>
-                        <FormField control={form.control} name="address" render={({ field }) => (<FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="123, Main Street" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormLabel>City</FormLabel><FormControl><Input placeholder="e.g. Mumbai" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={form.control} name="state" render={({ field }) => (<FormItem><FormLabel>State</FormLabel><FormControl><Input placeholder="e.g. Maharashtra" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={form.control} name="pincode" render={({ field }) => (<FormItem><FormLabel>Pincode</FormLabel><FormControl><Input placeholder="e.g. 400001" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        </div>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader><CardTitle>Social Links</CardTitle></CardHeader>
-                    <CardContent className="space-y-6">
-                        <FormField control={form.control} name="instagramUrl" render={({ field }) => (<FormItem><FormLabel>Instagram URL</FormLabel><FormControl><Input placeholder="https://instagram.com/your-store" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="whatsappGroupUrl" render={({ field }) => (<FormItem><FormLabel>WhatsApp Group URL</FormLabel><FormControl><Input placeholder="https://chat.whatsapp.com/your-group" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader><CardTitle>Shipping Settings</CardTitle></CardHeader>
-                    <CardContent className="space-y-6">
-                        <FormField
-                            control={form.control}
-                            name="freeShippingThreshold"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Free Shipping Threshold (₹)</FormLabel>
-                                    <FormControl><Input type="number" placeholder="1000" {...field} /></FormControl>
-                                    <FormDescription>Orders with a total above this amount will have free shipping.</FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="belowThresholdRate"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Standard Shipping Rate (₹)</FormLabel>
-                                    <FormControl><Input type="number" placeholder="50" {...field} /></FormControl>
-                                    <FormDescription>This rate will be applied to orders below the free shipping threshold.</FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </CardContent>
-                </Card>
+                <Tabs defaultValue="display" className="w-full">
+                    <div className="overflow-x-auto">
+                        <TabsList className="-mb-px">
+                            <TabsTrigger value="display">Store Display</TabsTrigger>
+                            <TabsTrigger value="contact">Contact</TabsTrigger>
+                            <TabsTrigger value="social">Social Links</TabsTrigger>
+                            <TabsTrigger value="shipping">Shipping</TabsTrigger>
+                        </TabsList>
+                    </div>
+
+                    <TabsContent value="display">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Store Display</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Store Name</FormLabel>
+                                            <FormControl><Input placeholder="e.g. My Awesome Store" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <SingleImageUploader fieldName="logoUrl" label="Store Logo" />
+                                <SingleImageUploader fieldName="heroImageUrl" label="Homepage Hero Image" />
+                                <FormDescription>The image will be used if no video is provided, or on browsers that don't support video autoplay.</FormDescription>
+                                <SingleVideoUploader fieldName="heroVideoUrl" label="Homepage Hero Video (Optional)" />
+                                <FormDescription>If a video is uploaded, it will be used instead of the hero image.</FormDescription>
+                                <FormField
+                                    control={form.control}
+                                    name="heroSubtitle"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Hero Subtitle</FormLabel>
+                                            <FormControl><Input placeholder="e.g. Latest Collection" {...field} /></FormControl>
+                                            <FormDescription>The smaller text above the main hero title.</FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="heroTitle"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Hero Title</FormLabel>
+                                            <FormControl><Textarea placeholder={"Timeless Vintage,\nModern Style."} {...field} /></FormControl>
+                                            <FormDescription>The main, larger text in the hero section. Use a new line for a line break.</FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    
+                    <TabsContent value="contact">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Contact Information</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="contact@example.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Primary Phone</FormLabel><FormControl><Input placeholder="e.g. 9876543210" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="phone2" render={({ field }) => (<FormItem><FormLabel>Secondary Phone (Optional)</FormLabel><FormControl><Input placeholder="e.g. 8765432109" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                </div>
+                                <FormField control={form.control} name="address" render={({ field }) => (<FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="123, Main Street" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormLabel>City</FormLabel><FormControl><Input placeholder="e.g. Mumbai" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="state" render={({ field }) => (<FormItem><FormLabel>State</FormLabel><FormControl><Input placeholder="e.g. Maharashtra" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="pincode" render={({ field }) => (<FormItem><FormLabel>Pincode</FormLabel><FormControl><Input placeholder="e.g. 400001" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="social">
+                        <Card>
+                            <CardHeader><CardTitle>Social Links</CardTitle></CardHeader>
+                            <CardContent className="space-y-6">
+                                <FormField control={form.control} name="instagramUrl" render={({ field }) => (<FormItem><FormLabel>Instagram URL</FormLabel><FormControl><Input placeholder="https://instagram.com/your-store" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={form.control} name="whatsappGroupUrl" render={({ field }) => (<FormItem><FormLabel>WhatsApp Group URL</FormLabel><FormControl><Input placeholder="https://chat.whatsapp.com/your-group" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="shipping">
+                        <Card>
+                            <CardHeader><CardTitle>Shipping Settings</CardTitle></CardHeader>
+                            <CardContent className="space-y-6">
+                                <FormField
+                                    control={form.control}
+                                    name="freeShippingThreshold"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Free Shipping Threshold (₹)</FormLabel>
+                                            <FormControl><Input type="number" placeholder="1000" {...field} /></FormControl>
+                                            <FormDescription>Orders with a total above this amount will have free shipping.</FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="belowThresholdRate"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Standard Shipping Rate (₹)</FormLabel>
+                                            <FormControl><Input type="number" placeholder="50" {...field} /></FormControl>
+                                            <FormDescription>This rate will be applied to orders below the free shipping threshold.</FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
                 <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Saving...' : 'Save Settings'}
+                    {isSubmitting ? 'Saving...' : 'Save All Settings'}
                 </Button>
             </form>
         </Form>
