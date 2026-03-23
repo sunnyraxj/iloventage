@@ -1,5 +1,4 @@
 
-
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -71,7 +70,7 @@ export default async function HomePage() {
   const heroImageUrl = settings?.storeDetails?.heroImageUrl || 'https://picsum.photos/seed/hero/1600/900';
   const heroVideoUrl = settings?.storeDetails?.heroVideoUrl;
   const heroSubtitle = settings?.storeDetails?.heroSubtitle || 'Latest Collection';
-  const heroTitle = settings?.storeDetails?.heroTitle || 'Timeless Vintage,<br /> Modern Style.';
+  const heroTitle = settings?.storeDetails?.heroTitle || 'Where Classic Meets Contemporary.';
   const totalProductCount = allProducts.length;
 
   const categoryProductCounts = (categories || []).reduce((acc, category) => {
@@ -82,7 +81,7 @@ export default async function HomePage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
-      <main className="flex-1">
+      <main className="flex-1 -mt-20 md:-mt-[5.5rem]">
         <section className="relative h-[60vh] w-full md:h-[80vh]">
           {heroVideoUrl ? (
             <video
@@ -103,13 +102,13 @@ export default async function HomePage() {
             />
           )}
           <div className="absolute inset-0 bg-black/40" />
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pt-20 md:pt-[5.5rem]">
             <div className="container mx-auto px-4 text-center text-white">
               <p className="mb-2 font-semibold tracking-widest uppercase text-white/80">
                 {heroSubtitle}
               </p>
               <h1
-                className="mb-6 font-headline text-4xl font-bold md:text-6xl lg:text-7xl drop-shadow-md"
+                className="mb-6 font-headline text-2xl font-bold md:text-3xl lg:text-4xl drop-shadow-md"
                 dangerouslySetInnerHTML={{ __html: heroTitle.replace(/\n/g, '<br />') }}
               />
               <Button asChild size="lg" className="rounded-full font-semibold tracking-wider">
