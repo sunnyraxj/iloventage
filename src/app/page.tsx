@@ -1,6 +1,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { getCategories, getStoreSettings, getAllProducts } from '@/lib/data';
@@ -120,13 +121,19 @@ export default async function HomePage() {
 
         <section className="py-12 md:py-16">
           <div className="container mx-auto px-4">
-            <div className="mb-6 text-left">
-                <h2 className="font-headline text-xl font-bold uppercase tracking-wider">
-                    Shop by Category
-                </h2>
-                <p className="-mt-1 text-xs uppercase tracking-widest text-muted-foreground">
-                    Curated Collections
-                </p>
+            <div className="mb-6 flex items-end justify-between">
+                <div>
+                    <h2 className="font-headline text-xl font-bold uppercase tracking-wider">
+                        Shop by Category
+                    </h2>
+                    <p className="-mt-1 text-xs uppercase tracking-widest text-muted-foreground">
+                        Curated Collections
+                    </p>
+                </div>
+                <Link href="/categories" className="hidden items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary/80 md:flex">
+                    <span>View All</span>
+                    <ArrowRight className="h-4 w-4" />
+                </Link>
             </div>
             <div className="flex gap-4 overflow-x-auto pb-4 -mb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {(categories || []).slice(0, 6).map((category) => (
