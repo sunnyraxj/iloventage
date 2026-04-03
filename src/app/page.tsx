@@ -1,4 +1,5 @@
 
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
@@ -8,6 +9,7 @@ import { getCategories, getStoreSettings, getAllProducts } from '@/lib/data';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { RealtimeProductSearch } from '@/components/realtime-product-search';
+import { CategoryCarousel } from '@/components/CategoryCarousel';
 import type { Product } from '@/lib/types';
 
 export const revalidate = 600; // Revalidate every 10 minutes
@@ -135,27 +137,7 @@ export default async function HomePage() {
                     <ArrowRight className="h-4 w-4" />
                 </Link>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-4 -mb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {(categories || []).slice(0, 6).map((category) => (
-                <Link
-                  key={category.id}
-                  href={`/categories/${category.slug}`}
-                  className={'group relative block w-3/5 flex-shrink-0 overflow-hidden rounded-lg aspect-[3/4] md:w-[calc(100%/3.5)] lg:w-[calc(100%/4.5)]'}
-                >
-                  <img
-                      src={category.imageUrl || `https://picsum.photos/seed/${category.id}/400/533`}
-                      alt={category.name}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                      <h3 className="font-bold text-lg drop-shadow-sm">{category.name}</h3>
-                      <p className="text-sm drop-shadow-sm">{categoryProductCounts[category.id] || 0} Products</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <CategoryCarousel categories={categories || []} categoryProductCounts={categoryProductCounts} />
           </div>
         </section>
 
