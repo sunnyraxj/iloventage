@@ -169,26 +169,26 @@ export const addAddress = async (userId: string, addressData: Omit<UserAddress, 
 }
   
 // --- Order Functions ---
-export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
+export const getOrdersByUserId = cache(async (userId: string): Promise<Order[]> => {
     const q = query(collection(db, 'orders'), where('userId', '==', userId));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => docToType<Order>(doc));
-};
+});
   
-export const getOrderById = async (id: string): Promise<Order | null> => {
+export const getOrderById = cache(async (id: string): Promise<Order | null> => {
     const orderRef = doc(db, 'orders', id);
     const orderSnap = await getDoc(orderRef);
     if (!orderSnap.exists()) {
         return null;
     }
     return docToType<Order>(orderSnap);
-};
+});
 
-export const getConfirmedOrdersCount = async (): Promise<number> => {
+export const getConfirmedOrdersCount = cache(async (): Promise<number> => {
     const q = query(collection(db, 'orders'), where('orderStatus', '==', 'confirmed'));
     const querySnapshot = await getDocs(q);
     return querySnapshot.size;
-};
+});
 
 interface OrderPayload {
     userId: string | null;
@@ -276,7 +276,8 @@ export const getStoreSettings = cache(async (): Promise<StoreSettings | null> =>
 
 export const getAllProducts = cache(async (): Promise<Product[]> => {
     const productsCol = collection(db, 'products');
-    const productsSnapshot = await getDocs(productsCol);
+    const q = query(productsCol, orderBy('createdAt', 'desc'));
+    const productsSnapshot = await getDocs(q);
     return productsSnapshot.docs.map(doc => docToType<Product>(doc));
 });
 

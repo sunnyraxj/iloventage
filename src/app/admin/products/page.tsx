@@ -40,10 +40,8 @@ import {
 } from "@/components/ui/select";
 import type { Product, Category } from '@/lib/types';
 import { DeleteProductButton } from './components/DeleteProductButton';
-import { collection, query, orderBy, DocumentData, getDocs } from 'firebase/firestore';
-import { db } from '@/firebase/config';
 import { getR2ConfigStatus } from '@/app/actions/r2';
-import { getCategories } from '@/lib/data';
+import { getCategories, getAllProducts } from '@/lib/data';
 
 
 function docToProduct(doc: DocumentData): Product {
@@ -69,20 +67,11 @@ export default function AdminProductsPage() {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const productsPromise = (async () => {
-                const productsRef = collection(db, 'products');
-                const q = query(productsRef, orderBy('createdAt', 'desc'));
-                return await getDocs(q);
-            })();
-
-            const categoriesPromise = getCategories();
-
-            const [productsSnapshot, fetchedCategories] = await Promise.all([
-                productsPromise,
-                categoriesPromise
+            const [fetchedProducts, fetchedCategories] = await Promise.all([
+                getAllProducts(),
+                getCategories()
             ]);
 
-            const fetchedProducts = productsSnapshot.docs.map(docToProduct);
             setProducts(fetchedProducts);
             setCategories(fetchedCategories);
         } catch (error) {
