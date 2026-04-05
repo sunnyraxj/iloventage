@@ -28,6 +28,8 @@ import { OrderImagePreview } from './components/OrderImagePreview';
 import { collection, onSnapshot, query, DocumentData } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { Skeleton } from '@/components/ui/skeleton';
+import { updateOrderStatus } from '@/app/actions/admin';
+import { useToast } from '@/hooks/use-toast';
 
 function docToOrder(doc: DocumentData): Order {
     const data = doc.data();
@@ -170,6 +172,7 @@ const OrderList = ({ orders }: { orders: Order[] }) => {
 export default function AdminOrdersPage() {
     const [allOrders, setAllOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const { toast } = useToast();
 
     useEffect(() => {
         const q = query(collection(db, 'orders'));
@@ -201,6 +204,44 @@ export default function AdminOrdersPage() {
 
         return () => unsubscribe();
     }, []);
+
+    useEffect(() => {
+        if (allOrders.length > 0 && !loading) {
+            const now = new Date();
+            const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
+            const ordersToUpdate = allOrders.filter(order =>
+                order.orderStatus === 'confirmed' &&
+                order.confirmedAt &&
+                new Date(order.confirmedAt) < fortyEightHoursAgo
+            );
+
+            if (ordersToUpdate.length > 0) {
+                console.log(`Found ${ordersToUpdate.length} confirmed orders older than 48 hours to auto-ship.`);
+                
+                const updatePromises = ordersToUpdate.map(order =>
+                    updateOrderStatus(order.id, 'shipped')
+                );
+
+                Promise.all(updatePromises).then(results => {
+                    const successfulUpdates = results.filter(r => r.success).length;
+                    if (successfulUpdates > 0) {
+                        toast({
+                            title: "Orders Auto-Shipped",
+                            description: `${successfulUpdates} order(s) older than 48 hours were automatically marked as shipped.`,
+                        });
+                    }
+                    results.filter(r => !r.success).forEach((failedResult) => {
+                         toast({
+                            variant: "destructive",
+                            title: "Auto-Ship Failed",
+                            description: failedResult.message || "An unknown error occurred for an order.",
+                        });
+                    })
+                });
+            }
+        }
+    }, [allOrders, loading, toast]);
 
     const confirmedOrders = allOrders.filter(o => o.orderStatus === 'confirmed');
     const shippedOrders = allOrders.filter(o => o.orderStatus === 'shipped');
