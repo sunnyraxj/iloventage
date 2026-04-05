@@ -1,3 +1,4 @@
+
 'use server';
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
@@ -38,6 +39,7 @@ export async function getR2SignedURL({ fileType, extension }: { fileType: string
             Bucket: bucketName, 
             Key: key, 
             ContentType: fileType,
+            CacheControl: 'public, max-age=31536000, immutable',
         });
 
         const signedUrl = await getSignedUrl(
