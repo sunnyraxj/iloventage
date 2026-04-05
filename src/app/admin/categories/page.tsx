@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Category } from '@/lib/types';
 import { DeleteCategoryButton } from './components/DeleteCategoryButton';
-import { collection, onSnapshot, query, orderBy, DocumentData } from 'firebase/firestore';
+import { collection, query, orderBy, DocumentData, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 function docToCategory(doc: DocumentData): Category {
@@ -48,18 +48,20 @@ export default function AdminCategoriesPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setLoading(true);
-        const q = query(collection(db, 'collections'), orderBy('name', 'asc'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const allCategories = snapshot.docs.map(docToCategory);
-            setCategories(allCategories);
-            setLoading(false);
-        }, (error) => {
-            console.error("Failed to subscribe to categories:", error);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
+        const fetchCategories = async () => {
+            setLoading(true);
+            try {
+                const q = query(collection(db, 'collections'), orderBy('name', 'asc'));
+                const snapshot = await getDocs(q);
+                const allCategories = snapshot.docs.map(docToCategory);
+                setCategories(allCategories);
+            } catch (error) {
+                console.error("Failed to fetch categories:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCategories();
     }, []);
     
     const handleCategoryDelete = (deletedCategoryId: string) => {

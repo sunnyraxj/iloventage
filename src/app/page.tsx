@@ -12,7 +12,7 @@ import { RealtimeProductSearch } from '@/components/realtime-product-search';
 import { CategoryCarousel } from '@/components/CategoryCarousel';
 import type { Product } from '@/lib/types';
 
-export const revalidate = 600; // Revalidate every 10 minutes
+export const revalidate = 1800; // Revalidate every 30 minutes
 
 // Helper function to shuffle an array deterministically based on a seed
 const shuffle = <T,>(array: T[], seed: number): T[] => {

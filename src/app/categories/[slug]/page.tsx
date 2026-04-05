@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { getCategoryBySlug, getProductsByCollectionId } from '@/lib/data';
 import { CategoryProductsView } from './CategoryProductsView';
 
-export const revalidate = 600; // Revalidate every 10 minutes
+export const revalidate = 1800; // Revalidate every 30 minutes
 
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
   const category = await getCategoryBySlug(params.slug);

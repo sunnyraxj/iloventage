@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { collection, onSnapshot, query, DocumentData } from 'firebase/firestore';
+import { collection, query, DocumentData, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import type { User } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -37,16 +37,19 @@ export default function AdminUsersPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const q = query(collection(db, 'users'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            setUsers(snapshot.docs.map(docToUser));
-            setLoading(false);
-        }, (error) => {
-            console.error("Failed to subscribe to users:", error);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
+        const fetchUsers = async () => {
+            setLoading(true);
+            try {
+                const q = query(collection(db, 'users'));
+                const snapshot = await getDocs(q);
+                setUsers(snapshot.docs.map(docToUser));
+            } catch (error) {
+                 console.error("Failed to fetch users:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUsers();
     }, []);
 
     return (

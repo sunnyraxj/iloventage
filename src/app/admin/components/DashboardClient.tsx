@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { collection, onSnapshot, query, DocumentData } from 'firebase/firestore';
+import { collection, query, DocumentData, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import {
   Card,
@@ -42,26 +42,36 @@ export function DashboardClient() {
     const [usersLoading, setUsersLoading] = useState(true);
 
     useEffect(() => {
-        const unsubProducts = onSnapshot(query(collection(db, 'products')), (snapshot) => {
-            setProducts(snapshot.docs.map(doc => docToType<Product>(doc)));
-            setProductsLoading(false);
-        });
+        const fetchData = async () => {
+            setProductsLoading(true);
+            setOrdersLoading(true);
+            setUsersLoading(true);
+            
+            try {
+                const productsQuery = query(collection(db, 'products'));
+                const ordersQuery = query(collection(db, 'orders'));
+                const usersQuery = query(collection(db, 'users'));
 
-        const unsubOrders = onSnapshot(query(collection(db, 'orders')), (snapshot) => {
-            setAllOrders(snapshot.docs.map(doc => docToType<Order>(doc)));
-            setOrdersLoading(false);
-        });
+                const [productsSnapshot, ordersSnapshot, usersSnapshot] = await Promise.all([
+                    getDocs(productsQuery),
+                    getDocs(ordersQuery),
+                    getDocs(usersQuery),
+                ]);
 
-        const unsubUsers = onSnapshot(query(collection(db, 'users')), (snapshot) => {
-            setUsers(snapshot.docs.map(doc => docToType<User>(doc)));
-            setUsersLoading(false);
-        });
-        
-        return () => {
-            unsubProducts();
-            unsubOrders();
-            unsubUsers();
+                setProducts(productsSnapshot.docs.map(doc => docToType<Product>(doc)));
+                setAllOrders(ordersSnapshot.docs.map(doc => docToType<Order>(doc)));
+                setUsers(usersSnapshot.docs.map(doc => docToType<User>(doc)));
+
+            } catch (error) {
+                console.error("Failed to fetch dashboard data:", error);
+            } finally {
+                setProductsLoading(false);
+                setOrdersLoading(false);
+                setUsersLoading(false);
+            }
         };
+
+        fetchData();
     }, []);
 
     const months = useMemo(() => {

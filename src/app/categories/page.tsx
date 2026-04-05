@@ -1,7 +1,7 @@
 import { getCategories } from '@/lib/data';
 import Link from 'next/link';
 
-export const revalidate = 600;
+export const revalidate = 1800;
 
 export default async function AllCategoriesPage() {
     const categories = await getCategories();
