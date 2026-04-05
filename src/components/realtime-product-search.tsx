@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -29,7 +28,7 @@ export function RealtimeProductSearch({ initialProducts, totalProductCount }: Re
         </div>
 
         {initialProducts.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-8 lg:grid-cols-4">
             {initialProducts.map((product, index) => (
               <ProductCard 
                 key={product.id} 
