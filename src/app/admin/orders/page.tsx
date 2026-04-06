@@ -25,7 +25,7 @@ import { OrderStatusChanger } from './components/OrderStatusChanger';
 import type { Order } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { OrderImagePreview } from './components/OrderImagePreview';
-import { collection, query, DocumentData, getDocs } from 'firebase/firestore';
+import { collection, query, DocumentData, onSnapshot } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { Skeleton } from '@/components/ui/skeleton';
 import { updateOrderStatus } from '@/app/actions/admin';
@@ -175,39 +175,42 @@ export default function AdminOrdersPage() {
     const { toast } = useToast();
 
     useEffect(() => {
-        const fetchOrders = async () => {
-            setLoading(true);
-            try {
-                const q = query(collection(db, 'orders'));
-                const snapshot = await getDocs(q);
-                const fetchedOrders = snapshot.docs.map(docToOrder);
-                
-                const statusOrder: Record<Order['orderStatus'], number> = {
-                    'confirmed': 1,
-                    'shipped': 2,
-                    'delivered': 3,
-                    'pending': 4,
-                    'cancelled': 5,
-                };
-                
-                const sortedOrders = fetchedOrders.sort((a, b) => {
-                    const orderA = statusOrder[a.orderStatus] ?? 99;
-                    const orderB = statusOrder[b.orderStatus] ?? 99;
-                    if (orderA !== orderB) return orderA - orderB;
-                    if (!a.createdAt || !b.createdAt) return 0;
-                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                });
+        setLoading(true);
+        const q = query(collection(db, 'orders'));
+        
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedOrders = snapshot.docs.map(docToOrder);
+            
+            const statusOrder: Record<Order['orderStatus'], number> = {
+                'confirmed': 1,
+                'shipped': 2,
+                'delivered': 3,
+                'pending': 4,
+                'cancelled': 5,
+            };
+            
+            const sortedOrders = fetchedOrders.sort((a, b) => {
+                const orderA = statusOrder[a.orderStatus] ?? 99;
+                const orderB = statusOrder[b.orderStatus] ?? 99;
+                if (orderA !== orderB) return orderA - orderB;
+                if (!a.createdAt || !b.createdAt) return 0;
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            });
 
-                setAllOrders(sortedOrders);
-            } catch (error) {
-                 console.error("Failed to fetch orders:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+            setAllOrders(sortedOrders);
+            setLoading(false);
+        }, (error) => {
+            console.error("Failed to fetch orders with real-time updates:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not fetch live order data. Please refresh the page.",
+            });
+            setLoading(false);
+        });
 
-        fetchOrders();
-    }, []);
+        return () => unsubscribe();
+    }, [toast]);
 
     useEffect(() => {
         if (allOrders.length > 0 && !loading) {
