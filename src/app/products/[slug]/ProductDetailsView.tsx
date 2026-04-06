@@ -180,8 +180,8 @@ export function ProductDetailsView({ product }: ProductDetailsViewProps) {
         imageUrl: cartImageUrl || `https://picsum.photos/seed/${product.id}/200/200`
     };
 
-    addItem(cartItem);
-    router.push('/checkout');
+    const serializedItem = encodeURIComponent(JSON.stringify(cartItem));
+    router.push(`/checkout?buyNow=${serializedItem}`);
   }
 
   const stockForSelectedSize = selectedSize?.stock ?? 0;

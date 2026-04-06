@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
@@ -11,15 +11,16 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createOrderAndInitiatePayment, verifyPaymentAndUpdateOrder } from '@/app/actions/payment';
-import type { UserAddress, OrderAddress, StoreDetails } from '@/lib/types';
+import type { CartItem, UserAddress, OrderAddress, StoreDetails } from '@/lib/types';
 import { getStoreSettings } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function CheckoutPage() {
-  const { items, totalPrice, clearCart } = useCart();
+function CheckoutPageContent() {
+  const { items: cartItems, totalPrice: cartTotalPrice, clearCart } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [shippingInfo, setShippingInfo] = useState<OrderAddress>({
       name: '',
@@ -37,6 +38,26 @@ export default function CheckoutPage() {
   } | null>(null);
   const [storeDetails, setStoreDetails] = useState<StoreDetails | null>(null);
 
+  const buyNowItemString = searchParams.get('buyNow');
+  const isBuyNow = !!buyNowItemString;
+
+  const items: CartItem[] = useMemo(() => {
+    if (buyNowItemString) {
+      try {
+        const item = JSON.parse(decodeURIComponent(buyNowItemString));
+        return [item];
+      } catch (e) {
+        console.error("Failed to parse buyNow item, falling back to cart.", e);
+        return cartItems;
+      }
+    }
+    return cartItems;
+  }, [buyNowItemString, cartItems]);
+
+  const totalPrice = useMemo(() => {
+      return items.reduce((total, item) => total + item.price * item.quantity, 0);
+  }, [items]);
+
 
   useEffect(() => {
     getStoreSettings().then(settings => {
@@ -48,10 +69,12 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
-    if (items.length === 0 && shippingSettings) { // check shippingSettings to avoid race condition on first load
-      router.push('/cart');
+    if (items.length === 0 && shippingSettings) {
+      if (!buyNowItemString) { // Don't redirect if this is a buy-now flow
+        router.push('/');
+      }
     }
-  }, [items, router, shippingSettings]);
+  }, [items, router, shippingSettings, buyNowItemString]);
 
   useEffect(() => {
     if (user && user.addresses && user.addresses.length > 0) {
@@ -148,7 +171,9 @@ export default function CheckoutPage() {
                         title: "Payment Successful!",
                         description: "Redirecting to confirmation page...",
                     });
-                    clearCart();
+                    if (!isBuyNow) {
+                      clearCart();
+                    }
                     router.push(`/order-placed?orderId=${result.orderId}`);
                 } else {
                     toast({
@@ -214,7 +239,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (items.length === 0) {
+  if (items.length === 0 && !isBuyNow) {
       return null;
   }
   
@@ -359,4 +384,27 @@ export default function CheckoutPage() {
       </main>
     </>
   );
+}
+
+
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={
+            <main className="flex-1 bg-secondary py-8 md:py-12">
+                <div className="container mx-auto px-4">
+                    <Skeleton className="h-10 w-1/3 mb-8" />
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                        <div className="lg:col-span-2">
+                            <Skeleton className="h-96 w-full" />
+                        </div>
+                        <div>
+                            <Skeleton className="h-64 w-full" />
+                        </div>
+                    </div>
+                </div>
+            </main>
+        }>
+            <CheckoutPageContent />
+        </Suspense>
+    )
 }
