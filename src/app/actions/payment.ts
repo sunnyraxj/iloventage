@@ -3,7 +3,7 @@
 
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import { doc, addDoc, updateDoc, collection, serverTimestamp, query, where, getDocs, runTransaction } from 'firebase/firestore';
+import { doc, setDoc, collection, serverTimestamp, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { revalidatePath } from 'next/cache';
 import type { CartItem, OrderAddress, Order, Product } from '@/lib/types';
@@ -43,48 +43,22 @@ export async function createOrderAndInitiatePayment(orderData: OrderCreationData
         key_id: keyId,
         key_secret: keySecret,
     });
+    
+    // Create a new document reference with a unique ID up front
+    const orderDocRef = doc(collection(db, 'orders'));
 
-    const ordersCol = collection(db, 'orders');
-    const orderCountSnapshot = await getDocs(ordersCol);
-    const orderNumber = (orderCountSnapshot.size + 1).toString().padStart(6, '0');
-
-    const newOrderData = {
-        ...orderData,
-        orderNumber,
-        orderStatus: 'pending' as const,
-        paymentStatus: 'unpaid' as const,
-        createdAt: serverTimestamp(),
-        razorpay: {
-            orderId: '',
-            paymentId: '',
-            method: '',
-        },
-    };
-    const docRef = await addDoc(ordersCol, newOrderData);
-
+    let razorpayOrder;
     try {
         const options = {
             amount: Math.round(orderData.total * 100),
             currency: "INR",
-            receipt: docRef.id
+            receipt: orderDocRef.id // Use the generated ID as the receipt
         };
-        const razorpayOrder = await razorpay.orders.create(options);
-
-        await updateDoc(docRef, { 'razorpay.orderId': razorpayOrder.id });
-
-        return {
-            success: true,
-            orderId: docRef.id,
-            razorpayOrderId: razorpayOrder.id,
-            amount: razorpayOrder.amount,
-            currency: razorpayOrder.currency,
-        };
+        razorpayOrder = await razorpay.orders.create(options);
     } catch (error) {
-        await updateDoc(docRef, { orderStatus: 'cancelled', paymentStatus: 'unpaid' });
         console.error("Razorpay order creation failed:", error);
         
         let errorMessage = 'Could not create Razorpay order.';
-        // Check for Razorpay's specific error structure
         if (typeof error === 'object' && error !== null && 'error' in error) {
             const razorpayError = (error as any).error;
             if (razorpayError && typeof razorpayError.description === 'string') {
@@ -98,6 +72,46 @@ export async function createOrderAndInitiatePayment(orderData: OrderCreationData
         }
 
         return { success: false, message: errorMessage };
+    }
+    
+    // Now that the Razorpay order is created, create the Firestore document.
+    try {
+        const ordersCol = collection(db, 'orders');
+        const orderCountSnapshot = await getDocs(ordersCol);
+        const orderNumber = (orderCountSnapshot.size + 1).toString().padStart(6, '0');
+
+        const newOrderData = {
+            ...orderData,
+            orderNumber,
+            orderStatus: 'pending' as const,
+            paymentStatus: 'unpaid' as const,
+            createdAt: serverTimestamp(),
+            razorpay: {
+                orderId: razorpayOrder.id, // Include the ID from the start
+                paymentId: '',
+                method: '',
+            },
+        };
+        
+        await setDoc(orderDocRef, newOrderData);
+
+        return {
+            success: true,
+            orderId: orderDocRef.id,
+            razorpayOrderId: razorpayOrder.id,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+        };
+    } catch (dbError) {
+        // This is a critical failure state. The payment order exists but our DB record failed to be created.
+        // We must log this for manual reconciliation.
+        console.error("CRITICAL: Firestore order creation failed AFTER Razorpay order was created.", {
+            firestoreOrderId: orderDocRef.id,
+            razorpayOrderId: razorpayOrder.id,
+            error: dbError
+        });
+        const errorMessage = dbError instanceof Error ? dbError.message : 'Could not save order to database.';
+        return { success: false, message: `Failed to save order details. Please contact support with Razorpay Order ID: ${razorpayOrder.id}` };
     }
 }
 
