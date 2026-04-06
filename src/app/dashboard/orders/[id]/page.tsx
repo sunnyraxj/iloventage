@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import type { Order } from '@/lib/types';
 import { OrderStatusChanger } from '@/app/admin/orders/components/OrderStatusChanger';
 import { Skeleton } from '@/components/ui/skeleton';
+import { VerifyPaymentButton } from '@/app/admin/orders/components/VerifyPaymentButton';
 
 function OrderDetailsSkeleton() {
     return (
@@ -111,14 +112,25 @@ export default function OrderDetailsPage() {
         notFound();
     }
 
+    const isAdmin = user?.role === 'admin';
+    const isPending = order.orderStatus === 'pending';
+
+
     return (
         <div className="space-y-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>Order #{order.orderNumber}</CardTitle>
-                    <CardDescription>
-                        Placed on {format(new Date(order.createdAt), 'MMMM d, yyyy')}
-                    </CardDescription>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <CardTitle>Order #{order.orderNumber}</CardTitle>
+                            <CardDescription>
+                                Placed on {format(new Date(order.createdAt), 'MMMM d, yyyy')}
+                            </CardDescription>
+                        </div>
+                         {isAdmin && isPending && (
+                            <VerifyPaymentButton orderId={order.id} />
+                        )}
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8 text-sm">
