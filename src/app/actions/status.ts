@@ -84,8 +84,9 @@ async function getR2Status(): Promise<ServiceStatus> {
 async function getRazorpayStatus(): Promise<ServiceStatus> {
     const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
 
-    const isConfigured = !!(keyId && keySecret);
+    const isConfigured = !!(keyId && keySecret && webhookSecret);
 
     if (!isConfigured) {
         return {
@@ -94,6 +95,7 @@ async function getRazorpayStatus(): Promise<ServiceStatus> {
             details: {
                 'Key ID': keyId ? '**********' : null,
                 'Key Secret': keySecret ? '**********' : null,
+                'Webhook Secret': webhookSecret ? '**********' : null,
             }
         };
     }
@@ -104,7 +106,13 @@ async function getRazorpayStatus(): Promise<ServiceStatus> {
             key_secret: keySecret,
         });
 
-        await razorpay.orders.all({ count: 1 });
+        // Use Promise.all to fetch orders and webhooks concurrently
+        const [orders, webhooks] = await Promise.all([
+            razorpay.orders.all({ count: 1 }),
+            razorpay.webhooks.all()
+        ]);
+        
+        const hasActiveWebhook = webhooks.items.some(hook => hook.active && hook.events.includes('order.paid'));
 
         return {
             isConfigured: true,
@@ -112,6 +120,8 @@ async function getRazorpayStatus(): Promise<ServiceStatus> {
             details: {
                 'Key ID': '**********' + keyId.slice(-4),
                 'Key Secret': '**********',
+                'Webhook Secret': '**********',
+                'Webhook Status': hasActiveWebhook ? 'Enabled' : 'Disabled or Not Found'
             }
         };
     } catch (error: any) {
@@ -129,6 +139,8 @@ async function getRazorpayStatus(): Promise<ServiceStatus> {
             details: {
                 'Key ID': '**********' + keyId.slice(-4),
                 'Key Secret': '**********',
+                'Webhook Secret': '**********',
+                'Webhook Status': 'Could not check'
             }
         };
     }

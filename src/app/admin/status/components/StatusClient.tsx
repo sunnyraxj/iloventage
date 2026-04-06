@@ -6,7 +6,7 @@ import { getSystemStatus, type ServiceStatus } from '@/app/actions/status';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, CheckCircle2, Cloud, CreditCard, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Cloud, CreditCard, Loader2, Webhook } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -77,9 +77,15 @@ const ServiceStatusCard = ({ title, icon, status }: { title: string, icon: React
                         <p className="text-sm font-medium mb-2">Details:</p>
                         <div className="text-xs space-y-1 rounded-md border p-3 bg-secondary/50">
                             {Object.entries(status.details).map(([key, value]) => (
-                                <div key={key} className="flex justify-between gap-4">
+                                <div key={key} className="flex justify-between items-center gap-4">
                                     <span className="text-muted-foreground">{key}:</span>
-                                    <span className="font-mono text-right break-all">{value ?? <span className="text-destructive font-sans font-medium">NOT SET</span>}</span>
+                                    {key === 'Webhook Status' ? (
+                                        <Badge variant={value === 'Enabled' ? 'success' : 'destructive'} className="font-sans font-medium text-xs">
+                                            {value}
+                                        </Badge>
+                                    ) : (
+                                        <span className="font-mono text-right break-all">{value ?? <span className="text-destructive font-sans font-medium">NOT SET</span>}</span>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -92,6 +98,16 @@ const ServiceStatusCard = ({ title, icon, status }: { title: string, icon: React
                         <AlertTitle>Action Required</AlertTitle>
                         <AlertDescription>
                             One or more environment variables for this service are missing. Please add them in your hosting provider's settings.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {status?.details?.['Webhook Status'] === 'Disabled or Not Found' && status.isConfigured && (
+                     <Alert variant="destructive" className="text-xs">
+                        <Webhook className="h-4 w-4" />
+                        <AlertTitle>Webhook Not Enabled</AlertTitle>
+                        <AlertDescription>
+                           No active webhook for 'order.paid' was found. Orders will not be automatically confirmed. Please enable it in your Razorpay dashboard.
                         </AlertDescription>
                     </Alert>
                 )}
